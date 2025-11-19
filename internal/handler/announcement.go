@@ -19,11 +19,10 @@ func (h *Handler) getAnnouncements() []domain.Announcement {
 func (h *Handler) newMockAnnouncement() []domain.Announcement {
 	return []domain.Announcement{
 		{
-			ID:       "1",
-			Title:    "Announcement 1",
-			Date:     time.Now(),
-			URL:      "https://example.com",
-			IsActive: true,
+			ID:    "1",
+			Title: "Announcement 1",
+			Date:  time.Now(),
+			URL:   "https://example.com",
 		},
 	}
 }

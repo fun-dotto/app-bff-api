@@ -11,11 +11,10 @@ import (
 
 // Announcement defines model for Announcement.
 type Announcement struct {
-	Date     time.Time `json:"date"`
-	Id       string    `json:"id"`
-	IsActive bool      `json:"isActive"`
-	Title    string    `json:"title"`
-	Url      string    `json:"url"`
+	Date  time.Time `json:"date"`
+	Id    string    `json:"id"`
+	Title string    `json:"title"`
+	Url   string    `json:"url"`
 }
 
 // ServerInterface represents all server handlers.

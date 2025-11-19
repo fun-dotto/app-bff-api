@@ -30,7 +30,6 @@ components:
         - title
         - date
         - url
-        - isActive
       properties:
         id:
           type: string
@@ -42,5 +41,3 @@ components:
         url:
           type: string
           format: uri
-        isActive:
-          type: boolean
