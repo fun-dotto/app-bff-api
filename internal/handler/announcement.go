@@ -15,7 +15,16 @@ func NewHandler() *Handler {
 }
 
 func (h *Handler) AnnouncementsList(c *gin.Context) {
-	announcements := []domain.Announcement{
+	announcements := h.getAnnouncements()
+	c.JSON(200, announcements)
+}
+
+func (h *Handler) getAnnouncements() []domain.Announcement {
+	return h.newMockAnnouncement()
+}
+
+func (h *Handler) newMockAnnouncement() []domain.Announcement {
+	return []domain.Announcement{
 		{
 			ID:       "1",
 			Title:    "Announcement 1",
@@ -24,6 +33,4 @@ func (h *Handler) AnnouncementsList(c *gin.Context) {
 			IsActive: true,
 		},
 	}
-
-	c.JSON(200, announcements)
 }
