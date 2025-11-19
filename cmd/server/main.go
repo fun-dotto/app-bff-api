@@ -5,13 +5,21 @@ import (
 
 	api "github.com/fun-dotto/app-bff-api/generated"
 	"github.com/fun-dotto/app-bff-api/internal/handler"
+	"github.com/fun-dotto/app-bff-api/internal/repository"
+	"github.com/fun-dotto/app-bff-api/internal/service"
 	"github.com/gin-gonic/gin"
 )
 
 func main() {
+
 	router := gin.Default()
 
-	h := handler.NewHandler()
+	announcementRepository := repository.NewMockAnnouncementRepository()
+
+	announcementService := service.NewAnnouncementService(announcementRepository)
+
+	h := handler.NewHandler(announcementService)
+
 	api.RegisterHandlers(router, h)
 
 	log.Println("Server starting on :8080")
