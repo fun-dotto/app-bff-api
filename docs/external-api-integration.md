@@ -80,11 +80,11 @@ type ExternalAnnouncementRepository struct {
 }
 
 func NewExternalAnnouncementRepository(cfg *config.ExternalServiceConfig) (*ExternalAnnouncementRepository, error) {
-    if cfg.AnnouncementServiceURL == "" {
-        return nil, fmt.Errorf("ANNOUNCEMENT_SERVICE_URL is required")
+    if cfg.AnnouncementAPIURL == "" {
+        return nil, fmt.Errorf("ANNOUNCEMENT_API_URL is required")
     }
     if cfg.TargetAudience == "" {
-        return nil, fmt.Errorf("ANNOUNCEMENT_SERVICE_TARGET_AUDIENCE is required")
+        return nil, fmt.Errorf("ANNOUNCEMENT_API_TARGET_AUDIENCE is required")
     }
 
     // IDトークンを使用してHTTPリクエストに認証情報を付与するRequestEditorを作成
@@ -104,7 +104,7 @@ func NewExternalAnnouncementRepository(cfg *config.ExternalServiceConfig) (*Exte
     }
 
     client, err := external.NewClientWithResponses(
-        cfg.AnnouncementServiceURL,
+        cfg.AnnouncementAPIURL,
         external.WithRequestEditorFn(requestEditor),
     )
     if err != nil {
@@ -169,17 +169,17 @@ import (
 )
 
 type ExternalServiceConfig struct {
-    AnnouncementServiceURL string
-    TargetAudience         string // Google Cloud Run サービスのURL（IDトークンのaudience）
-    Timeout                time.Duration
+    AnnouncementAPIURL string
+    TargetAudience     string // Google Cloud Run サービスのURL（IDトークンのaudience）
+    Timeout            time.Duration
     // サービスアカウントの認証情報は環境変数またはメタデータサーバーから自動取得
 }
 
 func LoadExternalServiceConfig() *ExternalServiceConfig {
     return &ExternalServiceConfig{
-        AnnouncementServiceURL: getEnv("ANNOUNCEMENT_SERVICE_URL", ""),
-        TargetAudience:         getEnv("ANNOUNCEMENT_SERVICE_TARGET_AUDIENCE", ""),
-        Timeout:                getDurationEnv("ANNOUNCEMENT_SERVICE_TIMEOUT", 30*time.Second),
+        AnnouncementAPIURL: getEnv("ANNOUNCEMENT_API_URL", ""),
+        TargetAudience:     getEnv("ANNOUNCEMENT_API_TARGET_AUDIENCE", ""),
+        Timeout:            getDurationEnv("ANNOUNCEMENT_API_TIMEOUT", 30*time.Second),
     }
 }
 
@@ -204,13 +204,13 @@ func getDurationEnv(key string, defaultValue time.Duration) time.Duration {
 
 ```bash
 # Google Cloud Run サービスのURL
-export ANNOUNCEMENT_SERVICE_URL=https://announcement-service-xxxxx.run.app
+export ANNOUNCEMENT_API_URL=https://announcement-service-xxxxx.run.app
 
 # IDトークンのaudience（通常はサービスのURLと同じ）
-export ANNOUNCEMENT_SERVICE_TARGET_AUDIENCE=https://announcement-service-xxxxx.run.app
+export ANNOUNCEMENT_API_TARGET_AUDIENCE=https://announcement-service-xxxxx.run.app
 
 # タイムアウト（オプション）
-export ANNOUNCEMENT_SERVICE_TIMEOUT=30s
+export ANNOUNCEMENT_API_TIMEOUT=30s
 ```
 
 #### 2.2 Google Cloud Run サービス間認証の実装
@@ -244,11 +244,11 @@ type ExternalAnnouncementRepository struct {
 }
 
 func NewExternalAnnouncementRepository(cfg *config.ExternalServiceConfig) (*ExternalAnnouncementRepository, error) {
-    if cfg.AnnouncementServiceURL == "" {
-        return nil, fmt.Errorf("ANNOUNCEMENT_SERVICE_URL is required")
+    if cfg.AnnouncementAPIURL == "" {
+        return nil, fmt.Errorf("ANNOUNCEMENT_API_URL is required")
     }
     if cfg.TargetAudience == "" {
-        return nil, fmt.Errorf("ANNOUNCEMENT_SERVICE_TARGET_AUDIENCE is required")
+        return nil, fmt.Errorf("ANNOUNCEMENT_API_TARGET_AUDIENCE is required")
     }
 
     // IDトークンを使用してHTTPリクエストに認証情報を付与するRequestEditorを作成
@@ -270,7 +270,7 @@ func NewExternalAnnouncementRepository(cfg *config.ExternalServiceConfig) (*Exte
     }
 
     client, err := external.NewClientWithResponses(
-        cfg.AnnouncementServiceURL,
+        cfg.AnnouncementAPIURL,
         external.WithRequestEditorFn(requestEditor),
     )
     if err != nil {
@@ -452,121 +452,11 @@ func (m *MockExternalAnnouncementRepository) GetAnnouncements() ([]domain.Announ
 
 8. **環境変数の設定**
 
-   - `ANNOUNCEMENT_SERVICE_URL`: 外部サービスの URL
-   - `ANNOUNCEMENT_SERVICE_TARGET_AUDIENCE`: ID トークンの audience（通常はサービスの URL と同じ）
-   - `ANNOUNCEMENT_SERVICE_TIMEOUT`: タイムアウト（オプション）
+   - `ANNOUNCEMENT_API_URL`: 外部サービスの URL
+   - `ANNOUNCEMENT_API_TARGET_AUDIENCE`: ID トークンの audience（通常はサービスの URL と同じ）
+   - `ANNOUNCEMENT_API_TIMEOUT`: タイムアウト（オプション）
 
 9. **テスト実装**
    - ユニットテストを作成（モックを使用）
    - 統合テストを検討（必要に応じて）
    - ローカル開発環境では `gcloud auth application-default login` を実行
-
-## 代替案：手動 HTTP クライアント実装
-
-OpenAPI スキーマが利用できない、または軽量な実装が必要な場合は、標準の`net/http`パッケージを使用して手動実装することも可能です。
-
-```go
-type HTTPAnnouncementRepository struct {
-    baseURL    string
-    httpClient *http.Client
-    apiKey     string
-}
-
-func (r *HTTPAnnouncementRepository) GetAnnouncements() ([]domain.Announcement, error) {
-    req, err := http.NewRequest("GET", r.baseURL+"/announcements", nil)
-    if err != nil {
-        return nil, err
-    }
-
-    req.Header.Set("Authorization", "Bearer "+r.apiKey)
-
-    resp, err := r.httpClient.Do(req)
-    if err != nil {
-        return nil, err
-    }
-    defer resp.Body.Close()
-
-    // レスポンスをパースしてドメインモデルに変換
-    // ...
-}
-```
-
-## 推奨事項
-
-1. **OpenAPI クライアント生成を優先**
-
-   - 型安全性が高い
-   - スキーマ変更時の検出が容易
-   - メンテナンスコストが低い
-
-2. **設定の外部化**
-
-   - 環境変数や設定ファイルで管理
-   - 本番環境と開発環境で切り替え可能に
-
-3. **エラーハンドリングの徹底**
-
-   - 外部サービスのエラーを適切に処理
-   - ログ出力を実装
-
-4. **監視とロギング**
-
-   - 外部 API 呼び出しのログを記録
-   - メトリクスを収集（呼び出し回数、エラー率など）
-
-5. **タイムアウトの設定**
-   - 外部 API 呼び出しにタイムアウトを設定
-   - デフォルト値は 30 秒程度を推奨
-
-## Google Cloud Run サービス間認証の詳細
-
-### 認証フロー
-
-1. **ID トークンの取得**: `idtoken.NewTokenSource()` が Google Cloud のメタデータサーバー（Cloud Run 環境）または Application Default Credentials（ローカル環境）から認証情報を取得します。
-2. **トークンの生成**: 指定された `targetAudience`（呼び出し先サービスの URL）に対して ID トークンを生成します。
-3. **リクエストへの付与**: 各 HTTP リクエストの `Authorization` ヘッダーに ID トークンを設定します。
-4. **検証**: 呼び出し先の Cloud Run サービスが ID トークンを検証し、適切な権限があることを確認します。
-
-### 必要な権限設定
-
-呼び出し元のサービスアカウントに、呼び出し先の Cloud Run サービスに対する `run.invoker` ロールが必要です。
-
-```bash
-# サービスアカウントにロールを付与
-gcloud run services add-iam-policy-binding ANNOUNCEMENT_SERVICE_NAME \
-  --member="serviceAccount:CALLER_SERVICE_ACCOUNT@PROJECT_ID.iam.gserviceaccount.com" \
-  --role="roles/run.invoker" \
-  --region=REGION
-```
-
-### トラブルシューティング
-
-**認証エラーが発生する場合：**
-
-1. **サービスアカウントの確認**
-
-   ```bash
-   # Cloud Run サービスのサービスアカウントを確認
-   gcloud run services describe SERVICE_NAME --region=REGION --format="value(spec.template.spec.serviceAccountName)"
-   ```
-
-2. **IAM ポリシーの確認**
-
-   ```bash
-   # 呼び出し先サービスのIAMポリシーを確認
-   gcloud run services get-iam-policy SERVICE_NAME --region=REGION
-   ```
-
-3. **ローカル環境での認証情報の確認**
-   ```bash
-   # Application Default Credentials が設定されているか確認
-   gcloud auth application-default print-access-token
-   ```
-
-## 参考リソース
-
-- [oapi-codegen Documentation](https://github.com/deepmap/oapi-codegen)
-- [Go HTTP Client Best Practices](https://www.alexedwards.net/blog/how-to-make-http-requests-in-go)
-- [Google Cloud Identity Token Authentication](https://cloud.google.com/run/docs/authenticating/service-to-service)
-- [google.golang.org/api/idtoken Package](https://pkg.go.dev/google.golang.org/api/idtoken)
-- [Cloud Run Service-to-Service Authentication](https://cloud.google.com/run/docs/authenticating/service-to-service)
