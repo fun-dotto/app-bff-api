@@ -4,6 +4,8 @@
 
 `internal/repository/announcement.go`で、別の OpenAPI スキーマによって定義されたサービスを呼び出す実装方針をまとめます。
 
+**重要**: 外部サービスは Google Cloud Run で動作しており、サービス間認証が必要です。
+
 ## アーキテクチャ
 
 現在のプロジェクトは以下のアーキテクチャパターンを使用しています：
@@ -55,34 +57,73 @@ Handler → Service → Repository → External API
 
 #### 1.2 リポジトリ実装
 
-生成されたクライアントを使用してリポジトリを実装します。
+生成されたクライアントを使用してリポジトリを実装します。Google Cloud Run のサービス間認証を含む完全な実装例：
 
 ```go
 package repository
 
 import (
     "context"
+    "fmt"
+    "net/http"
+    "time"
+    
+    "google.golang.org/api/idtoken"
     "github.com/fun-dotto/app-bff-api/generated/external"
+    "github.com/fun-dotto/app-bff-api/internal/config"
     "github.com/fun-dotto/app-bff-api/internal/domain"
 )
 
 type ExternalAnnouncementRepository struct {
-    client *external.ClientWithResponses
+    client         *external.ClientWithResponses
+    config         *config.ExternalServiceConfig
 }
 
-func NewExternalAnnouncementRepository(baseURL string) (*ExternalAnnouncementRepository, error) {
-    client, err := external.NewClientWithResponses(baseURL)
-    if err != nil {
-        return nil, err
+func NewExternalAnnouncementRepository(cfg *config.ExternalServiceConfig) (*ExternalAnnouncementRepository, error) {
+    if cfg.AnnouncementServiceURL == "" {
+        return nil, fmt.Errorf("ANNOUNCEMENT_SERVICE_URL is required")
     }
-    return &ExternalAnnouncementRepository{client: client}, nil
+    if cfg.TargetAudience == "" {
+        return nil, fmt.Errorf("ANNOUNCEMENT_SERVICE_TARGET_AUDIENCE is required")
+    }
+    
+    // IDトークンを使用してHTTPリクエストに認証情報を付与するRequestEditorを作成
+    requestEditor := func(ctx context.Context, req *http.Request) error {
+        tokenSource, err := idtoken.NewTokenSource(ctx, cfg.TargetAudience)
+        if err != nil {
+            return fmt.Errorf("failed to create token source: %w", err)
+        }
+        
+        token, err := tokenSource.Token()
+        if err != nil {
+            return fmt.Errorf("failed to get token: %w", err)
+        }
+        
+        req.Header.Set("Authorization", "Bearer "+token.AccessToken)
+        return nil
+    }
+    
+    client, err := external.NewClientWithResponses(
+        cfg.AnnouncementServiceURL,
+        external.WithRequestEditorFn(requestEditor),
+    )
+    if err != nil {
+        return nil, fmt.Errorf("failed to create client: %w", err)
+    }
+    
+    return &ExternalAnnouncementRepository{
+        client: client,
+        config: cfg,
+    }, nil
 }
 
 func (r *ExternalAnnouncementRepository) GetAnnouncements() ([]domain.Announcement, error) {
-    ctx := context.Background()
+    ctx, cancel := context.WithTimeout(context.Background(), r.config.Timeout)
+    defer cancel()
+    
     resp, err := r.client.GetAnnouncementsWithResponse(ctx)
     if err != nil {
-        return nil, err
+        return nil, fmt.Errorf("failed to call external API: %w", err)
     }
 
     if resp.StatusCode() != 200 {
@@ -101,10 +142,11 @@ func (r *ExternalAnnouncementRepository) GetAnnouncements() ([]domain.Announceme
 func convertToDomain(a external.Announcement) domain.Announcement {
     // 外部APIのモデルをドメインモデルに変換
     // 日付のパースなどが必要な場合がある
+    date, _ := time.Parse(time.RFC3339, a.Date)
     return domain.Announcement{
         ID:    a.Id,
         Title: a.Title,
-        Date:  parseDate(a.Date),
+        Date:  date,
         URL:   a.Url,
     }
 }
@@ -116,23 +158,27 @@ func convertToDomain(a external.Announcement) domain.Announcement {
 
 #### 2.1 環境変数による設定
 
+Google Cloud Run のサービス間認証に対応した設定管理：
+
 ```go
 package config
 
 import (
     "os"
+    "time"
 )
 
 type ExternalServiceConfig struct {
     AnnouncementServiceURL string
-    APIKey                 string
+    TargetAudience         string // Google Cloud Run サービスのURL（IDトークンのaudience）
     Timeout                time.Duration
+    // サービスアカウントの認証情報は環境変数またはメタデータサーバーから自動取得
 }
 
 func LoadExternalServiceConfig() *ExternalServiceConfig {
     return &ExternalServiceConfig{
-        AnnouncementServiceURL: getEnv("ANNOUNCEMENT_SERVICE_URL", "https://api.example.com"),
-        APIKey:                 getEnv("ANNOUNCEMENT_SERVICE_API_KEY", ""),
+        AnnouncementServiceURL: getEnv("ANNOUNCEMENT_SERVICE_URL", ""),
+        TargetAudience:         getEnv("ANNOUNCEMENT_SERVICE_TARGET_AUDIENCE", ""),
         Timeout:                getDurationEnv("ANNOUNCEMENT_SERVICE_TIMEOUT", 30*time.Second),
     }
 }
@@ -143,26 +189,136 @@ func getEnv(key, defaultValue string) string {
     }
     return defaultValue
 }
+
+func getDurationEnv(key string, defaultValue time.Duration) time.Duration {
+    if value := os.Getenv(key); value != "" {
+        if d, err := time.ParseDuration(value); err == nil {
+            return d
+        }
+    }
+    return defaultValue
+}
 ```
 
-#### 2.2 認証の実装
+**環境変数の設定例：**
 
-API キーや Bearer トークンを使用する場合：
+```bash
+# Google Cloud Run サービスのURL
+export ANNOUNCEMENT_SERVICE_URL=https://announcement-service-xxxxx.run.app
+
+# IDトークンのaudience（通常はサービスのURLと同じ）
+export ANNOUNCEMENT_SERVICE_TARGET_AUDIENCE=https://announcement-service-xxxxx.run.app
+
+# タイムアウト（オプション）
+export ANNOUNCEMENT_SERVICE_TIMEOUT=30s
+```
+
+#### 2.2 Google Cloud Run サービス間認証の実装
+
+Google Cloud Run のサービス間認証では、Google Cloud Identity Token（IDトークン）を使用します。
+
+**必要な依存関係：**
+
+```bash
+go get google.golang.org/api/idtoken
+```
+
+**認証実装：**
 
 ```go
-func NewExternalAnnouncementRepository(config *config.ExternalServiceConfig) (*ExternalAnnouncementRepository, error) {
+package repository
+
+import (
+    "context"
+    "fmt"
+    "net/http"
+    
+    "google.golang.org/api/idtoken"
+    "github.com/fun-dotto/app-bff-api/generated/external"
+    "github.com/fun-dotto/app-bff-api/internal/config"
+)
+
+type ExternalAnnouncementRepository struct {
+    client        *external.ClientWithResponses
+    targetAudience string
+}
+
+func NewExternalAnnouncementRepository(cfg *config.ExternalServiceConfig) (*ExternalAnnouncementRepository, error) {
+    if cfg.AnnouncementServiceURL == "" {
+        return nil, fmt.Errorf("ANNOUNCEMENT_SERVICE_URL is required")
+    }
+    if cfg.TargetAudience == "" {
+        return nil, fmt.Errorf("ANNOUNCEMENT_SERVICE_TARGET_AUDIENCE is required")
+    }
+    
+    // IDトークンを使用してHTTPリクエストに認証情報を付与するRequestEditorを作成
+    requestEditor := func(ctx context.Context, req *http.Request) error {
+        // IDトークンを取得
+        tokenSource, err := idtoken.NewTokenSource(ctx, cfg.TargetAudience)
+        if err != nil {
+            return fmt.Errorf("failed to create token source: %w", err)
+        }
+        
+        token, err := tokenSource.Token()
+        if err != nil {
+            return fmt.Errorf("failed to get token: %w", err)
+        }
+        
+        // AuthorizationヘッダーにIDトークンを設定
+        req.Header.Set("Authorization", "Bearer "+token.AccessToken)
+        return nil
+    }
+    
     client, err := external.NewClientWithResponses(
-        config.AnnouncementServiceURL,
-        external.WithRequestEditorFn(func(ctx context.Context, req *http.Request) error {
-            req.Header.Set("Authorization", "Bearer "+config.APIKey)
-            return nil
-        }),
+        cfg.AnnouncementServiceURL,
+        external.WithRequestEditorFn(requestEditor),
     )
     if err != nil {
-        return nil, err
+        return nil, fmt.Errorf("failed to create client: %w", err)
     }
-    return &ExternalAnnouncementRepository{client: client}, nil
+    
+    return &ExternalAnnouncementRepository{
+        client:         client,
+        targetAudience: cfg.TargetAudience,
+    }, nil
 }
+```
+
+**認証の仕組み：**
+
+1. **IDトークンの取得**: `idtoken.NewTokenSource()` を使用して、Google Cloud のメタデータサーバーまたはサービスアカウントの認証情報からIDトークンを取得します。
+2. **トークンの設定**: 取得したIDトークンを `Authorization: Bearer <token>` ヘッダーに設定します。
+3. **自動更新**: Google Cloud SDKはトークンの有効期限を管理し、必要に応じて自動的に更新します。
+
+**ローカル開発環境での認証：**
+
+ローカル開発環境では、Application Default Credentials (ADC) を使用します：
+
+```bash
+# gcloud CLIで認証情報を設定
+gcloud auth application-default login
+
+# または、サービスアカウントのキーファイルを指定
+export GOOGLE_APPLICATION_CREDENTIALS=/path/to/service-account-key.json
+```
+
+**Cloud Run での認証：**
+
+Cloud Run で実行する場合、サービスアカウントを指定してデプロイします：
+
+```bash
+gcloud run deploy app-bff-api \
+  --service-account=app-bff-api@PROJECT_ID.iam.gserviceaccount.com \
+  --allow-unauthenticated
+```
+
+呼び出し先の Cloud Run サービスで、このサービスアカウントに `run.invoker` ロールを付与します：
+
+```bash
+gcloud run services add-iam-policy-binding announcement-service \
+  --member="serviceAccount:app-bff-api@PROJECT_ID.iam.gserviceaccount.com" \
+  --role="roles/run.invoker" \
+  --region=asia-northeast1
 ```
 
 ### 3. エラーハンドリング
@@ -255,34 +411,55 @@ func (m *MockExternalAnnouncementRepository) GetAnnouncements() ([]domain.Announ
 
 ### 6. 実装手順
 
-1. **外部サービスの OpenAPI スキーマを取得**
+1. **依存関係の追加**
+
+   ```bash
+   go get google.golang.org/api/idtoken
+   ```
+
+2. **外部サービスの OpenAPI スキーマを取得**
 
    - 外部サービスから OpenAPI スキーマ（YAML/JSON）を取得
    - `openapi/external/`ディレクトリに配置
 
-2. **クライアントコード生成設定を作成**
+3. **クライアントコード生成設定を作成**
 
    - `openapi/external/config.yaml`を作成
    - コード生成コマンドを実行
 
-3. **設定管理を実装**
+4. **設定管理を実装**
 
    - `internal/config/`ディレクトリを作成
    - 環境変数から設定を読み込む機能を実装
+   - Google Cloud Run の認証設定（`TargetAudience`）を含める
 
-4. **リポジトリ実装**
+5. **リポジトリ実装**
 
    - `internal/repository/external_announcement.go`を作成
    - 生成されたクライアントを使用して実装
+   - `idtoken.NewTokenSource()` を使用してIDトークンを取得
+   - RequestEditorで各リクエストに認証ヘッダーを設定
 
-5. **依存性注入の更新**
+6. **依存性注入の更新**
 
    - `cmd/server/main.go`でリポジトリの初期化を更新
    - 環境変数から設定を読み込み
 
-6. **テスト実装**
-   - ユニットテストを作成
+7. **Google Cloud Run の権限設定**
+
+   - 呼び出し元のサービスアカウントに `run.invoker` ロールを付与
+   - Cloud Run サービスのデプロイ時にサービスアカウントを指定
+
+8. **環境変数の設定**
+
+   - `ANNOUNCEMENT_SERVICE_URL`: 外部サービスのURL
+   - `ANNOUNCEMENT_SERVICE_TARGET_AUDIENCE`: IDトークンのaudience（通常はサービスのURLと同じ）
+   - `ANNOUNCEMENT_SERVICE_TIMEOUT`: タイムアウト（オプション）
+
+9. **テスト実装**
+   - ユニットテストを作成（モックを使用）
    - 統合テストを検討（必要に応じて）
+   - ローカル開発環境では `gcloud auth application-default login` を実行
 
 ## 代替案：手動 HTTP クライアント実装
 
@@ -341,7 +518,53 @@ func (r *HTTPAnnouncementRepository) GetAnnouncements() ([]domain.Announcement, 
    - 外部 API 呼び出しにタイムアウトを設定
    - デフォルト値は 30 秒程度を推奨
 
+## Google Cloud Run サービス間認証の詳細
+
+### 認証フロー
+
+1. **IDトークンの取得**: `idtoken.NewTokenSource()` が Google Cloud のメタデータサーバー（Cloud Run 環境）または Application Default Credentials（ローカル環境）から認証情報を取得します。
+2. **トークンの生成**: 指定された `targetAudience`（呼び出し先サービスのURL）に対してIDトークンを生成します。
+3. **リクエストへの付与**: 各HTTPリクエストの `Authorization` ヘッダーにIDトークンを設定します。
+4. **検証**: 呼び出し先の Cloud Run サービスがIDトークンを検証し、適切な権限があることを確認します。
+
+### 必要な権限設定
+
+呼び出し元のサービスアカウントに、呼び出し先の Cloud Run サービスに対する `run.invoker` ロールが必要です。
+
+```bash
+# サービスアカウントにロールを付与
+gcloud run services add-iam-policy-binding ANNOUNCEMENT_SERVICE_NAME \
+  --member="serviceAccount:CALLER_SERVICE_ACCOUNT@PROJECT_ID.iam.gserviceaccount.com" \
+  --role="roles/run.invoker" \
+  --region=REGION
+```
+
+### トラブルシューティング
+
+**認証エラーが発生する場合：**
+
+1. **サービスアカウントの確認**
+   ```bash
+   # Cloud Run サービスのサービスアカウントを確認
+   gcloud run services describe SERVICE_NAME --region=REGION --format="value(spec.template.spec.serviceAccountName)"
+   ```
+
+2. **IAMポリシーの確認**
+   ```bash
+   # 呼び出し先サービスのIAMポリシーを確認
+   gcloud run services get-iam-policy SERVICE_NAME --region=REGION
+   ```
+
+3. **ローカル環境での認証情報の確認**
+   ```bash
+   # Application Default Credentials が設定されているか確認
+   gcloud auth application-default print-access-token
+   ```
+
 ## 参考リソース
 
 - [oapi-codegen Documentation](https://github.com/deepmap/oapi-codegen)
 - [Go HTTP Client Best Practices](https://www.alexedwards.net/blog/how-to-make-http-requests-in-go)
+- [Google Cloud Identity Token Authentication](https://cloud.google.com/run/docs/authenticating/service-to-service)
+- [google.golang.org/api/idtoken Package](https://pkg.go.dev/google.golang.org/api/idtoken)
+- [Cloud Run Service-to-Service Authentication](https://cloud.google.com/run/docs/authenticating/service-to-service)
