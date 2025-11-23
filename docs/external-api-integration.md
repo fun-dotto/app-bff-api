@@ -200,19 +200,6 @@ func getDurationEnv(key string, defaultValue time.Duration) time.Duration {
 }
 ```
 
-**環境変数の設定例：**
-
-```bash
-# Google Cloud Run サービスのURL
-export ANNOUNCEMENT_API_URL=https://announcement-service-xxxxx.run.app
-
-# IDトークンのaudience（通常はサービスのURLと同じ）
-export ANNOUNCEMENT_API_TARGET_AUDIENCE=https://announcement-service-xxxxx.run.app
-
-# タイムアウト（オプション）
-export ANNOUNCEMENT_API_TIMEOUT=30s
-```
-
 #### 2.2 Google Cloud Run サービス間認証の実装
 
 Google Cloud Run のサービス間認証では、Google Cloud Identity Token（ID トークン）を使用します。
