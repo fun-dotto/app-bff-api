@@ -22,13 +22,26 @@ func main() {
 		log.Printf("Warning: .env file not found: %v", err)
 	}
 
+	ctx := context.Background()
+
+	var config *firebaseAdmin.Config
+
+	projectID := os.Getenv("PROJECT_ID")
+	if projectID == "" {
+		config = nil
+	} else {
+		config = &firebaseAdmin.Config{
+			ProjectID: projectID,
+		}
+	}
+
 	// Firebase App Check の初期化
-	app, err := firebaseAdmin.NewApp(context.Background(), nil)
+	app, err := firebaseAdmin.NewApp(ctx, config)
 	if err != nil {
 		log.Fatalf("error initializing Firebase app: %v\n", err)
 	}
 
-	appCheckClient, err := app.AppCheck(context.Background())
+	appCheckClient, err := app.AppCheck(ctx)
 	if err != nil {
 		log.Fatalf("error initializing App Check client: %v\n", err)
 	}
@@ -45,7 +58,6 @@ func main() {
 	}
 
 	// 認証付きHTTPクライアントを作成
-	ctx := context.Background()
 	announcementAPIAuthClient, err := idtoken.NewClient(ctx, announcementAPIURL)
 	if err != nil {
 		log.Fatal("Failed to create auth client:", err)
