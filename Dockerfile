@@ -2,7 +2,7 @@
 FROM golang:1.25.4-alpine AS builder
 
 # Install build dependencies
-RUN apk add --no-cache git make
+RUN apk add --no-cache git
 
 # Set working directory
 WORKDIR /app
@@ -13,11 +13,14 @@ COPY go.mod go.sum ./
 # Download dependencies
 RUN go mod download
 
+# Install Task
+RUN go install github.com/go-task/task/v3/cmd/task@latest
+
 # Copy source code
 COPY . .
 
 # Generate code from OpenAPI spec
-RUN make generate
+RUN task generate
 
 # Build the application
 RUN CGO_ENABLED=0 GOOS=linux go build -tags timetzdata -o ./bin/main ./cmd/server/main.go
