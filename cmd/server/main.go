@@ -5,9 +5,11 @@ import (
 	"log"
 	"os"
 
+	firebaseAdmin "firebase.google.com/go/v4"
 	api "github.com/fun-dotto/app-bff-api/generated"
 	"github.com/fun-dotto/app-bff-api/generated/external/announcement_api"
 	"github.com/fun-dotto/app-bff-api/internal/handler"
+	"github.com/fun-dotto/app-bff-api/internal/middleware"
 	"github.com/fun-dotto/app-bff-api/internal/repository"
 	"github.com/fun-dotto/app-bff-api/internal/service"
 	"github.com/gin-gonic/gin"
@@ -20,7 +22,21 @@ func main() {
 		log.Printf("Warning: .env file not found: %v", err)
 	}
 
+	// Firebase App Check の初期化
+	app, err := firebaseAdmin.NewApp(context.Background(), nil)
+	if err != nil {
+		log.Fatalf("error initializing Firebase app: %v\n", err)
+	}
+
+	appCheckClient, err := app.AppCheck(context.Background())
+	if err != nil {
+		log.Fatalf("error initializing App Check client: %v\n", err)
+	}
+
 	router := gin.Default()
+
+	// App Check ミドルウェアを適用
+	router.Use(middleware.AppCheckMiddleware(appCheckClient))
 
 	// 環境変数から外部APIのURLを取得
 	announcementAPIURL := os.Getenv("ANNOUNCEMENT_API_URL")
