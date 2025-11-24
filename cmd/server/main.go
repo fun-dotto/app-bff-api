@@ -11,10 +11,15 @@ import (
 	"github.com/fun-dotto/app-bff-api/internal/repository"
 	"github.com/fun-dotto/app-bff-api/internal/service"
 	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
 	"google.golang.org/api/idtoken"
 )
 
 func main() {
+	if err := godotenv.Load(); err != nil {
+		log.Printf("Warning: .env file not found: %v", err)
+	}
+
 	router := gin.Default()
 
 	// 環境変数から外部APIのURLを取得
@@ -25,7 +30,7 @@ func main() {
 
 	// 認証付きHTTPクライアントを作成
 	ctx := context.Background()
-	authClient, err := idtoken.NewClient(ctx, announcementAPIURL)
+	announcementAPIAuthClient, err := idtoken.NewClient(ctx, announcementAPIURL)
 	if err != nil {
 		log.Fatal("Failed to create auth client:", err)
 	}
@@ -33,7 +38,7 @@ func main() {
 	// 生成されたクライアントに認証付きHTTPクライアントを注入
 	apiClient, err := announcement_api.NewClientWithResponses(
 		announcementAPIURL,
-		announcement_api.WithHTTPClient(authClient),
+		announcement_api.WithHTTPClient(announcementAPIAuthClient),
 	)
 	if err != nil {
 		log.Fatal("Failed to create API client:", err)
