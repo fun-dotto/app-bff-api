@@ -1,0 +1,5 @@
+package: announcement_api
+generate:
+  client: true
+  models: true
+output: generated/external/announcement_api/client.gen.go

@@ -12,6 +12,7 @@ tasks:
       - rm -rf ./generated
       - mkdir -p ./generated
       - go tool oapi-codegen -config ./openapi/config.yaml ./openapi/openapi.yaml
+      - go tool oapi-codegen -config ./openapi/external/announcement_api/config.yaml ./openapi/external/announcement_api/openapi.yaml
 
   clean:
     desc: Clean build artifacts
