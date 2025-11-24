@@ -6,7 +6,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	api "github.com/fun-dotto/app-bff-api/generated"
+	"github.com/fun-dotto/app-bff-api/internal/domain"
 	"github.com/fun-dotto/app-bff-api/internal/repository"
 	"github.com/fun-dotto/app-bff-api/internal/service"
 	"github.com/gin-gonic/gin"
@@ -18,64 +18,23 @@ func TestAnnouncementsList(t *testing.T) {
 
 	tests := []struct {
 		name         string
-		isActive     *bool
 		setupContext func(c *gin.Context)
 		wantCode     int
 		validate     func(t *testing.T, w *httptest.ResponseRecorder)
 	}{
 		{
 			name:         "正常にお知らせ一覧が取得できる",
-			isActive:     boolPtr(true),
 			setupContext: func(c *gin.Context) {},
 			wantCode:     http.StatusOK,
 			validate: func(t *testing.T, w *httptest.ResponseRecorder) {
-				var announcements []api.Announcement
+				var announcements []domain.Announcement
 				err := json.Unmarshal(w.Body.Bytes(), &announcements)
 				assert.NoError(t, err, "JSONのパースに失敗しました")
 				assert.NotEmpty(t, announcements, "アナウンスメントが空です")
 			},
 		},
 		{
-			name:         "isActive=trueで有効なお知らせのみ取得できる",
-			isActive:     boolPtr(true),
-			setupContext: func(c *gin.Context) {},
-			wantCode:     http.StatusOK,
-			validate: func(t *testing.T, w *httptest.ResponseRecorder) {
-				var announcements []api.Announcement
-				err := json.Unmarshal(w.Body.Bytes(), &announcements)
-				assert.NoError(t, err)
-				assert.Len(t, announcements, 1, "有効なお知らせは1件のはずです")
-				assert.True(t, announcements[0].IsActive, "IsActiveがtrueではありません")
-			},
-		},
-		{
-			name:         "isActive=falseで無効なお知らせのみ取得できる",
-			isActive:     boolPtr(false),
-			setupContext: func(c *gin.Context) {},
-			wantCode:     http.StatusOK,
-			validate: func(t *testing.T, w *httptest.ResponseRecorder) {
-				var announcements []api.Announcement
-				err := json.Unmarshal(w.Body.Bytes(), &announcements)
-				assert.NoError(t, err)
-				assert.Len(t, announcements, 1, "無効なお知らせは1件のはずです")
-				assert.False(t, announcements[0].IsActive, "IsActiveがfalseではありません")
-			},
-		},
-		{
-			name:         "isActive=nilで全件取得できる",
-			isActive:     nil,
-			setupContext: func(c *gin.Context) {},
-			wantCode:     http.StatusOK,
-			validate: func(t *testing.T, w *httptest.ResponseRecorder) {
-				var announcements []api.Announcement
-				err := json.Unmarshal(w.Body.Bytes(), &announcements)
-				assert.NoError(t, err)
-				assert.Len(t, announcements, 2, "全件（2件）取得できるはずです")
-			},
-		},
-		{
 			name:         "Content-Typeがapplication/jsonである",
-			isActive:     boolPtr(true),
 			setupContext: func(c *gin.Context) {},
 			wantCode:     http.StatusOK,
 			validate: func(t *testing.T, w *httptest.ResponseRecorder) {
@@ -84,7 +43,6 @@ func TestAnnouncementsList(t *testing.T) {
 		},
 		{
 			name:         "レスポンスが配列形式である",
-			isActive:     boolPtr(true),
 			setupContext: func(c *gin.Context) {},
 			wantCode:     http.StatusOK,
 			validate: func(t *testing.T, w *httptest.ResponseRecorder) {
@@ -93,6 +51,20 @@ func TestAnnouncementsList(t *testing.T) {
 				assert.NoError(t, err)
 				_, isArray := result.([]interface{})
 				assert.True(t, isArray, "レスポンスが配列形式ではありません")
+			},
+		},
+		{
+			name:         "お知らせのフィールドが正しく返される",
+			setupContext: func(c *gin.Context) {},
+			wantCode:     http.StatusOK,
+			validate: func(t *testing.T, w *httptest.ResponseRecorder) {
+				var announcements []domain.Announcement
+				err := json.Unmarshal(w.Body.Bytes(), &announcements)
+				assert.NoError(t, err)
+				assert.Len(t, announcements, 1, "MockRepositoryは1件返すはずです")
+				assert.Equal(t, "1", announcements[0].ID)
+				assert.Equal(t, "Announcement 1", announcements[0].Title)
+				assert.Equal(t, "https://example.com", announcements[0].URL)
 			},
 		},
 	}
@@ -108,18 +80,13 @@ func TestAnnouncementsList(t *testing.T) {
 				tt.setupContext(c)
 			}
 
-			h.AnnouncementsList(c, api.AnnouncementsListParams{
-				IsActive: tt.isActive,
-			})
+			h.AnnouncementsList(c)
+
+			assert.Equal(t, tt.wantCode, w.Code)
 
 			if tt.validate != nil {
 				tt.validate(t, w)
 			}
 		})
 	}
-}
-
-// boolPtr は bool値のポインタを返すヘルパー関数
-func boolPtr(b bool) *bool {
-	return &b
 }
