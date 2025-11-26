@@ -6,7 +6,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/fun-dotto/app-bff-api/internal/domain"
+	api "github.com/fun-dotto/app-bff-api/generated"
 	"github.com/fun-dotto/app-bff-api/internal/repository"
 	"github.com/fun-dotto/app-bff-api/internal/service"
 	"github.com/gin-gonic/gin"
@@ -27,7 +27,7 @@ func TestAnnouncementsList(t *testing.T) {
 			setupContext: func(c *gin.Context) {},
 			wantCode:     http.StatusOK,
 			validate: func(t *testing.T, w *httptest.ResponseRecorder) {
-				var announcements []domain.Announcement
+				var announcements []api.Announcement
 				err := json.Unmarshal(w.Body.Bytes(), &announcements)
 				assert.NoError(t, err, "JSONのパースに失敗しました")
 				assert.NotEmpty(t, announcements, "アナウンスメントが空です")
@@ -58,13 +58,13 @@ func TestAnnouncementsList(t *testing.T) {
 			setupContext: func(c *gin.Context) {},
 			wantCode:     http.StatusOK,
 			validate: func(t *testing.T, w *httptest.ResponseRecorder) {
-				var announcements []domain.Announcement
+				var announcements []api.Announcement
 				err := json.Unmarshal(w.Body.Bytes(), &announcements)
 				assert.NoError(t, err)
 				assert.Len(t, announcements, 1, "MockRepositoryは1件返すはずです")
-				assert.Equal(t, "1", announcements[0].ID)
+				assert.Equal(t, "1", announcements[0].Id)
 				assert.Equal(t, "Announcement 1", announcements[0].Title)
-				assert.Equal(t, "https://example.com", announcements[0].URL)
+				assert.Equal(t, "https://example.com", announcements[0].Url)
 			},
 		},
 	}
