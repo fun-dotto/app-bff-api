@@ -1,15 +1,27 @@
 package handler
 
 import (
+	api "github.com/fun-dotto/app-bff-api/generated"
 	"github.com/gin-gonic/gin"
 )
 
 func (h *Handler) AnnouncementsList(c *gin.Context) {
-	announcements, err := h.announcementService.GetAnnouncements()
+	domainAnnouncements, err := h.announcementService.GetAnnouncements()
 	if err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(200, announcements)
+	// ドメインモデル → API型に変換
+	apiAnnouncements := make([]api.Announcement, len(domainAnnouncements))
+	for i, a := range domainAnnouncements {
+		apiAnnouncements[i] = api.Announcement{
+			Id:    a.ID,
+			Title: a.Title,
+			Date:  a.Date,
+			Url:   a.URL,
+		}
+	}
+
+	c.JSON(200, apiAnnouncements)
 }
