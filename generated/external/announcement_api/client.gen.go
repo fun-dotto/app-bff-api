@@ -16,6 +16,12 @@ import (
 	"github.com/oapi-codegen/runtime"
 )
 
+// Defines values for SortDirection.
+const (
+	Asc  SortDirection = "asc"
+	Desc SortDirection = "desc"
+)
+
 // Announcement defines model for Announcement.
 type Announcement struct {
 	Date     time.Time `json:"date"`
@@ -25,9 +31,20 @@ type Announcement struct {
 	Url      string    `json:"url"`
 }
 
+// SortDirection defines model for SortDirection.
+type SortDirection string
+
 // AnnouncementsListParams defines parameters for AnnouncementsList.
 type AnnouncementsListParams struct {
-	IsActive *bool `form:"isActive,omitempty" json:"isActive,omitempty"`
+	// SortByDate 日時ソート
+	//
+	// 昇順ソートの場合は`asc`を指定、降順ソートの場合は`desc`を指定
+	SortByDate *SortDirection `form:"sortByDate,omitempty" json:"sortByDate,omitempty"`
+
+	// FilterIsActive 公開状態で絞り込むか
+	//
+	// 公開状態のみを抽出する場合は`true`を指定
+	FilterIsActive *bool `form:"filterIsActive,omitempty" json:"filterIsActive,omitempty"`
 }
 
 // RequestEditorFn  is the function signature for the RequestEditor callback function
@@ -141,9 +158,25 @@ func NewAnnouncementsListRequest(server string, params *AnnouncementsListParams)
 	if params != nil {
 		queryValues := queryURL.Query()
 
-		if params.IsActive != nil {
+		if params.SortByDate != nil {
 
-			if queryFrag, err := runtime.StyleParamWithLocation("form", false, "isActive", runtime.ParamLocationQuery, *params.IsActive); err != nil {
+			if queryFrag, err := runtime.StyleParamWithLocation("form", false, "sortByDate", runtime.ParamLocationQuery, *params.SortByDate); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.FilterIsActive != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", false, "filterIsActive", runtime.ParamLocationQuery, *params.FilterIsActive); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err

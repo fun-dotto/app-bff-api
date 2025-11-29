@@ -3,7 +3,7 @@ package service
 import "github.com/fun-dotto/app-bff-api/internal/domain"
 
 type AnouncementRepository interface {
-	GetAnnouncements() ([]domain.Announcement, error)
+	GetAnnouncements(query domain.AnnouncementQuery) ([]domain.Announcement, error)
 }
 
 type AnnouncementService struct {
@@ -15,5 +15,11 @@ func NewAnnouncementService(announcementRepository AnouncementRepository) *Annou
 }
 
 func (s *AnnouncementService) GetAnnouncements() ([]domain.Announcement, error) {
-	return s.announcementRepository.GetAnnouncements()
+	sortByDate := domain.SortDirectionDesc
+	filterIsActive := true
+	query := domain.AnnouncementQuery{
+		SortByDate:     &sortByDate,
+		FilterIsActive: &filterIsActive,
+	}
+	return s.announcementRepository.GetAnnouncements(query)
 }
