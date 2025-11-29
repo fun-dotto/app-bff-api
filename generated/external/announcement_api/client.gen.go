@@ -27,18 +27,14 @@ type Announcement struct {
 
 // AnnouncementsListParams defines parameters for AnnouncementsList.
 type AnnouncementsListParams struct {
-	// SortByDateAsc 日時昇順ソートするか
+	// SortByDate 日時ソート
 	//
-	// 降順ソートの場合はfalseを指定
-	//
-	// デフォルト値はtrue (昇順ソート)
-	SortByDateAsc *bool `form:"sortByDateAsc,omitempty" json:"sortByDateAsc,omitempty"`
+	// 昇順ソートの場合は`asc`を指定、降順ソートの場合は`desc`を指定
+	SortByDate *string `form:"sortByDate,omitempty" json:"sortByDate,omitempty"`
 
 	// FilterIsActive 公開状態で絞り込むか
 	//
-	// 公開状態ではないもののみを抽出する場合はfalseを指定
-	//
-	// デフォルト値はnull (すべての公開状態を含む)
+	// 公開状態のみを抽出する場合は`true`を指定
 	FilterIsActive *bool `form:"filterIsActive,omitempty" json:"filterIsActive,omitempty"`
 }
 
@@ -153,9 +149,9 @@ func NewAnnouncementsListRequest(server string, params *AnnouncementsListParams)
 	if params != nil {
 		queryValues := queryURL.Query()
 
-		if params.SortByDateAsc != nil {
+		if params.SortByDate != nil {
 
-			if queryFrag, err := runtime.StyleParamWithLocation("form", false, "sortByDateAsc", runtime.ParamLocationQuery, *params.SortByDateAsc); err != nil {
+			if queryFrag, err := runtime.StyleParamWithLocation("form", false, "sortByDate", runtime.ParamLocationQuery, *params.SortByDate); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
