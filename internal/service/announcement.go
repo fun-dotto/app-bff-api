@@ -15,10 +15,10 @@ func NewAnnouncementService(announcementRepository AnouncementRepository) *Annou
 }
 
 func (s *AnnouncementService) GetAnnouncements() ([]domain.Announcement, error) {
-	sortByDateAsc := false
+	sortByDate := "desc"
 	filterIsActive := true
 	query := domain.AnnouncementQuery{
-		SortByDateAsc:  &sortByDateAsc,
+		SortByDate:     &sortByDate,
 		FilterIsActive: &filterIsActive,
 	}
 	return s.announcementRepository.GetAnnouncements(query)
