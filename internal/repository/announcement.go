@@ -19,11 +19,18 @@ func NewAnnouncementRepository(client *announcement_api.ClientWithResponses) *An
 }
 
 func (r *AnnouncementRepository) GetAnnouncements(query domain.AnnouncementQuery) ([]domain.Announcement, error) {
-	// 外部APIからデータ取得
-	response, err := r.client.AnnouncementsListWithResponse(context.Background(), &announcement_api.AnnouncementsListParams{
-		SortByDate:     query.SortByDate,
+	params := announcement_api.AnnouncementsListParams{
+		SortByDate: func() *announcement_api.SortDirection {
+			if query.SortByDate == nil {
+				return nil
+			}
+			sortDirection := announcement_api.SortDirection(*query.SortByDate)
+			return &sortDirection
+		}(),
 		FilterIsActive: query.FilterIsActive,
-	}, nil)
+	}
+	// 外部APIからデータ取得
+	response, err := r.client.AnnouncementsListWithResponse(context.Background(), &params, nil)
 	if err != nil {
 		return nil, err
 	}
