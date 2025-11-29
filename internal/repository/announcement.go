@@ -30,7 +30,7 @@ func (r *AnnouncementRepository) GetAnnouncements(query domain.AnnouncementQuery
 		FilterIsActive: query.FilterIsActive,
 	}
 	// 外部APIからデータ取得
-	response, err := r.client.AnnouncementsListWithResponse(context.Background(), &params, nil)
+	response, err := r.client.AnnouncementsListWithResponse(context.Background(), &params)
 	if err != nil {
 		return nil, err
 	}
