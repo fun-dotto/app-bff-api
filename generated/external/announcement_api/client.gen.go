@@ -27,7 +27,19 @@ type Announcement struct {
 
 // AnnouncementsListParams defines parameters for AnnouncementsList.
 type AnnouncementsListParams struct {
-	IsActive *bool `form:"isActive,omitempty" json:"isActive,omitempty"`
+	// SortByDateAsc 日時昇順ソートするか
+	//
+	// 降順ソートの場合はfalseを指定
+	//
+	// デフォルト値はtrue (昇順ソート)
+	SortByDateAsc *bool `form:"sortByDateAsc,omitempty" json:"sortByDateAsc,omitempty"`
+
+	// FilterIsActive 公開状態で絞り込むか
+	//
+	// 公開状態ではないもののみを抽出する場合はfalseを指定
+	//
+	// デフォルト値はnull (すべての公開状態を含む)
+	FilterIsActive *bool `form:"filterIsActive,omitempty" json:"filterIsActive,omitempty"`
 }
 
 // RequestEditorFn  is the function signature for the RequestEditor callback function
@@ -141,9 +153,25 @@ func NewAnnouncementsListRequest(server string, params *AnnouncementsListParams)
 	if params != nil {
 		queryValues := queryURL.Query()
 
-		if params.IsActive != nil {
+		if params.SortByDateAsc != nil {
 
-			if queryFrag, err := runtime.StyleParamWithLocation("form", false, "isActive", runtime.ParamLocationQuery, *params.IsActive); err != nil {
+			if queryFrag, err := runtime.StyleParamWithLocation("form", false, "sortByDateAsc", runtime.ParamLocationQuery, *params.SortByDateAsc); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.FilterIsActive != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", false, "filterIsActive", runtime.ParamLocationQuery, *params.FilterIsActive); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
