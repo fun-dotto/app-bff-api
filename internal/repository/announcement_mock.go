@@ -24,6 +24,6 @@ func NewMockAnnouncementRepository() *MockAnnouncementRepository {
 	}
 }
 
-func (m *MockAnnouncementRepository) GetAnnouncements() ([]domain.Announcement, error) {
+func (m *MockAnnouncementRepository) GetAnnouncements(query domain.AnnouncementQuery) ([]domain.Announcement, error) {
 	return m.announcements, nil
 }
