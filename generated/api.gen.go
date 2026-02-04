@@ -21,7 +21,10 @@ type Announcement struct {
 type ServerInterface interface {
 
 	// (GET /announcements)
-	AnnouncementsList(c *gin.Context)
+	AnnouncementsV0List(c *gin.Context)
+
+	// (GET /v1/announcements)
+	AnnouncementsV1List(c *gin.Context)
 }
 
 // ServerInterfaceWrapper converts contexts to parameters.
@@ -33,8 +36,8 @@ type ServerInterfaceWrapper struct {
 
 type MiddlewareFunc func(c *gin.Context)
 
-// AnnouncementsList operation middleware
-func (siw *ServerInterfaceWrapper) AnnouncementsList(c *gin.Context) {
+// AnnouncementsV0List operation middleware
+func (siw *ServerInterfaceWrapper) AnnouncementsV0List(c *gin.Context) {
 
 	for _, middleware := range siw.HandlerMiddlewares {
 		middleware(c)
@@ -43,7 +46,20 @@ func (siw *ServerInterfaceWrapper) AnnouncementsList(c *gin.Context) {
 		}
 	}
 
-	siw.Handler.AnnouncementsList(c)
+	siw.Handler.AnnouncementsV0List(c)
+}
+
+// AnnouncementsV1List operation middleware
+func (siw *ServerInterfaceWrapper) AnnouncementsV1List(c *gin.Context) {
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.AnnouncementsV1List(c)
 }
 
 // GinServerOptions provides options for the Gin server.
@@ -73,5 +89,6 @@ func RegisterHandlersWithOptions(router gin.IRouter, si ServerInterface, options
 		ErrorHandler:       errorHandler,
 	}
 
-	router.GET(options.BaseURL+"/announcements", wrapper.AnnouncementsList)
+	router.GET(options.BaseURL+"/announcements", wrapper.AnnouncementsV0List)
+	router.GET(options.BaseURL+"/v1/announcements", wrapper.AnnouncementsV1List)
 }
