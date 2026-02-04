@@ -7,9 +7,10 @@ import (
 
 func toApiAnnouncement(announcement domain.Announcement) api.Announcement {
 	return api.Announcement{
-		Id:    announcement.ID,
-		Title: announcement.Title,
-		Date:  announcement.Date,
-		Url:   announcement.URL,
+		Id:             announcement.ID,
+		Title:          announcement.Title,
+		AvailableFrom:  announcement.AvailableFrom,
+		AvailableUntil: announcement.AvailableUntil,
+		Url:            announcement.URL,
 	}
 }
