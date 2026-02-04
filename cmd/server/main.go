@@ -62,10 +62,14 @@ func main() {
 	}
 
 	announcementRepository := repository.NewAnnouncementRepository(apiClient)
+
 	announcementService := service.NewAnnouncementService(announcementRepository)
+
 	h := handler.NewHandler(announcementService)
 
-	api.RegisterHandlers(router, h)
+	strictHandler := api.NewStrictHandler(h, nil)
+
+	api.RegisterHandlers(router, strictHandler)
 
 	log.Println("Server starting on :8080")
 	if err := router.Run(":8080"); err != nil {
