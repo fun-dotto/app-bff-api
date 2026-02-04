@@ -4,9 +4,14 @@
 package api
 
 import (
+	"context"
+	"encoding/json"
+	"fmt"
+	"net/http"
 	"time"
 
 	"github.com/gin-gonic/gin"
+	strictgin "github.com/oapi-codegen/runtime/strictmiddleware/gin"
 )
 
 // Announcement defines model for Announcement.
@@ -91,4 +96,110 @@ func RegisterHandlersWithOptions(router gin.IRouter, si ServerInterface, options
 
 	router.GET(options.BaseURL+"/announcements", wrapper.AnnouncementsV0List)
 	router.GET(options.BaseURL+"/v1/announcements", wrapper.AnnouncementsV1List)
+}
+
+type AnnouncementsV0ListRequestObject struct {
+}
+
+type AnnouncementsV0ListResponseObject interface {
+	VisitAnnouncementsV0ListResponse(w http.ResponseWriter) error
+}
+
+type AnnouncementsV0List200JSONResponse []Announcement
+
+func (response AnnouncementsV0List200JSONResponse) VisitAnnouncementsV0ListResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type AnnouncementsV1ListRequestObject struct {
+}
+
+type AnnouncementsV1ListResponseObject interface {
+	VisitAnnouncementsV1ListResponse(w http.ResponseWriter) error
+}
+
+type AnnouncementsV1List200JSONResponse struct {
+	Announcements []Announcement `json:"announcements"`
+}
+
+func (response AnnouncementsV1List200JSONResponse) VisitAnnouncementsV1ListResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+// StrictServerInterface represents all server handlers.
+type StrictServerInterface interface {
+
+	// (GET /announcements)
+	AnnouncementsV0List(ctx context.Context, request AnnouncementsV0ListRequestObject) (AnnouncementsV0ListResponseObject, error)
+
+	// (GET /v1/announcements)
+	AnnouncementsV1List(ctx context.Context, request AnnouncementsV1ListRequestObject) (AnnouncementsV1ListResponseObject, error)
+}
+
+type StrictHandlerFunc = strictgin.StrictGinHandlerFunc
+type StrictMiddlewareFunc = strictgin.StrictGinMiddlewareFunc
+
+func NewStrictHandler(ssi StrictServerInterface, middlewares []StrictMiddlewareFunc) ServerInterface {
+	return &strictHandler{ssi: ssi, middlewares: middlewares}
+}
+
+type strictHandler struct {
+	ssi         StrictServerInterface
+	middlewares []StrictMiddlewareFunc
+}
+
+// AnnouncementsV0List operation middleware
+func (sh *strictHandler) AnnouncementsV0List(ctx *gin.Context) {
+	var request AnnouncementsV0ListRequestObject
+
+	handler := func(ctx *gin.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.AnnouncementsV0List(ctx, request.(AnnouncementsV0ListRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "AnnouncementsV0List")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		ctx.Error(err)
+		ctx.Status(http.StatusInternalServerError)
+	} else if validResponse, ok := response.(AnnouncementsV0ListResponseObject); ok {
+		if err := validResponse.VisitAnnouncementsV0ListResponse(ctx.Writer); err != nil {
+			ctx.Error(err)
+		}
+	} else if response != nil {
+		ctx.Error(fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// AnnouncementsV1List operation middleware
+func (sh *strictHandler) AnnouncementsV1List(ctx *gin.Context) {
+	var request AnnouncementsV1ListRequestObject
+
+	handler := func(ctx *gin.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.AnnouncementsV1List(ctx, request.(AnnouncementsV1ListRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "AnnouncementsV1List")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		ctx.Error(err)
+		ctx.Status(http.StatusInternalServerError)
+	} else if validResponse, ok := response.(AnnouncementsV1ListResponseObject); ok {
+		if err := validResponse.VisitAnnouncementsV1ListResponse(ctx.Writer); err != nil {
+			ctx.Error(err)
+		}
+	} else if response != nil {
+		ctx.Error(fmt.Errorf("unexpected response type: %T", response))
+	}
 }
