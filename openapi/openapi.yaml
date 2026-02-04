@@ -1,10 +1,25 @@
 openapi: 3.1.0
 info:
-  title: Admin BFF Service
+  title: App BFF Service
   version: 1.0.0
 tags:
   - name: Announcements
 paths:
+  /announcements:
+    get:
+      operationId: AnnouncementsV0_list
+      parameters: []
+      responses:
+        '200':
+          description: おしらせのリスト
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Announcement'
+      tags:
+        - Announcements
   /v1/announcements:
     get:
       operationId: AnnouncementsV1_list
@@ -25,102 +40,6 @@ paths:
                   - announcements
       tags:
         - Announcements
-    post:
-      operationId: AnnouncementsV1_create
-      description: おしらせを作成する
-      parameters: []
-      responses:
-        '201':
-          description: 作成されたおしらせ
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  announcement:
-                    $ref: '#/components/schemas/Announcement'
-                required:
-                  - announcement
-      tags:
-        - Announcements
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/AnnouncementRequest'
-        description: 作成するおしらせの情報
-  /v1/announcements/{id}:
-    get:
-      operationId: AnnouncementsV1_detail
-      description: おしらせを詳細取得する
-      parameters:
-        - name: id
-          in: path
-          required: true
-          description: おしらせID
-          schema:
-            type: string
-      responses:
-        '200':
-          description: おしらせの詳細
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  announcement:
-                    $ref: '#/components/schemas/Announcement'
-                required:
-                  - announcement
-      tags:
-        - Announcements
-    put:
-      operationId: AnnouncementsV1_update
-      description: おしらせを更新する
-      parameters:
-        - name: id
-          in: path
-          required: true
-          description: おしらせID
-          schema:
-            type: string
-      responses:
-        '200':
-          description: 更新されたおしらせ
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  announcement:
-                    $ref: '#/components/schemas/Announcement'
-                required:
-                  - announcement
-      tags:
-        - Announcements
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/AnnouncementRequest'
-        description: 更新するおしらせの情報
-    delete:
-      operationId: AnnouncementsV1_delete
-      description: おしらせを削除する
-      parameters:
-        - name: id
-          in: path
-          required: true
-          description: おしらせID
-          schema:
-            type: string
-      responses:
-        '204':
-          description: There is no content to send for this request, but the headers may be useful.
-      tags:
-        - Announcements
 components:
   schemas:
     Announcement:
@@ -128,35 +47,14 @@ components:
       required:
         - id
         - title
-        - availableFrom
+        - date
         - url
       properties:
         id:
           type: string
         title:
           type: string
-        availableFrom:
-          type: string
-          format: date-time
-        availableUntil:
-          type: string
-          format: date-time
-        url:
-          type: string
-          format: uri
-    AnnouncementRequest:
-      type: object
-      required:
-        - title
-        - availableFrom
-        - url
-      properties:
-        title:
-          type: string
-        availableFrom:
-          type: string
-          format: date-time
-        availableUntil:
+        date:
           type: string
           format: date-time
         url:
@@ -166,15 +64,15 @@ servers:
   - url: http://localhost:8080
     description: Local
     variables: {}
-  - url: https://admin-bff-api-dev-107577467292.asia-northeast1.run.app
+  - url: https://app-bff-api-dev-107577467292.asia-northeast1.run.app
     description: Development
     variables: {}
-  - url: https://admin-bff-api-stg-107577467292.asia-northeast1.run.app
+  - url: https://app-bff-api-stg-107577467292.asia-northeast1.run.app
     description: Staging
     variables: {}
-  - url: https://admin-bff-api-qa-107577467292.asia-northeast1.run.app
+  - url: https://app-bff-api-qa-107577467292.asia-northeast1.run.app
     description: QA
     variables: {}
-  - url: https://admin-bff-api-107577467292.asia-northeast1.run.app
+  - url: https://app-bff-api-107577467292.asia-northeast1.run.app
     description: Production
     variables: {}
