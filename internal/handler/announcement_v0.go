@@ -7,7 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func (h *Handler) AnnouncementsList(c *gin.Context) {
+func (h *Handler) AnnouncementsV0List(c *gin.Context) {
 	announcements, err := h.announcementService.GetAnnouncements()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})

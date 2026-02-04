@@ -13,7 +13,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestAnnouncementsList(t *testing.T) {
+func TestAnnouncementsV0List(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
 	tests := []struct {
@@ -80,7 +80,7 @@ func TestAnnouncementsList(t *testing.T) {
 				tt.setupContext(c)
 			}
 
-			h.AnnouncementsList(c)
+			h.AnnouncementsV0List(c)
 
 			assert.Equal(t, tt.wantCode, w.Code)
 
