@@ -1,70 +1,48 @@
 package handler
 
 import (
-	"encoding/json"
-	"net/http"
-	"net/http/httptest"
+	"context"
 	"testing"
 
 	api "github.com/fun-dotto/app-bff-api/generated"
 	"github.com/fun-dotto/app-bff-api/internal/repository"
 	"github.com/fun-dotto/app-bff-api/internal/service"
-	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestAnnouncementsV0List(t *testing.T) {
-	gin.SetMode(gin.TestMode)
-
 	tests := []struct {
-		name         string
-		setupContext func(c *gin.Context)
-		wantCode     int
-		validate     func(t *testing.T, w *httptest.ResponseRecorder)
+		name     string
+		validate func(t *testing.T, resp api.AnnouncementsV0ListResponseObject, err error)
 	}{
 		{
-			name:         "正常にお知らせ一覧が取得できる",
-			setupContext: func(c *gin.Context) {},
-			wantCode:     http.StatusOK,
-			validate: func(t *testing.T, w *httptest.ResponseRecorder) {
-				var announcements []api.Announcement
-				err := json.Unmarshal(w.Body.Bytes(), &announcements)
-				assert.NoError(t, err, "JSONのパースに失敗しました")
-				assert.NotEmpty(t, announcements, "アナウンスメントが空です")
+			name: "正常にお知らせ一覧が取得できる",
+			validate: func(t *testing.T, resp api.AnnouncementsV0ListResponseObject, err error) {
+				require.NoError(t, err)
+				result, ok := resp.(api.AnnouncementsV0List200JSONResponse)
+				require.True(t, ok, "レスポンスが200 JSONレスポンスではありません")
+				assert.NotEmpty(t, result, "アナウンスメントが空です")
 			},
 		},
 		{
-			name:         "Content-Typeがapplication/jsonである",
-			setupContext: func(c *gin.Context) {},
-			wantCode:     http.StatusOK,
-			validate: func(t *testing.T, w *httptest.ResponseRecorder) {
-				assert.Equal(t, "application/json; charset=utf-8", w.Header().Get("Content-Type"))
+			name: "レスポンスが配列形式である",
+			validate: func(t *testing.T, resp api.AnnouncementsV0ListResponseObject, err error) {
+				require.NoError(t, err)
+				_, ok := resp.(api.AnnouncementsV0List200JSONResponse)
+				require.True(t, ok, "レスポンスが配列形式ではありません")
 			},
 		},
 		{
-			name:         "レスポンスが配列形式である",
-			setupContext: func(c *gin.Context) {},
-			wantCode:     http.StatusOK,
-			validate: func(t *testing.T, w *httptest.ResponseRecorder) {
-				var result interface{}
-				err := json.Unmarshal(w.Body.Bytes(), &result)
-				assert.NoError(t, err)
-				_, isArray := result.([]interface{})
-				assert.True(t, isArray, "レスポンスが配列形式ではありません")
-			},
-		},
-		{
-			name:         "お知らせのフィールドが正しく返される",
-			setupContext: func(c *gin.Context) {},
-			wantCode:     http.StatusOK,
-			validate: func(t *testing.T, w *httptest.ResponseRecorder) {
-				var announcements []api.Announcement
-				err := json.Unmarshal(w.Body.Bytes(), &announcements)
-				assert.NoError(t, err)
-				assert.Len(t, announcements, 1, "MockRepositoryは1件返すはずです")
-				assert.Equal(t, "1", announcements[0].Id)
-				assert.Equal(t, "Announcement 1", announcements[0].Title)
-				assert.Equal(t, "https://example.com", announcements[0].Url)
+			name: "お知らせのフィールドが正しく返される",
+			validate: func(t *testing.T, resp api.AnnouncementsV0ListResponseObject, err error) {
+				require.NoError(t, err)
+				result, ok := resp.(api.AnnouncementsV0List200JSONResponse)
+				require.True(t, ok)
+				assert.Len(t, result, 1, "MockRepositoryは1件返すはずです")
+				assert.Equal(t, "1", result[0].Id)
+				assert.Equal(t, "Announcement 1", result[0].Title)
+				assert.Equal(t, "https://example.com", result[0].Url)
 			},
 		},
 	}
@@ -73,19 +51,11 @@ func TestAnnouncementsV0List(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			mockRepo := repository.NewMockAnnouncementRepository()
 			h := NewHandler(service.NewAnnouncementService(mockRepo))
-			w := httptest.NewRecorder()
-			c, _ := gin.CreateTestContext(w)
 
-			if tt.setupContext != nil {
-				tt.setupContext(c)
-			}
-
-			h.AnnouncementsV0List(c)
-
-			assert.Equal(t, tt.wantCode, w.Code)
+			resp, err := h.AnnouncementsV0List(context.Background(), api.AnnouncementsV0ListRequestObject{})
 
 			if tt.validate != nil {
-				tt.validate(t, w)
+				tt.validate(t, resp, err)
 			}
 		})
 	}

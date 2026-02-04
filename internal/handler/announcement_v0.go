@@ -1,23 +1,22 @@
 package handler
 
 import (
-	"net/http"
+	"context"
+	"fmt"
 
 	api "github.com/fun-dotto/app-bff-api/generated"
-	"github.com/gin-gonic/gin"
 )
 
-func (h *Handler) AnnouncementsV0List(c *gin.Context) {
+func (h *Handler) AnnouncementsV0List(ctx context.Context, request api.AnnouncementsV0ListRequestObject) (api.AnnouncementsV0ListResponseObject, error) {
 	announcements, err := h.announcementService.GetAnnouncements()
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
+		return nil, fmt.Errorf("failed to get announcements: %w", err)
 	}
 
-	apiAnnouncements := make([]api.Announcement, len(announcements))
+	apiAnnouncements := make(api.AnnouncementsV0List200JSONResponse, len(announcements))
 	for i, announcement := range announcements {
 		apiAnnouncements[i] = toApiAnnouncement(announcement)
 	}
 
-	c.JSON(http.StatusOK, apiAnnouncements)
+	return apiAnnouncements, nil
 }
