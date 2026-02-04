@@ -24,19 +24,8 @@ func main() {
 
 	ctx := context.Background()
 
-	var config *firebaseAdmin.Config
-
-	projectID := os.Getenv("PROJECT_ID")
-	if projectID == "" {
-		config = nil
-	} else {
-		config = &firebaseAdmin.Config{
-			ProjectID: projectID,
-		}
-	}
-
 	// Firebase App Check の初期化
-	app, err := firebaseAdmin.NewApp(ctx, config)
+	app, err := firebaseAdmin.NewApp(ctx, nil)
 	if err != nil {
 		log.Fatalf("error initializing Firebase app: %v\n", err)
 	}
