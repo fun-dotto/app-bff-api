@@ -1,18 +1,21 @@
 version: "3"
 
+vars:
+  GO: go
+
 tasks:
   install:
     desc: Install dependencies
     cmds:
-      - go mod tidy
+      - "{{.GO}} mod tidy"
 
   generate:
     desc: Generate API code from OpenAPI spec
     cmds:
       - rm -rf ./generated
       - mkdir -p ./generated
-      - go tool oapi-codegen -config ./openapi/config.yaml ./openapi/openapi.yaml
-      - go tool oapi-codegen -config ./openapi/external/announcement_api/config.yaml ./openapi/external/announcement_api/openapi.yaml
+      - "{{.GO}} tool oapi-codegen -config ./openapi/config.yaml ./openapi/openapi.yaml"
+      - "{{.GO}} tool oapi-codegen -config ./openapi/external/announcement_api/config.yaml ./openapi/external/announcement_api/openapi.yaml"
 
   clean:
     desc: Clean build artifacts
@@ -21,26 +24,28 @@ tasks:
 
   build:
     desc: Build the application
-    deps: [clean]
+    deps:
+      - clean
     cmds:
       - mkdir -p ./bin
-      - go build -tags timetzdata -o ./bin/main ./cmd/server/main.go
+      - "{{.GO}} build -tags timetzdata -o ./bin/main ./cmd/server/main.go"
 
   run:
     desc: Run the application
     cmds:
-      - go run ./cmd/server/main.go
+      - "{{.GO}} run ./cmd/server/main.go"
 
   build-and-run:
     desc: Build and run the application
-    deps: [build]
+    deps:
+      - build
     cmds:
       - ./bin/main
 
   test:
     desc: Run tests
     cmds:
-      - go test -v ./...
+      - "{{.GO}} test -v ./..."
 
   default:
     desc: Show available tasks
