@@ -2,7 +2,7 @@ package service
 
 import "github.com/fun-dotto/app-bff-api/internal/domain"
 
-type AnouncementRepository interface {
+type AnnouncementRepository interface {
 	GetAnnouncements(query domain.AnnouncementQuery) ([]domain.Announcement, error)
 	GetAnnouncement(id string) (*domain.Announcement, error)
 	CreateAnnouncement(req domain.AnnouncementRequest) (*domain.Announcement, error)
@@ -11,10 +11,10 @@ type AnouncementRepository interface {
 }
 
 type AnnouncementService struct {
-	announcementRepository AnouncementRepository
+	announcementRepository AnnouncementRepository
 }
 
-func NewAnnouncementService(announcementRepository AnouncementRepository) *AnnouncementService {
+func NewAnnouncementService(announcementRepository AnnouncementRepository) *AnnouncementService {
 	return &AnnouncementService{announcementRepository: announcementRepository}
 }
 
