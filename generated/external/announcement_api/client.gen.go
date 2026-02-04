@@ -27,15 +27,9 @@ const (
 type Announcement struct {
 	AvailableFrom  time.Time  `json:"availableFrom"`
 	AvailableUntil *time.Time `json:"availableUntil,omitempty"`
-
-	// Date 非推奨: 代わりに`availableFrom`を使用してください
-	Date time.Time `json:"date"`
-	Id   string    `json:"id"`
-
-	// IsActive 非推奨: 代わりに`availableUntil`を使用してください
-	IsActive bool   `json:"isActive"`
-	Title    string `json:"title"`
-	Url      string `json:"url"`
+	Id             string     `json:"id"`
+	Title          string     `json:"title"`
+	Url            string     `json:"url"`
 }
 
 // AnnouncementRequest defines model for AnnouncementRequest.
@@ -48,19 +42,6 @@ type AnnouncementRequest struct {
 
 // FoundationV1SortDirection defines model for FoundationV1.SortDirection.
 type FoundationV1SortDirection string
-
-// AnnouncementsV0ListParams defines parameters for AnnouncementsV0List.
-type AnnouncementsV0ListParams struct {
-	// SortByDate 日時ソート
-	//
-	// 昇順ソートの場合は`asc`を指定、降順ソートの場合は`desc`を指定
-	SortByDate *FoundationV1SortDirection `form:"sortByDate,omitempty" json:"sortByDate,omitempty"`
-
-	// FilterIsActive 公開状態で絞り込むか
-	//
-	// 公開状態のみを抽出する場合は`true`を指定
-	FilterIsActive *bool `form:"filterIsActive,omitempty" json:"filterIsActive,omitempty"`
-}
 
 // AnnouncementsV1ListParams defines parameters for AnnouncementsV1List.
 type AnnouncementsV1ListParams struct {
@@ -154,9 +135,6 @@ func WithRequestEditorFn(fn RequestEditorFn) ClientOption {
 
 // The interface specification for the client above.
 type ClientInterface interface {
-	// AnnouncementsV0List request
-	AnnouncementsV0List(ctx context.Context, params *AnnouncementsV0ListParams, reqEditors ...RequestEditorFn) (*http.Response, error)
-
 	// AnnouncementsV1List request
 	AnnouncementsV1List(ctx context.Context, params *AnnouncementsV1ListParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -168,22 +146,13 @@ type ClientInterface interface {
 	// AnnouncementsV1Delete request
 	AnnouncementsV1Delete(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// AnnouncementsV1Detail request
+	AnnouncementsV1Detail(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// AnnouncementsV1UpdateWithBody request with any body
 	AnnouncementsV1UpdateWithBody(ctx context.Context, id string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	AnnouncementsV1Update(ctx context.Context, id string, body AnnouncementsV1UpdateJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
-}
-
-func (c *Client) AnnouncementsV0List(ctx context.Context, params *AnnouncementsV0ListParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewAnnouncementsV0ListRequest(c.Server, params)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
 }
 
 func (c *Client) AnnouncementsV1List(ctx context.Context, params *AnnouncementsV1ListParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
@@ -234,6 +203,18 @@ func (c *Client) AnnouncementsV1Delete(ctx context.Context, id string, reqEditor
 	return c.Client.Do(req)
 }
 
+func (c *Client) AnnouncementsV1Detail(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewAnnouncementsV1DetailRequest(c.Server, id)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) AnnouncementsV1UpdateWithBody(ctx context.Context, id string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewAnnouncementsV1UpdateRequestWithBody(c.Server, id, contentType, body)
 	if err != nil {
@@ -256,71 +237,6 @@ func (c *Client) AnnouncementsV1Update(ctx context.Context, id string, body Anno
 		return nil, err
 	}
 	return c.Client.Do(req)
-}
-
-// NewAnnouncementsV0ListRequest generates requests for AnnouncementsV0List
-func NewAnnouncementsV0ListRequest(server string, params *AnnouncementsV0ListParams) (*http.Request, error) {
-	var err error
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/announcements")
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	if params != nil {
-		queryValues := queryURL.Query()
-
-		if params.SortByDate != nil {
-
-			if queryFrag, err := runtime.StyleParamWithLocation("form", false, "sortByDate", runtime.ParamLocationQuery, *params.SortByDate); err != nil {
-				return nil, err
-			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
-				return nil, err
-			} else {
-				for k, v := range parsed {
-					for _, v2 := range v {
-						queryValues.Add(k, v2)
-					}
-				}
-			}
-
-		}
-
-		if params.FilterIsActive != nil {
-
-			if queryFrag, err := runtime.StyleParamWithLocation("form", false, "filterIsActive", runtime.ParamLocationQuery, *params.FilterIsActive); err != nil {
-				return nil, err
-			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
-				return nil, err
-			} else {
-				for k, v := range parsed {
-					for _, v2 := range v {
-						queryValues.Add(k, v2)
-					}
-				}
-			}
-
-		}
-
-		queryURL.RawQuery = queryValues.Encode()
-	}
-
-	req, err := http.NewRequest("GET", queryURL.String(), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return req, nil
 }
 
 // NewAnnouncementsV1ListRequest generates requests for AnnouncementsV1List
@@ -462,6 +378,40 @@ func NewAnnouncementsV1DeleteRequest(server string, id string) (*http.Request, e
 	return req, nil
 }
 
+// NewAnnouncementsV1DetailRequest generates requests for AnnouncementsV1Detail
+func NewAnnouncementsV1DetailRequest(server string, id string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "id", runtime.ParamLocationPath, id)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/v1/announcements/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewAnnouncementsV1UpdateRequest calls the generic AnnouncementsV1Update builder with application/json body
 func NewAnnouncementsV1UpdateRequest(server string, id string, body AnnouncementsV1UpdateJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
@@ -552,9 +502,6 @@ func WithBaseURL(baseURL string) ClientOption {
 
 // ClientWithResponsesInterface is the interface specification for the client with responses above.
 type ClientWithResponsesInterface interface {
-	// AnnouncementsV0ListWithResponse request
-	AnnouncementsV0ListWithResponse(ctx context.Context, params *AnnouncementsV0ListParams, reqEditors ...RequestEditorFn) (*AnnouncementsV0ListResponse, error)
-
 	// AnnouncementsV1ListWithResponse request
 	AnnouncementsV1ListWithResponse(ctx context.Context, params *AnnouncementsV1ListParams, reqEditors ...RequestEditorFn) (*AnnouncementsV1ListResponse, error)
 
@@ -566,32 +513,13 @@ type ClientWithResponsesInterface interface {
 	// AnnouncementsV1DeleteWithResponse request
 	AnnouncementsV1DeleteWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*AnnouncementsV1DeleteResponse, error)
 
+	// AnnouncementsV1DetailWithResponse request
+	AnnouncementsV1DetailWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*AnnouncementsV1DetailResponse, error)
+
 	// AnnouncementsV1UpdateWithBodyWithResponse request with any body
 	AnnouncementsV1UpdateWithBodyWithResponse(ctx context.Context, id string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*AnnouncementsV1UpdateResponse, error)
 
 	AnnouncementsV1UpdateWithResponse(ctx context.Context, id string, body AnnouncementsV1UpdateJSONRequestBody, reqEditors ...RequestEditorFn) (*AnnouncementsV1UpdateResponse, error)
-}
-
-type AnnouncementsV0ListResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON200      *[]Announcement
-}
-
-// Status returns HTTPResponse.Status
-func (r AnnouncementsV0ListResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r AnnouncementsV0ListResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
 }
 
 type AnnouncementsV1ListResponse struct {
@@ -621,7 +549,7 @@ func (r AnnouncementsV1ListResponse) StatusCode() int {
 type AnnouncementsV1CreateResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON200      *struct {
+	JSON201      *struct {
 		Announcement Announcement `json:"announcement"`
 	}
 }
@@ -663,6 +591,30 @@ func (r AnnouncementsV1DeleteResponse) StatusCode() int {
 	return 0
 }
 
+type AnnouncementsV1DetailResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		Announcement Announcement `json:"announcement"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r AnnouncementsV1DetailResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r AnnouncementsV1DetailResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type AnnouncementsV1UpdateResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -685,15 +637,6 @@ func (r AnnouncementsV1UpdateResponse) StatusCode() int {
 		return r.HTTPResponse.StatusCode
 	}
 	return 0
-}
-
-// AnnouncementsV0ListWithResponse request returning *AnnouncementsV0ListResponse
-func (c *ClientWithResponses) AnnouncementsV0ListWithResponse(ctx context.Context, params *AnnouncementsV0ListParams, reqEditors ...RequestEditorFn) (*AnnouncementsV0ListResponse, error) {
-	rsp, err := c.AnnouncementsV0List(ctx, params, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseAnnouncementsV0ListResponse(rsp)
 }
 
 // AnnouncementsV1ListWithResponse request returning *AnnouncementsV1ListResponse
@@ -731,6 +674,15 @@ func (c *ClientWithResponses) AnnouncementsV1DeleteWithResponse(ctx context.Cont
 	return ParseAnnouncementsV1DeleteResponse(rsp)
 }
 
+// AnnouncementsV1DetailWithResponse request returning *AnnouncementsV1DetailResponse
+func (c *ClientWithResponses) AnnouncementsV1DetailWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*AnnouncementsV1DetailResponse, error) {
+	rsp, err := c.AnnouncementsV1Detail(ctx, id, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseAnnouncementsV1DetailResponse(rsp)
+}
+
 // AnnouncementsV1UpdateWithBodyWithResponse request with arbitrary body returning *AnnouncementsV1UpdateResponse
 func (c *ClientWithResponses) AnnouncementsV1UpdateWithBodyWithResponse(ctx context.Context, id string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*AnnouncementsV1UpdateResponse, error) {
 	rsp, err := c.AnnouncementsV1UpdateWithBody(ctx, id, contentType, body, reqEditors...)
@@ -746,32 +698,6 @@ func (c *ClientWithResponses) AnnouncementsV1UpdateWithResponse(ctx context.Cont
 		return nil, err
 	}
 	return ParseAnnouncementsV1UpdateResponse(rsp)
-}
-
-// ParseAnnouncementsV0ListResponse parses an HTTP response from a AnnouncementsV0ListWithResponse call
-func ParseAnnouncementsV0ListResponse(rsp *http.Response) (*AnnouncementsV0ListResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &AnnouncementsV0ListResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest []Announcement
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON200 = &dest
-
-	}
-
-	return response, nil
 }
 
 // ParseAnnouncementsV1ListResponse parses an HTTP response from a AnnouncementsV1ListWithResponse call
@@ -816,14 +742,14 @@ func ParseAnnouncementsV1CreateResponse(rsp *http.Response) (*AnnouncementsV1Cre
 	}
 
 	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 201:
 		var dest struct {
 			Announcement Announcement `json:"announcement"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
-		response.JSON200 = &dest
+		response.JSON201 = &dest
 
 	}
 
@@ -841,6 +767,34 @@ func ParseAnnouncementsV1DeleteResponse(rsp *http.Response) (*AnnouncementsV1Del
 	response := &AnnouncementsV1DeleteResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseAnnouncementsV1DetailResponse parses an HTTP response from a AnnouncementsV1DetailWithResponse call
+func ParseAnnouncementsV1DetailResponse(rsp *http.Response) (*AnnouncementsV1DetailResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &AnnouncementsV1DetailResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			Announcement Announcement `json:"announcement"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
 	}
 
 	return response, nil
