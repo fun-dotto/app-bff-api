@@ -53,7 +53,7 @@ func main() {
 	}
 
 	// 生成されたクライアントに認証付きHTTPクライアントを注入
-	apiClient, err := announcement_api.NewClientWithResponses(
+	announcementAPIClient, err := announcement_api.NewClientWithResponses(
 		announcementAPIURL,
 		announcement_api.WithHTTPClient(announcementAPIAuthClient),
 	)
@@ -61,11 +61,15 @@ func main() {
 		log.Fatal("Failed to create API client:", err)
 	}
 
-	announcementRepository := repository.NewAnnouncementRepository(apiClient)
+	announcementRepository := repository.NewAnnouncementRepository(announcementAPIClient)
+
 	announcementService := service.NewAnnouncementService(announcementRepository)
+
 	h := handler.NewHandler(announcementService)
 
-	api.RegisterHandlers(router, h)
+	strictHandler := api.NewStrictHandler(h, nil)
+
+	api.RegisterHandlers(router, strictHandler)
 
 	log.Println("Server starting on :8080")
 	if err := router.Run(":8080"); err != nil {

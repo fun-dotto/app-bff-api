@@ -9,7 +9,7 @@ func toApiAnnouncement(announcement domain.Announcement) api.Announcement {
 	return api.Announcement{
 		Id:    announcement.ID,
 		Title: announcement.Title,
-		Date:  announcement.Date,
+		Date:  announcement.AvailableFrom,
 		Url:   announcement.URL,
 	}
 }
