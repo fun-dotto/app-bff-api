@@ -16,6 +16,7 @@ tasks:
       - mkdir -p ./generated
       - "{{.GO}} tool oapi-codegen -config ./openapi/config.yaml ./openapi/openapi.yaml"
       - "{{.GO}} tool oapi-codegen -config ./openapi/external/announcement_api/config.yaml ./openapi/external/announcement_api/openapi.yaml"
+      - "{{.GO}} tool oapi-codegen -config ./openapi/external/subject_api/config.yaml ./openapi/external/subject_api/openapi.yaml"
 
   clean:
     desc: Clean build artifacts
