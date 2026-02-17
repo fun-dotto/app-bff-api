@@ -1,0 +1,5 @@
+package: subject_api
+generate:
+  client: true
+  models: true
+output: generated/external/subject_api/client.gen.go
