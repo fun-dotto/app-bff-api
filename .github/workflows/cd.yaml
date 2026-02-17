@@ -127,5 +127,6 @@ jobs:
           region: ${{ vars._DEPLOY_REGION }}
           env_vars: |
             ANNOUNCEMENT_API_URL=${{ vars.ANNOUNCEMENT_API_URL }}
+            SUBJECT_API_URL=${{ vars.SUBJECT_API_URL }}
           env_vars_update_strategy: overwrite
           secrets_update_strategy: overwrite
