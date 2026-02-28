@@ -57,14 +57,14 @@ func (r *SubjectRepository) GetSubject(id string) (*domain.Subject, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to get syllabus: %w", err)
 	}
+	if syllabusResponse.JSON200 == nil {
+		return nil, fmt.Errorf("failed to get syllabus: status %d", syllabusResponse.StatusCode())
+	}
 
 	s := external.ToDomainSubject(subjectResponse.JSON200.Subject)
 
-	// シラバスが取得できた場合は結合
-	if syllabusResponse.JSON200 != nil {
-		syllabus := external.ToDomainSyllabus(syllabusResponse.JSON200.Syllabus)
-		s.Syllabus = &syllabus
-	}
+	syllabus := external.ToDomainSyllabus(syllabusResponse.JSON200.Syllabus)
+	s.Syllabus = &syllabus
 
 	return &s, nil
 }
