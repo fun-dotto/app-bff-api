@@ -16,9 +16,9 @@ func (h *Handler) SubjectsV1List(ctx context.Context, request api.SubjectsV1List
 		return nil, fmt.Errorf("failed to get subjects: %w", err)
 	}
 
-	apiSubjects := make([]api.SubjectDetail, len(subjects))
+	apiSubjects := make([]api.SubjectSummary, len(subjects))
 	for i, subject := range subjects {
-		apiSubjects[i] = toApiSubjectDetail(subject)
+		apiSubjects[i] = toApiSubjectSummary(subject)
 	}
 
 	return api.SubjectsV1List200JSONResponse{
@@ -115,6 +115,26 @@ func toCulturalSubjectCategories(categories []api.DottoFoundationV1CulturalSubje
 		result[i] = domain.CulturalSubjectCategory(c)
 	}
 	return result
+}
+
+// toApiSubjectSummary はDomainの科目をAPIの科目サマリーに変換する
+func toApiSubjectSummary(subject domain.Subject) api.SubjectSummary {
+	faculties := make([]api.DottoFoundationV1Faculty, len(subject.Faculties))
+	for i, f := range subject.Faculties {
+		faculties[i] = api.DottoFoundationV1Faculty{
+			Id:    f.Faculty.ID,
+			Name:  f.Faculty.Name,
+			Email: f.Faculty.Email,
+		}
+	}
+
+	return api.SubjectSummary{
+		Id:                      subject.ID,
+		Name:                    subject.Name,
+		Faculties:               faculties,
+		DayOfWeekTimetableSlots: "", // TODO: 時間割APIを作成したら、曜日・時限を取得する
+		IsAddedToTimetable:      false, // TODO: 時間割APIを作成したら、時間割に追加されているかを取得する
+	}
 }
 
 // toApiSubjectDetail はDomainの科目をAPIの科目に変換する
