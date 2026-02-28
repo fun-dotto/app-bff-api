@@ -5,12 +5,211 @@ import (
 	"fmt"
 
 	api "github.com/fun-dotto/app-bff-api/generated"
+	"github.com/fun-dotto/app-bff-api/internal/domain"
 )
 
 func (h *Handler) SubjectsV1List(ctx context.Context, request api.SubjectsV1ListRequestObject) (api.SubjectsV1ListResponseObject, error) {
-	return nil, fmt.Errorf("not implemented")
+	query := toSubjectQuery(request.Params)
+
+	subjects, err := h.subjectService.GetSubjects(query)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get subjects: %w", err)
+	}
+
+	apiSubjects := make([]api.SubjectDetail, len(subjects))
+	for i, subject := range subjects {
+		apiSubjects[i] = toApiSubjectDetail(subject)
+	}
+
+	return api.SubjectsV1List200JSONResponse{
+		Subjects: apiSubjects,
+	}, nil
 }
 
 func (h *Handler) SubjectsV1Detail(ctx context.Context, request api.SubjectsV1DetailRequestObject) (api.SubjectsV1DetailResponseObject, error) {
-	return nil, fmt.Errorf("not implemented")
+	subject, err := h.subjectService.GetSubject(request.Id)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get subject: %w", err)
+	}
+	if subject == nil {
+		return nil, fmt.Errorf("subject not found")
+	}
+
+	return api.SubjectsV1Detail200JSONResponse{
+		Subject: toApiSubjectDetail(*subject),
+	}, nil
+}
+
+// toSubjectQuery はAPIのパラメータをDomainのクエリに変換する
+func toSubjectQuery(params api.SubjectsV1ListParams) domain.SubjectQuery {
+	return domain.SubjectQuery{
+		Q:                       params.Q,
+		Grade:                   toGrades(params.Grade),
+		Courses:                 toCourses(params.Courses),
+		Class:                   toClasses(params.Class),
+		Classification:          toClassifications(params.Classification),
+		Semester:                toSemesters(params.Semester),
+		RequirementType:         toRequirementTypes(params.RequirementType),
+		CulturalSubjectCategory: toCulturalSubjectCategories(params.CalturalSubjectCategory),
+	}
+}
+
+// toGrades はAPIの学年をDomainの学年に変換する
+func toGrades(grades []api.DottoFoundationV1Grade) []domain.Grade {
+	result := make([]domain.Grade, len(grades))
+	for i, g := range grades {
+		result[i] = domain.Grade(g)
+	}
+	return result
+}
+
+// toCourses はAPIのコースをDomainのコースに変換する
+func toCourses(courses []api.DottoFoundationV1Course) []domain.Course {
+	result := make([]domain.Course, len(courses))
+	for i, c := range courses {
+		result[i] = domain.Course(c)
+	}
+	return result
+}
+
+// toClasses はAPIのクラスをDomainのクラスに変換する
+func toClasses(classes []api.DottoFoundationV1Class) []domain.Class {
+	result := make([]domain.Class, len(classes))
+	for i, c := range classes {
+		result[i] = domain.Class(c)
+	}
+	return result
+}
+
+// toClassifications はAPIの科目カテゴリをDomainの科目カテゴリに変換する
+func toClassifications(classifications []api.DottoFoundationV1SubjectClassification) []domain.SubjectClassification {
+	result := make([]domain.SubjectClassification, len(classifications))
+	for i, c := range classifications {
+		result[i] = domain.SubjectClassification(c)
+	}
+	return result
+}
+
+// toSemesters はAPIの開講時期をDomainの開講時期に変換する
+func toSemesters(semesters []api.DottoFoundationV1CourseSemester) []domain.CourseSemester {
+	result := make([]domain.CourseSemester, len(semesters))
+	for i, s := range semesters {
+		result[i] = domain.CourseSemester(s)
+	}
+	return result
+}
+
+// toRequirementTypes はAPIの必修・選択をDomainの必修・選択に変換する
+func toRequirementTypes(types []api.DottoFoundationV1SubjectRequirementType) []domain.SubjectRequirementType {
+	result := make([]domain.SubjectRequirementType, len(types))
+	for i, t := range types {
+		result[i] = domain.SubjectRequirementType(t)
+	}
+	return result
+}
+
+// toCulturalSubjectCategories はAPIの教養科目カテゴリをDomainの教養科目カテゴリに変換する
+func toCulturalSubjectCategories(categories []api.DottoFoundationV1CulturalSubjectCategory) []domain.CulturalSubjectCategory {
+	result := make([]domain.CulturalSubjectCategory, len(categories))
+	for i, c := range categories {
+		result[i] = domain.CulturalSubjectCategory(c)
+	}
+	return result
+}
+
+// toApiSubjectDetail はDomainの科目をAPIの科目に変換する
+func toApiSubjectDetail(subject domain.Subject) api.SubjectDetail {
+	var syllabus api.SubjectServiceSyllabus
+	if subject.Syllabus != nil {
+		syllabus = toApiSyllabus(*subject.Syllabus)
+	}
+
+	return api.SubjectDetail{
+		Id:                 subject.ID,
+		Name:               subject.Name,
+		Credit:             subject.Credit,
+		Semester:           api.DottoFoundationV1CourseSemester(subject.Semester),
+		Faculties:          toApiFaculties(subject.Faculties),
+		Requirements:       toApiRequirements(subject.Requirements),
+		EligibleAttributes: toApiTargetClasses(subject.EligibleAttributes),
+		Syllabus:           syllabus,
+	}
+}
+
+// toApiSyllabus はDomainのシラバスをAPIのシラバスに変換する
+func toApiSyllabus(syllabus domain.Syllabus) api.SubjectServiceSyllabus {
+	return api.SubjectServiceSyllabus{
+		Id:                           syllabus.ID,
+		Name:                         syllabus.Name,
+		EnName:                       syllabus.EnName,
+		Summary:                      syllabus.Summary,
+		LearningOutcomes:             syllabus.LearningOutcomes,
+		ContentsAndSchedule:          syllabus.ContentsAndSchedule,
+		PreLearning:                  syllabus.PreLearning,
+		PostLearning:                 syllabus.PostLearning,
+		Assignments:                  syllabus.Assignments,
+		EvaluationMethod:             syllabus.EvaluationMethod,
+		Textbooks:                    syllabus.Textbooks,
+		ReferenceBooks:               syllabus.ReferenceBooks,
+		Prerequisites:                syllabus.Prerequisites,
+		Notes:                        syllabus.Notes,
+		Keywords:                     syllabus.Keywords,
+		Classifications:              syllabus.Classifications,
+		Grades:                       syllabus.Grades,
+		Credit:                       syllabus.Credit,
+		FacultyNames:                 syllabus.FacultyNames,
+		TeachingForm:                 syllabus.TeachingForm,
+		TeachingAndExamForm:          syllabus.TeachingAndExamForm,
+		TeachingLanguage:             syllabus.TeachingLanguage,
+		MultiplePersonTeachingForm:   syllabus.MultiplePersonTeachingForm,
+		PracticalHomeFacultyCategory: syllabus.PracticalHomeFacultyCategory,
+		DspoSubject:                  syllabus.DspoSubject,
+		TargetAreas:                  syllabus.TargetAreas,
+		TargetCourses:                syllabus.TargetCourses,
+	}
+}
+
+// toApiFaculties はDomainの教員をAPIの教員に変換する
+func toApiFaculties(faculties []domain.SubjectFaculty) []api.SubjectServiceSubjectFaculty {
+	result := make([]api.SubjectServiceSubjectFaculty, len(faculties))
+	for i, f := range faculties {
+		result[i] = api.SubjectServiceSubjectFaculty{
+			Faculty: api.DottoFoundationV1Faculty{
+				Id:    f.Faculty.ID,
+				Name:  f.Faculty.Name,
+				Email: f.Faculty.Email,
+			},
+			IsPrimary: f.IsPrimary,
+		}
+	}
+	return result
+}
+
+// toApiRequirements はDomainの科目群・科目区分をAPIの科目群・科目区分に変換する
+func toApiRequirements(requirements []domain.SubjectRequirement) []api.SubjectServiceSubjectRequirement {
+	result := make([]api.SubjectServiceSubjectRequirement, len(requirements))
+	for i, r := range requirements {
+		result[i] = api.SubjectServiceSubjectRequirement{
+			Course:          api.DottoFoundationV1Course(r.Course),
+			RequirementType: api.DottoFoundationV1SubjectRequirementType(r.RequirementType),
+		}
+	}
+	return result
+}
+
+// toApiTargetClasses はDomainの対象学年・クラスをAPIの対象学年・クラスに変換する
+func toApiTargetClasses(targetClasses []domain.SubjectTargetClass) []api.SubjectServiceSubjectTargetClass {
+	result := make([]api.SubjectServiceSubjectTargetClass, len(targetClasses))
+	for i, tc := range targetClasses {
+		var class *api.DottoFoundationV1Class
+		if tc.Class != nil {
+			c := api.DottoFoundationV1Class(*tc.Class)
+			class = &c
+		}
+		result[i] = api.SubjectServiceSubjectTargetClass{
+			Grade: api.DottoFoundationV1Grade(tc.Grade),
+			Class: class,
+		}
+	}
+	return result
 }
