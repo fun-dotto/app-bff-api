@@ -3,18 +3,16 @@ package main
 import (
 	"context"
 	"log"
-	"os"
 
 	firebaseAdmin "firebase.google.com/go/v4"
 	api "github.com/fun-dotto/app-bff-api/generated"
-	"github.com/fun-dotto/app-bff-api/generated/external/announcement_api"
 	"github.com/fun-dotto/app-bff-api/internal/handler"
+	"github.com/fun-dotto/app-bff-api/internal/infrastructure"
 	"github.com/fun-dotto/app-bff-api/internal/middleware"
 	"github.com/fun-dotto/app-bff-api/internal/repository"
 	"github.com/fun-dotto/app-bff-api/internal/service"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
-	"google.golang.org/api/idtoken"
 )
 
 func main() {
@@ -40,32 +38,18 @@ func main() {
 	// App Check ミドルウェアを適用
 	router.Use(middleware.AppCheckMiddleware(appCheckClient))
 
-	// 環境変数から外部APIのURLを取得
-	announcementAPIURL := os.Getenv("ANNOUNCEMENT_API_URL")
-	if announcementAPIURL == "" {
-		log.Fatal("ANNOUNCEMENT_API_URL is required")
-	}
-
-	// 認証付きHTTPクライアントを作成
-	announcementAPIAuthClient, err := idtoken.NewClient(ctx, announcementAPIURL)
+	// 外部APIクライアントを初期化
+	clients, err := infrastructure.NewExternalClients(ctx)
 	if err != nil {
-		log.Fatal("Failed to create auth client:", err)
+		log.Fatalf("Failed to create external clients: %v", err)
 	}
 
-	// 生成されたクライアントに認証付きHTTPクライアントを注入
-	announcementAPIClient, err := announcement_api.NewClientWithResponses(
-		announcementAPIURL,
-		announcement_api.WithHTTPClient(announcementAPIAuthClient),
-	)
-	if err != nil {
-		log.Fatal("Failed to create API client:", err)
-	}
-
-	announcementRepository := repository.NewAnnouncementRepository(announcementAPIClient)
-
+	announcementRepository := repository.NewAnnouncementRepository(clients.Announcement)
+	subjectRepository := repository.NewSubjectRepository(clients.Subject)
 	announcementService := service.NewAnnouncementService(announcementRepository)
+	subjectService := service.NewSubjectService(subjectRepository)
 
-	h := handler.NewHandler(announcementService)
+	h := handler.NewHandler(announcementService, subjectService)
 
 	strictHandler := api.NewStrictHandler(h, nil)
 
