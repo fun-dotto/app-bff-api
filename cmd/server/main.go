@@ -45,11 +45,15 @@ func main() {
 	}
 
 	announcementRepository := repository.NewAnnouncementRepository(clients.Announcement)
-	subjectRepository := repository.NewSubjectRepository(clients.Subject)
 	announcementService := service.NewAnnouncementService(announcementRepository)
+
+	subjectRepository := repository.NewSubjectRepository(clients.Subject)
 	subjectService := service.NewSubjectService(subjectRepository)
 
-	h := handler.NewHandler(announcementService, subjectService)
+	h := handler.NewHandler(
+		handler.WithAnnouncementService(announcementService),
+		handler.WithSubjectService(subjectService),
+	)
 
 	strictHandler := api.NewStrictHandler(h, nil)
 
