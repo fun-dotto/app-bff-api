@@ -32,6 +32,15 @@ const (
 	L DottoFoundationV1Class = "L"
 )
 
+// Defines values for DottoFoundationV1Course.
+const (
+	AdvancedICT       DottoFoundationV1Course = "AdvancedICT"
+	ComplexSystem     DottoFoundationV1Course = "ComplexSystem"
+	InformationDesign DottoFoundationV1Course = "InformationDesign"
+	InformationSystem DottoFoundationV1Course = "InformationSystem"
+	IntelligentSystem DottoFoundationV1Course = "IntelligentSystem"
+)
+
 // Defines values for DottoFoundationV1CourseSemester.
 const (
 	AllYear         DottoFoundationV1CourseSemester = "AllYear"
@@ -45,15 +54,13 @@ const (
 	WinterIntensive DottoFoundationV1CourseSemester = "WinterIntensive"
 )
 
-// Defines values for DottoFoundationV1DayOfWeek.
+// Defines values for DottoFoundationV1CulturalSubjectCategory.
 const (
-	Friday    DottoFoundationV1DayOfWeek = "Friday"
-	Monday    DottoFoundationV1DayOfWeek = "Monday"
-	Saturday  DottoFoundationV1DayOfWeek = "Saturday"
-	Sunday    DottoFoundationV1DayOfWeek = "Sunday"
-	Thursday  DottoFoundationV1DayOfWeek = "Thursday"
-	Tuesday   DottoFoundationV1DayOfWeek = "Tuesday"
-	Wednesday DottoFoundationV1DayOfWeek = "Wednesday"
+	Communication DottoFoundationV1CulturalSubjectCategory = "Communication"
+	Health        DottoFoundationV1CulturalSubjectCategory = "Health"
+	Human         DottoFoundationV1CulturalSubjectCategory = "Human"
+	Science       DottoFoundationV1CulturalSubjectCategory = "Science"
+	Society       DottoFoundationV1CulturalSubjectCategory = "Society"
 )
 
 // Defines values for DottoFoundationV1Grade.
@@ -69,6 +76,13 @@ const (
 	M2 DottoFoundationV1Grade = "M2"
 )
 
+// Defines values for DottoFoundationV1SubjectClassification.
+const (
+	Cultural            DottoFoundationV1SubjectClassification = "Cultural"
+	ResearchInstruction DottoFoundationV1SubjectClassification = "ResearchInstruction"
+	Specialized         DottoFoundationV1SubjectClassification = "Specialized"
+)
+
 // Defines values for DottoFoundationV1SubjectRequirementType.
 const (
 	Optional         DottoFoundationV1SubjectRequirementType = "Optional"
@@ -76,139 +90,84 @@ const (
 	Required         DottoFoundationV1SubjectRequirementType = "Required"
 )
 
-// Defines values for DottoFoundationV1TimetableSlot.
-const (
-	Slot1 DottoFoundationV1TimetableSlot = "Slot1"
-	Slot2 DottoFoundationV1TimetableSlot = "Slot2"
-	Slot3 DottoFoundationV1TimetableSlot = "Slot3"
-	Slot4 DottoFoundationV1TimetableSlot = "Slot4"
-	Slot5 DottoFoundationV1TimetableSlot = "Slot5"
-	Slot6 DottoFoundationV1TimetableSlot = "Slot6"
-)
-
-// Course コース
-type Course struct {
-	Id   string `json:"id"`
-	Name string `json:"name"`
-}
-
-// CourseRequest defines model for CourseRequest.
-type CourseRequest struct {
-	Name string `json:"name"`
-}
-
-// DayOfWeekTimetableSlot 曜日・時限
-type DayOfWeekTimetableSlot struct {
-	DayOfWeek DottoFoundationV1DayOfWeek `json:"dayOfWeek"`
-	Id        string                     `json:"id"`
-
-	// TimetableSlot 授業時間
-	TimetableSlot DottoFoundationV1TimetableSlot `json:"timetableSlot"`
-}
-
-// DayOfWeekTimetableSlotRequest defines model for DayOfWeekTimetableSlotRequest.
-type DayOfWeekTimetableSlotRequest struct {
-	DayOfWeek DottoFoundationV1DayOfWeek `json:"dayOfWeek"`
-
-	// TimetableSlot 授業時間
-	TimetableSlot DottoFoundationV1TimetableSlot `json:"timetableSlot"`
-}
-
 // DottoFoundationV1Class クラス
 type DottoFoundationV1Class string
+
+// DottoFoundationV1Course コース
+type DottoFoundationV1Course string
 
 // DottoFoundationV1CourseSemester 開講時期
 type DottoFoundationV1CourseSemester string
 
-// DottoFoundationV1DayOfWeek defines model for DottoFoundationV1.DayOfWeek.
-type DottoFoundationV1DayOfWeek string
+// DottoFoundationV1CulturalSubjectCategory 教養科目カテゴリ
+type DottoFoundationV1CulturalSubjectCategory string
 
-// DottoFoundationV1Grade 学年
-type DottoFoundationV1Grade string
-
-// DottoFoundationV1SubjectRequirementType 必修・選択
-type DottoFoundationV1SubjectRequirementType string
-
-// DottoFoundationV1TimetableSlot 授業時間
-type DottoFoundationV1TimetableSlot string
-
-// Faculty 教員
-type Faculty struct {
+// DottoFoundationV1Faculty 教員
+type DottoFoundationV1Faculty struct {
 	Email string `json:"email"`
 	Id    string `json:"id"`
 	Name  string `json:"name"`
 }
 
-// FacultyRequest defines model for FacultyRequest.
-type FacultyRequest struct {
+// DottoFoundationV1FacultyRequest defines model for DottoFoundationV1.FacultyRequest.
+type DottoFoundationV1FacultyRequest struct {
 	Email string `json:"email"`
 	Name  string `json:"name"`
 }
 
+// DottoFoundationV1Grade 学年
+type DottoFoundationV1Grade string
+
+// DottoFoundationV1SubjectClassification 科目カテゴリ
+type DottoFoundationV1SubjectClassification string
+
+// DottoFoundationV1SubjectRequirementType 必修・選択
+type DottoFoundationV1SubjectRequirementType string
+
 // Subject defines model for Subject.
 type Subject struct {
-	// Categories 科目群・科目区分のリスト
-	Categories              []SubjectCategory        `json:"categories"`
-	DayOfWeekTimetableSlots []DayOfWeekTimetableSlot `json:"dayOfWeekTimetableSlots"`
+	// Credit 単位数
+	Credit int `json:"credit"`
 
 	// EligibleAttributes 授業名末尾の`学年-クラス`をもとに決定
 	EligibleAttributes []SubjectTargetClass `json:"eligibleAttributes"`
-
-	// Faculty 教員
-	Faculty Faculty `json:"faculty"`
-	Id      string  `json:"id"`
-	Name    string  `json:"name"`
+	Faculties          []SubjectFaculty     `json:"faculties"`
+	Id                 string               `json:"id"`
+	Name               string               `json:"name"`
 
 	// Requirements 科目群・科目区分をもとに決定
 	Requirements []SubjectRequirement `json:"requirements"`
 
 	// Semester 開講時期
 	Semester DottoFoundationV1CourseSemester `json:"semester"`
-
-	// SyllabusId 教務システムのシラバスID
-	SyllabusId string `json:"syllabusId"`
 }
 
-// SubjectCategory 科目群・科目区分
-type SubjectCategory struct {
-	Id   string `json:"id"`
-	Name string `json:"name"`
-}
-
-// SubjectCategoryRequest defines model for SubjectCategoryRequest.
-type SubjectCategoryRequest struct {
-	Name string `json:"name"`
+// SubjectFaculty defines model for SubjectFaculty.
+type SubjectFaculty struct {
+	// Faculty 教員
+	Faculty   DottoFoundationV1Faculty `json:"faculty"`
+	IsPrimary bool                     `json:"isPrimary"`
 }
 
 // SubjectRequest defines model for SubjectRequest.
 type SubjectRequest struct {
-	CategoryIds               []string                    `json:"categoryIds"`
-	DayOfWeekTimetableSlotIds []string                    `json:"dayOfWeekTimetableSlotIds"`
-	EligibleAttributes        []SubjectTargetClass        `json:"eligibleAttributes"`
-	FacultyId                 string                      `json:"facultyId"`
-	Name                      string                      `json:"name"`
-	Requirements              []SubjectRequirementRequest `json:"requirements"`
-
-	// Semester 開講時期
-	Semester   DottoFoundationV1CourseSemester `json:"semester"`
-	SyllabusId string                          `json:"syllabusId"`
+	SyllabusId string `json:"syllabusId"`
 }
 
 // SubjectRequirement defines model for SubjectRequirement.
 type SubjectRequirement struct {
 	// Course コース
-	Course Course `json:"course"`
+	Course DottoFoundationV1Course `json:"course"`
 
 	// RequirementType 必修・選択
 	RequirementType DottoFoundationV1SubjectRequirementType `json:"requirementType"`
 }
 
-// SubjectRequirementRequest defines model for SubjectRequirementRequest.
-type SubjectRequirementRequest struct {
-	CourseId string `json:"courseId"`
-
-	// RequirementType 必修・選択
-	RequirementType DottoFoundationV1SubjectRequirementType `json:"requirementType"`
+// SubjectSummary defines model for SubjectSummary.
+type SubjectSummary struct {
+	Faculties []SubjectFaculty `json:"faculties"`
+	Id        string           `json:"id"`
+	Name      string           `json:"name"`
 }
 
 // SubjectTargetClass 対象学年・クラス
@@ -220,35 +179,125 @@ type SubjectTargetClass struct {
 	Grade DottoFoundationV1Grade `json:"grade"`
 }
 
-// CoursesV1CreateJSONRequestBody defines body for CoursesV1Create for application/json ContentType.
-type CoursesV1CreateJSONRequestBody = CourseRequest
+// Syllabus defines model for Syllabus.
+type Syllabus struct {
+	// Assignments 提出課題等
+	Assignments string `json:"assignments"`
 
-// CoursesV1UpdateJSONRequestBody defines body for CoursesV1Update for application/json ContentType.
-type CoursesV1UpdateJSONRequestBody = CourseRequest
+	// Classifications 科目群・科目区分
+	Classifications string `json:"classifications"`
 
-// DayOfWeekTimetableSlotsV1CreateJSONRequestBody defines body for DayOfWeekTimetableSlotsV1Create for application/json ContentType.
-type DayOfWeekTimetableSlotsV1CreateJSONRequestBody = DayOfWeekTimetableSlotRequest
+	// ContentsAndSchedule 授業内容とスケジュール
+	ContentsAndSchedule string `json:"contentsAndSchedule"`
 
-// DayOfWeekTimetableSlotsV1UpdateJSONRequestBody defines body for DayOfWeekTimetableSlotsV1Update for application/json ContentType.
-type DayOfWeekTimetableSlotsV1UpdateJSONRequestBody = DayOfWeekTimetableSlotRequest
+	// Credit 単位数
+	Credit int `json:"credit"`
+
+	// DspoSubject DSOP対象科目
+	DspoSubject string `json:"dspoSubject"`
+
+	// EnName 授業名 (en)
+	EnName string `json:"enName"`
+
+	// EvaluationMethod 成績の評価方法・基準
+	EvaluationMethod string `json:"evaluationMethod"`
+
+	// FacultyNames 担当教員名
+	FacultyNames string `json:"facultyNames"`
+
+	// Grades 配当年次
+	Grades string `json:"grades"`
+
+	// Id 教務システムのシラバスID
+	Id string `json:"id"`
+
+	// Keywords キーワード
+	Keywords string `json:"keywords"`
+
+	// LearningOutcomes 授業の到達目標
+	LearningOutcomes string `json:"learningOutcomes"`
+
+	// MultiplePersonTeachingForm 複数人担当形式
+	MultiplePersonTeachingForm string `json:"multiplePersonTeachingForm"`
+
+	// Name 授業名
+	Name string `json:"name"`
+
+	// Notes 履修上の留意点
+	Notes string `json:"notes"`
+
+	// PostLearning 事後学習
+	PostLearning string `json:"postLearning"`
+
+	// PracticalHomeFacultyCategory 実務家教員区分
+	PracticalHomeFacultyCategory string `json:"practicalHomeFacultyCategory"`
+
+	// PreLearning 事前学習
+	PreLearning string `json:"preLearning"`
+
+	// Prerequisites 履修条件
+	Prerequisites string `json:"prerequisites"`
+
+	// ReferenceBooks 参考書
+	ReferenceBooks string `json:"referenceBooks"`
+
+	// Summary 授業の概要
+	Summary string `json:"summary"`
+
+	// TargetAreas 対象領域
+	TargetAreas string `json:"targetAreas"`
+
+	// TargetCourses 対象コース・領域
+	TargetCourses string `json:"targetCourses"`
+
+	// TeachingAndExamForm 授業・試験の形式
+	TeachingAndExamForm string `json:"teachingAndExamForm"`
+
+	// TeachingForm 授業形態
+	TeachingForm string `json:"teachingForm"`
+
+	// TeachingLanguage 教授言語
+	TeachingLanguage string `json:"teachingLanguage"`
+
+	// Textbooks テキスト
+	Textbooks string `json:"textbooks"`
+}
+
+// SubjectsV1ListParams defines parameters for SubjectsV1List.
+type SubjectsV1ListParams struct {
+	// Q 検索ワード
+	Q string `form:"q" json:"q"`
+
+	// Grade 学年
+	Grade []DottoFoundationV1Grade `form:"grade" json:"grade"`
+
+	// Courses コース; 大学院の場合は大学院コースに読み替え
+	Courses []DottoFoundationV1Course `form:"courses" json:"courses"`
+
+	// Class クラス; 大学院の学年を選択した場合は選択できない
+	Class []DottoFoundationV1Class `form:"class" json:"class"`
+
+	// Classification 学部: 専門・教養; 大学院: 専門・研究指導
+	Classification []DottoFoundationV1SubjectClassification `form:"classification" json:"classification"`
+
+	// Semester 開講時期
+	Semester []DottoFoundationV1CourseSemester `form:"semester" json:"semester"`
+
+	// RequirementType 必修・選択・選択必修
+	RequirementType []DottoFoundationV1SubjectRequirementType `form:"requirementType" json:"requirementType"`
+
+	// CalturalSubjectCategory 教養科目カテゴリ
+	CalturalSubjectCategory []DottoFoundationV1CulturalSubjectCategory `form:"calturalSubjectCategory" json:"calturalSubjectCategory"`
+}
 
 // FacultiesV1CreateJSONRequestBody defines body for FacultiesV1Create for application/json ContentType.
-type FacultiesV1CreateJSONRequestBody = FacultyRequest
+type FacultiesV1CreateJSONRequestBody = DottoFoundationV1FacultyRequest
 
 // FacultiesV1UpdateJSONRequestBody defines body for FacultiesV1Update for application/json ContentType.
-type FacultiesV1UpdateJSONRequestBody = FacultyRequest
+type FacultiesV1UpdateJSONRequestBody = DottoFoundationV1FacultyRequest
 
-// SubjectCategoriesV1CreateJSONRequestBody defines body for SubjectCategoriesV1Create for application/json ContentType.
-type SubjectCategoriesV1CreateJSONRequestBody = SubjectCategoryRequest
-
-// SubjectCategoriesV1UpdateJSONRequestBody defines body for SubjectCategoriesV1Update for application/json ContentType.
-type SubjectCategoriesV1UpdateJSONRequestBody = SubjectCategoryRequest
-
-// SubjectsV1CreateJSONRequestBody defines body for SubjectsV1Create for application/json ContentType.
-type SubjectsV1CreateJSONRequestBody = SubjectRequest
-
-// SubjectsV1UpdateJSONRequestBody defines body for SubjectsV1Update for application/json ContentType.
-type SubjectsV1UpdateJSONRequestBody = SubjectRequest
+// SubjectsV1UpsertJSONRequestBody defines body for SubjectsV1Upsert for application/json ContentType.
+type SubjectsV1UpsertJSONRequestBody = SubjectRequest
 
 // RequestEditorFn  is the function signature for the RequestEditor callback function
 type RequestEditorFn func(ctx context.Context, req *http.Request) error
@@ -323,44 +372,6 @@ func WithRequestEditorFn(fn RequestEditorFn) ClientOption {
 
 // The interface specification for the client above.
 type ClientInterface interface {
-	// CoursesV1List request
-	CoursesV1List(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	// CoursesV1CreateWithBody request with any body
-	CoursesV1CreateWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	CoursesV1Create(ctx context.Context, body CoursesV1CreateJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	// CoursesV1Delete request
-	CoursesV1Delete(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	// CoursesV1Detail request
-	CoursesV1Detail(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	// CoursesV1UpdateWithBody request with any body
-	CoursesV1UpdateWithBody(ctx context.Context, id string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	CoursesV1Update(ctx context.Context, id string, body CoursesV1UpdateJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	// DayOfWeekTimetableSlotsV1List request
-	DayOfWeekTimetableSlotsV1List(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	// DayOfWeekTimetableSlotsV1CreateWithBody request with any body
-	DayOfWeekTimetableSlotsV1CreateWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	DayOfWeekTimetableSlotsV1Create(ctx context.Context, body DayOfWeekTimetableSlotsV1CreateJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	// DayOfWeekTimetableSlotsV1Delete request
-	DayOfWeekTimetableSlotsV1Delete(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	// DayOfWeekTimetableSlotsV1Detail request
-	DayOfWeekTimetableSlotsV1Detail(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	// DayOfWeekTimetableSlotsV1UpdateWithBody request with any body
-	DayOfWeekTimetableSlotsV1UpdateWithBody(ctx context.Context, id string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	DayOfWeekTimetableSlotsV1Update(ctx context.Context, id string, body DayOfWeekTimetableSlotsV1UpdateJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
-
 	// FacultiesV1List request
 	FacultiesV1List(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -380,32 +391,13 @@ type ClientInterface interface {
 
 	FacultiesV1Update(ctx context.Context, id string, body FacultiesV1UpdateJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// SubjectCategoriesV1List request
-	SubjectCategoriesV1List(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	// SubjectCategoriesV1CreateWithBody request with any body
-	SubjectCategoriesV1CreateWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	SubjectCategoriesV1Create(ctx context.Context, body SubjectCategoriesV1CreateJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	// SubjectCategoriesV1Delete request
-	SubjectCategoriesV1Delete(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	// SubjectCategoriesV1Detail request
-	SubjectCategoriesV1Detail(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	// SubjectCategoriesV1UpdateWithBody request with any body
-	SubjectCategoriesV1UpdateWithBody(ctx context.Context, id string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	SubjectCategoriesV1Update(ctx context.Context, id string, body SubjectCategoriesV1UpdateJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
-
 	// SubjectsV1List request
-	SubjectsV1List(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+	SubjectsV1List(ctx context.Context, params *SubjectsV1ListParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// SubjectsV1CreateWithBody request with any body
-	SubjectsV1CreateWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// SubjectsV1UpsertWithBody request with any body
+	SubjectsV1UpsertWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	SubjectsV1Create(ctx context.Context, body SubjectsV1CreateJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+	SubjectsV1Upsert(ctx context.Context, body SubjectsV1UpsertJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// SubjectsV1Delete request
 	SubjectsV1Delete(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -413,178 +405,8 @@ type ClientInterface interface {
 	// SubjectsV1Detail request
 	SubjectsV1Detail(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// SubjectsV1UpdateWithBody request with any body
-	SubjectsV1UpdateWithBody(ctx context.Context, id string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	SubjectsV1Update(ctx context.Context, id string, body SubjectsV1UpdateJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
-}
-
-func (c *Client) CoursesV1List(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewCoursesV1ListRequest(c.Server)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) CoursesV1CreateWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewCoursesV1CreateRequestWithBody(c.Server, contentType, body)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) CoursesV1Create(ctx context.Context, body CoursesV1CreateJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewCoursesV1CreateRequest(c.Server, body)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) CoursesV1Delete(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewCoursesV1DeleteRequest(c.Server, id)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) CoursesV1Detail(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewCoursesV1DetailRequest(c.Server, id)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) CoursesV1UpdateWithBody(ctx context.Context, id string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewCoursesV1UpdateRequestWithBody(c.Server, id, contentType, body)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) CoursesV1Update(ctx context.Context, id string, body CoursesV1UpdateJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewCoursesV1UpdateRequest(c.Server, id, body)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) DayOfWeekTimetableSlotsV1List(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewDayOfWeekTimetableSlotsV1ListRequest(c.Server)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) DayOfWeekTimetableSlotsV1CreateWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewDayOfWeekTimetableSlotsV1CreateRequestWithBody(c.Server, contentType, body)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) DayOfWeekTimetableSlotsV1Create(ctx context.Context, body DayOfWeekTimetableSlotsV1CreateJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewDayOfWeekTimetableSlotsV1CreateRequest(c.Server, body)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) DayOfWeekTimetableSlotsV1Delete(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewDayOfWeekTimetableSlotsV1DeleteRequest(c.Server, id)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) DayOfWeekTimetableSlotsV1Detail(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewDayOfWeekTimetableSlotsV1DetailRequest(c.Server, id)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) DayOfWeekTimetableSlotsV1UpdateWithBody(ctx context.Context, id string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewDayOfWeekTimetableSlotsV1UpdateRequestWithBody(c.Server, id, contentType, body)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) DayOfWeekTimetableSlotsV1Update(ctx context.Context, id string, body DayOfWeekTimetableSlotsV1UpdateJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewDayOfWeekTimetableSlotsV1UpdateRequest(c.Server, id, body)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
+	// SyllabusV1Detail request
+	SyllabusV1Detail(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error)
 }
 
 func (c *Client) FacultiesV1List(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
@@ -671,8 +493,8 @@ func (c *Client) FacultiesV1Update(ctx context.Context, id string, body Facultie
 	return c.Client.Do(req)
 }
 
-func (c *Client) SubjectCategoriesV1List(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewSubjectCategoriesV1ListRequest(c.Server)
+func (c *Client) SubjectsV1List(ctx context.Context, params *SubjectsV1ListParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSubjectsV1ListRequest(c.Server, params)
 	if err != nil {
 		return nil, err
 	}
@@ -683,8 +505,8 @@ func (c *Client) SubjectCategoriesV1List(ctx context.Context, reqEditors ...Requ
 	return c.Client.Do(req)
 }
 
-func (c *Client) SubjectCategoriesV1CreateWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewSubjectCategoriesV1CreateRequestWithBody(c.Server, contentType, body)
+func (c *Client) SubjectsV1UpsertWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSubjectsV1UpsertRequestWithBody(c.Server, contentType, body)
 	if err != nil {
 		return nil, err
 	}
@@ -695,92 +517,8 @@ func (c *Client) SubjectCategoriesV1CreateWithBody(ctx context.Context, contentT
 	return c.Client.Do(req)
 }
 
-func (c *Client) SubjectCategoriesV1Create(ctx context.Context, body SubjectCategoriesV1CreateJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewSubjectCategoriesV1CreateRequest(c.Server, body)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) SubjectCategoriesV1Delete(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewSubjectCategoriesV1DeleteRequest(c.Server, id)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) SubjectCategoriesV1Detail(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewSubjectCategoriesV1DetailRequest(c.Server, id)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) SubjectCategoriesV1UpdateWithBody(ctx context.Context, id string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewSubjectCategoriesV1UpdateRequestWithBody(c.Server, id, contentType, body)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) SubjectCategoriesV1Update(ctx context.Context, id string, body SubjectCategoriesV1UpdateJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewSubjectCategoriesV1UpdateRequest(c.Server, id, body)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) SubjectsV1List(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewSubjectsV1ListRequest(c.Server)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) SubjectsV1CreateWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewSubjectsV1CreateRequestWithBody(c.Server, contentType, body)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) SubjectsV1Create(ctx context.Context, body SubjectsV1CreateJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewSubjectsV1CreateRequest(c.Server, body)
+func (c *Client) SubjectsV1Upsert(ctx context.Context, body SubjectsV1UpsertJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSubjectsV1UpsertRequest(c.Server, body)
 	if err != nil {
 		return nil, err
 	}
@@ -815,8 +553,8 @@ func (c *Client) SubjectsV1Detail(ctx context.Context, id string, reqEditors ...
 	return c.Client.Do(req)
 }
 
-func (c *Client) SubjectsV1UpdateWithBody(ctx context.Context, id string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewSubjectsV1UpdateRequestWithBody(c.Server, id, contentType, body)
+func (c *Client) SyllabusV1Detail(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSyllabusV1DetailRequest(c.Server, id)
 	if err != nil {
 		return nil, err
 	}
@@ -825,382 +563,6 @@ func (c *Client) SubjectsV1UpdateWithBody(ctx context.Context, id string, conten
 		return nil, err
 	}
 	return c.Client.Do(req)
-}
-
-func (c *Client) SubjectsV1Update(ctx context.Context, id string, body SubjectsV1UpdateJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewSubjectsV1UpdateRequest(c.Server, id, body)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-// NewCoursesV1ListRequest generates requests for CoursesV1List
-func NewCoursesV1ListRequest(server string) (*http.Request, error) {
-	var err error
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/v1/courses")
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("GET", queryURL.String(), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return req, nil
-}
-
-// NewCoursesV1CreateRequest calls the generic CoursesV1Create builder with application/json body
-func NewCoursesV1CreateRequest(server string, body CoursesV1CreateJSONRequestBody) (*http.Request, error) {
-	var bodyReader io.Reader
-	buf, err := json.Marshal(body)
-	if err != nil {
-		return nil, err
-	}
-	bodyReader = bytes.NewReader(buf)
-	return NewCoursesV1CreateRequestWithBody(server, "application/json", bodyReader)
-}
-
-// NewCoursesV1CreateRequestWithBody generates requests for CoursesV1Create with any type of body
-func NewCoursesV1CreateRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
-	var err error
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/v1/courses")
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("POST", queryURL.String(), body)
-	if err != nil {
-		return nil, err
-	}
-
-	req.Header.Add("Content-Type", contentType)
-
-	return req, nil
-}
-
-// NewCoursesV1DeleteRequest generates requests for CoursesV1Delete
-func NewCoursesV1DeleteRequest(server string, id string) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "id", runtime.ParamLocationPath, id)
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/v1/courses/%s", pathParam0)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("DELETE", queryURL.String(), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return req, nil
-}
-
-// NewCoursesV1DetailRequest generates requests for CoursesV1Detail
-func NewCoursesV1DetailRequest(server string, id string) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "id", runtime.ParamLocationPath, id)
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/v1/courses/%s", pathParam0)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("GET", queryURL.String(), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return req, nil
-}
-
-// NewCoursesV1UpdateRequest calls the generic CoursesV1Update builder with application/json body
-func NewCoursesV1UpdateRequest(server string, id string, body CoursesV1UpdateJSONRequestBody) (*http.Request, error) {
-	var bodyReader io.Reader
-	buf, err := json.Marshal(body)
-	if err != nil {
-		return nil, err
-	}
-	bodyReader = bytes.NewReader(buf)
-	return NewCoursesV1UpdateRequestWithBody(server, id, "application/json", bodyReader)
-}
-
-// NewCoursesV1UpdateRequestWithBody generates requests for CoursesV1Update with any type of body
-func NewCoursesV1UpdateRequestWithBody(server string, id string, contentType string, body io.Reader) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "id", runtime.ParamLocationPath, id)
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/v1/courses/%s", pathParam0)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("PUT", queryURL.String(), body)
-	if err != nil {
-		return nil, err
-	}
-
-	req.Header.Add("Content-Type", contentType)
-
-	return req, nil
-}
-
-// NewDayOfWeekTimetableSlotsV1ListRequest generates requests for DayOfWeekTimetableSlotsV1List
-func NewDayOfWeekTimetableSlotsV1ListRequest(server string) (*http.Request, error) {
-	var err error
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/v1/day-of-week-timetable-slots")
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("GET", queryURL.String(), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return req, nil
-}
-
-// NewDayOfWeekTimetableSlotsV1CreateRequest calls the generic DayOfWeekTimetableSlotsV1Create builder with application/json body
-func NewDayOfWeekTimetableSlotsV1CreateRequest(server string, body DayOfWeekTimetableSlotsV1CreateJSONRequestBody) (*http.Request, error) {
-	var bodyReader io.Reader
-	buf, err := json.Marshal(body)
-	if err != nil {
-		return nil, err
-	}
-	bodyReader = bytes.NewReader(buf)
-	return NewDayOfWeekTimetableSlotsV1CreateRequestWithBody(server, "application/json", bodyReader)
-}
-
-// NewDayOfWeekTimetableSlotsV1CreateRequestWithBody generates requests for DayOfWeekTimetableSlotsV1Create with any type of body
-func NewDayOfWeekTimetableSlotsV1CreateRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
-	var err error
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/v1/day-of-week-timetable-slots")
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("POST", queryURL.String(), body)
-	if err != nil {
-		return nil, err
-	}
-
-	req.Header.Add("Content-Type", contentType)
-
-	return req, nil
-}
-
-// NewDayOfWeekTimetableSlotsV1DeleteRequest generates requests for DayOfWeekTimetableSlotsV1Delete
-func NewDayOfWeekTimetableSlotsV1DeleteRequest(server string, id string) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "id", runtime.ParamLocationPath, id)
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/v1/day-of-week-timetable-slots/%s", pathParam0)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("DELETE", queryURL.String(), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return req, nil
-}
-
-// NewDayOfWeekTimetableSlotsV1DetailRequest generates requests for DayOfWeekTimetableSlotsV1Detail
-func NewDayOfWeekTimetableSlotsV1DetailRequest(server string, id string) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "id", runtime.ParamLocationPath, id)
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/v1/day-of-week-timetable-slots/%s", pathParam0)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("GET", queryURL.String(), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return req, nil
-}
-
-// NewDayOfWeekTimetableSlotsV1UpdateRequest calls the generic DayOfWeekTimetableSlotsV1Update builder with application/json body
-func NewDayOfWeekTimetableSlotsV1UpdateRequest(server string, id string, body DayOfWeekTimetableSlotsV1UpdateJSONRequestBody) (*http.Request, error) {
-	var bodyReader io.Reader
-	buf, err := json.Marshal(body)
-	if err != nil {
-		return nil, err
-	}
-	bodyReader = bytes.NewReader(buf)
-	return NewDayOfWeekTimetableSlotsV1UpdateRequestWithBody(server, id, "application/json", bodyReader)
-}
-
-// NewDayOfWeekTimetableSlotsV1UpdateRequestWithBody generates requests for DayOfWeekTimetableSlotsV1Update with any type of body
-func NewDayOfWeekTimetableSlotsV1UpdateRequestWithBody(server string, id string, contentType string, body io.Reader) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "id", runtime.ParamLocationPath, id)
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/v1/day-of-week-timetable-slots/%s", pathParam0)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("PUT", queryURL.String(), body)
-	if err != nil {
-		return nil, err
-	}
-
-	req.Header.Add("Content-Type", contentType)
-
-	return req, nil
 }
 
 // NewFacultiesV1ListRequest generates requests for FacultiesV1List
@@ -1385,8 +747,8 @@ func NewFacultiesV1UpdateRequestWithBody(server string, id string, contentType s
 	return req, nil
 }
 
-// NewSubjectCategoriesV1ListRequest generates requests for SubjectCategoriesV1List
-func NewSubjectCategoriesV1ListRequest(server string) (*http.Request, error) {
+// NewSubjectsV1ListRequest generates requests for SubjectsV1List
+func NewSubjectsV1ListRequest(server string, params *SubjectsV1ListParams) (*http.Request, error) {
 	var err error
 
 	serverURL, err := url.Parse(server)
@@ -1394,7 +756,7 @@ func NewSubjectCategoriesV1ListRequest(server string) (*http.Request, error) {
 		return nil, err
 	}
 
-	operationPath := fmt.Sprintf("/v1/subject-categories")
+	operationPath := fmt.Sprintf("/v1/subjects")
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -1402,6 +764,108 @@ func NewSubjectCategoriesV1ListRequest(server string) (*http.Request, error) {
 	queryURL, err := serverURL.Parse(operationPath)
 	if err != nil {
 		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", false, "q", runtime.ParamLocationQuery, params.Q); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", false, "grade", runtime.ParamLocationQuery, params.Grade); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", false, "courses", runtime.ParamLocationQuery, params.Courses); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", false, "class", runtime.ParamLocationQuery, params.Class); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", false, "classification", runtime.ParamLocationQuery, params.Classification); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", false, "semester", runtime.ParamLocationQuery, params.Semester); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", false, "requirementType", runtime.ParamLocationQuery, params.RequirementType); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", false, "calturalSubjectCategory", runtime.ParamLocationQuery, params.CalturalSubjectCategory); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
 	}
 
 	req, err := http.NewRequest("GET", queryURL.String(), nil)
@@ -1412,19 +876,19 @@ func NewSubjectCategoriesV1ListRequest(server string) (*http.Request, error) {
 	return req, nil
 }
 
-// NewSubjectCategoriesV1CreateRequest calls the generic SubjectCategoriesV1Create builder with application/json body
-func NewSubjectCategoriesV1CreateRequest(server string, body SubjectCategoriesV1CreateJSONRequestBody) (*http.Request, error) {
+// NewSubjectsV1UpsertRequest calls the generic SubjectsV1Upsert builder with application/json body
+func NewSubjectsV1UpsertRequest(server string, body SubjectsV1UpsertJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
 	buf, err := json.Marshal(body)
 	if err != nil {
 		return nil, err
 	}
 	bodyReader = bytes.NewReader(buf)
-	return NewSubjectCategoriesV1CreateRequestWithBody(server, "application/json", bodyReader)
+	return NewSubjectsV1UpsertRequestWithBody(server, "application/json", bodyReader)
 }
 
-// NewSubjectCategoriesV1CreateRequestWithBody generates requests for SubjectCategoriesV1Create with any type of body
-func NewSubjectCategoriesV1CreateRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+// NewSubjectsV1UpsertRequestWithBody generates requests for SubjectsV1Upsert with any type of body
+func NewSubjectsV1UpsertRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
 	var err error
 
 	serverURL, err := url.Parse(server)
@@ -1432,122 +896,7 @@ func NewSubjectCategoriesV1CreateRequestWithBody(server string, contentType stri
 		return nil, err
 	}
 
-	operationPath := fmt.Sprintf("/v1/subject-categories")
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("POST", queryURL.String(), body)
-	if err != nil {
-		return nil, err
-	}
-
-	req.Header.Add("Content-Type", contentType)
-
-	return req, nil
-}
-
-// NewSubjectCategoriesV1DeleteRequest generates requests for SubjectCategoriesV1Delete
-func NewSubjectCategoriesV1DeleteRequest(server string, id string) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "id", runtime.ParamLocationPath, id)
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/v1/subject-categories/%s", pathParam0)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("DELETE", queryURL.String(), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return req, nil
-}
-
-// NewSubjectCategoriesV1DetailRequest generates requests for SubjectCategoriesV1Detail
-func NewSubjectCategoriesV1DetailRequest(server string, id string) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "id", runtime.ParamLocationPath, id)
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/v1/subject-categories/%s", pathParam0)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("GET", queryURL.String(), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return req, nil
-}
-
-// NewSubjectCategoriesV1UpdateRequest calls the generic SubjectCategoriesV1Update builder with application/json body
-func NewSubjectCategoriesV1UpdateRequest(server string, id string, body SubjectCategoriesV1UpdateJSONRequestBody) (*http.Request, error) {
-	var bodyReader io.Reader
-	buf, err := json.Marshal(body)
-	if err != nil {
-		return nil, err
-	}
-	bodyReader = bytes.NewReader(buf)
-	return NewSubjectCategoriesV1UpdateRequestWithBody(server, id, "application/json", bodyReader)
-}
-
-// NewSubjectCategoriesV1UpdateRequestWithBody generates requests for SubjectCategoriesV1Update with any type of body
-func NewSubjectCategoriesV1UpdateRequestWithBody(server string, id string, contentType string, body io.Reader) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "id", runtime.ParamLocationPath, id)
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/v1/subject-categories/%s", pathParam0)
+	operationPath := fmt.Sprintf("/v1/subjects")
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -1558,73 +907,6 @@ func NewSubjectCategoriesV1UpdateRequestWithBody(server string, id string, conte
 	}
 
 	req, err := http.NewRequest("PUT", queryURL.String(), body)
-	if err != nil {
-		return nil, err
-	}
-
-	req.Header.Add("Content-Type", contentType)
-
-	return req, nil
-}
-
-// NewSubjectsV1ListRequest generates requests for SubjectsV1List
-func NewSubjectsV1ListRequest(server string) (*http.Request, error) {
-	var err error
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/v1/subjects")
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("GET", queryURL.String(), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return req, nil
-}
-
-// NewSubjectsV1CreateRequest calls the generic SubjectsV1Create builder with application/json body
-func NewSubjectsV1CreateRequest(server string, body SubjectsV1CreateJSONRequestBody) (*http.Request, error) {
-	var bodyReader io.Reader
-	buf, err := json.Marshal(body)
-	if err != nil {
-		return nil, err
-	}
-	bodyReader = bytes.NewReader(buf)
-	return NewSubjectsV1CreateRequestWithBody(server, "application/json", bodyReader)
-}
-
-// NewSubjectsV1CreateRequestWithBody generates requests for SubjectsV1Create with any type of body
-func NewSubjectsV1CreateRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
-	var err error
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/v1/subjects")
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("POST", queryURL.String(), body)
 	if err != nil {
 		return nil, err
 	}
@@ -1702,19 +984,8 @@ func NewSubjectsV1DetailRequest(server string, id string) (*http.Request, error)
 	return req, nil
 }
 
-// NewSubjectsV1UpdateRequest calls the generic SubjectsV1Update builder with application/json body
-func NewSubjectsV1UpdateRequest(server string, id string, body SubjectsV1UpdateJSONRequestBody) (*http.Request, error) {
-	var bodyReader io.Reader
-	buf, err := json.Marshal(body)
-	if err != nil {
-		return nil, err
-	}
-	bodyReader = bytes.NewReader(buf)
-	return NewSubjectsV1UpdateRequestWithBody(server, id, "application/json", bodyReader)
-}
-
-// NewSubjectsV1UpdateRequestWithBody generates requests for SubjectsV1Update with any type of body
-func NewSubjectsV1UpdateRequestWithBody(server string, id string, contentType string, body io.Reader) (*http.Request, error) {
+// NewSyllabusV1DetailRequest generates requests for SyllabusV1Detail
+func NewSyllabusV1DetailRequest(server string, id string) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -1729,7 +1000,7 @@ func NewSubjectsV1UpdateRequestWithBody(server string, id string, contentType st
 		return nil, err
 	}
 
-	operationPath := fmt.Sprintf("/v1/subjects/%s", pathParam0)
+	operationPath := fmt.Sprintf("/v1/subjects/%s/syllabus", pathParam0)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -1739,12 +1010,10 @@ func NewSubjectsV1UpdateRequestWithBody(server string, id string, contentType st
 		return nil, err
 	}
 
-	req, err := http.NewRequest("PUT", queryURL.String(), body)
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
 	if err != nil {
 		return nil, err
 	}
-
-	req.Header.Add("Content-Type", contentType)
 
 	return req, nil
 }
@@ -1792,44 +1061,6 @@ func WithBaseURL(baseURL string) ClientOption {
 
 // ClientWithResponsesInterface is the interface specification for the client with responses above.
 type ClientWithResponsesInterface interface {
-	// CoursesV1ListWithResponse request
-	CoursesV1ListWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*CoursesV1ListResponse, error)
-
-	// CoursesV1CreateWithBodyWithResponse request with any body
-	CoursesV1CreateWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CoursesV1CreateResponse, error)
-
-	CoursesV1CreateWithResponse(ctx context.Context, body CoursesV1CreateJSONRequestBody, reqEditors ...RequestEditorFn) (*CoursesV1CreateResponse, error)
-
-	// CoursesV1DeleteWithResponse request
-	CoursesV1DeleteWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*CoursesV1DeleteResponse, error)
-
-	// CoursesV1DetailWithResponse request
-	CoursesV1DetailWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*CoursesV1DetailResponse, error)
-
-	// CoursesV1UpdateWithBodyWithResponse request with any body
-	CoursesV1UpdateWithBodyWithResponse(ctx context.Context, id string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CoursesV1UpdateResponse, error)
-
-	CoursesV1UpdateWithResponse(ctx context.Context, id string, body CoursesV1UpdateJSONRequestBody, reqEditors ...RequestEditorFn) (*CoursesV1UpdateResponse, error)
-
-	// DayOfWeekTimetableSlotsV1ListWithResponse request
-	DayOfWeekTimetableSlotsV1ListWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*DayOfWeekTimetableSlotsV1ListResponse, error)
-
-	// DayOfWeekTimetableSlotsV1CreateWithBodyWithResponse request with any body
-	DayOfWeekTimetableSlotsV1CreateWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*DayOfWeekTimetableSlotsV1CreateResponse, error)
-
-	DayOfWeekTimetableSlotsV1CreateWithResponse(ctx context.Context, body DayOfWeekTimetableSlotsV1CreateJSONRequestBody, reqEditors ...RequestEditorFn) (*DayOfWeekTimetableSlotsV1CreateResponse, error)
-
-	// DayOfWeekTimetableSlotsV1DeleteWithResponse request
-	DayOfWeekTimetableSlotsV1DeleteWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*DayOfWeekTimetableSlotsV1DeleteResponse, error)
-
-	// DayOfWeekTimetableSlotsV1DetailWithResponse request
-	DayOfWeekTimetableSlotsV1DetailWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*DayOfWeekTimetableSlotsV1DetailResponse, error)
-
-	// DayOfWeekTimetableSlotsV1UpdateWithBodyWithResponse request with any body
-	DayOfWeekTimetableSlotsV1UpdateWithBodyWithResponse(ctx context.Context, id string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*DayOfWeekTimetableSlotsV1UpdateResponse, error)
-
-	DayOfWeekTimetableSlotsV1UpdateWithResponse(ctx context.Context, id string, body DayOfWeekTimetableSlotsV1UpdateJSONRequestBody, reqEditors ...RequestEditorFn) (*DayOfWeekTimetableSlotsV1UpdateResponse, error)
-
 	// FacultiesV1ListWithResponse request
 	FacultiesV1ListWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*FacultiesV1ListResponse, error)
 
@@ -1849,32 +1080,13 @@ type ClientWithResponsesInterface interface {
 
 	FacultiesV1UpdateWithResponse(ctx context.Context, id string, body FacultiesV1UpdateJSONRequestBody, reqEditors ...RequestEditorFn) (*FacultiesV1UpdateResponse, error)
 
-	// SubjectCategoriesV1ListWithResponse request
-	SubjectCategoriesV1ListWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*SubjectCategoriesV1ListResponse, error)
-
-	// SubjectCategoriesV1CreateWithBodyWithResponse request with any body
-	SubjectCategoriesV1CreateWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SubjectCategoriesV1CreateResponse, error)
-
-	SubjectCategoriesV1CreateWithResponse(ctx context.Context, body SubjectCategoriesV1CreateJSONRequestBody, reqEditors ...RequestEditorFn) (*SubjectCategoriesV1CreateResponse, error)
-
-	// SubjectCategoriesV1DeleteWithResponse request
-	SubjectCategoriesV1DeleteWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*SubjectCategoriesV1DeleteResponse, error)
-
-	// SubjectCategoriesV1DetailWithResponse request
-	SubjectCategoriesV1DetailWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*SubjectCategoriesV1DetailResponse, error)
-
-	// SubjectCategoriesV1UpdateWithBodyWithResponse request with any body
-	SubjectCategoriesV1UpdateWithBodyWithResponse(ctx context.Context, id string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SubjectCategoriesV1UpdateResponse, error)
-
-	SubjectCategoriesV1UpdateWithResponse(ctx context.Context, id string, body SubjectCategoriesV1UpdateJSONRequestBody, reqEditors ...RequestEditorFn) (*SubjectCategoriesV1UpdateResponse, error)
-
 	// SubjectsV1ListWithResponse request
-	SubjectsV1ListWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*SubjectsV1ListResponse, error)
+	SubjectsV1ListWithResponse(ctx context.Context, params *SubjectsV1ListParams, reqEditors ...RequestEditorFn) (*SubjectsV1ListResponse, error)
 
-	// SubjectsV1CreateWithBodyWithResponse request with any body
-	SubjectsV1CreateWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SubjectsV1CreateResponse, error)
+	// SubjectsV1UpsertWithBodyWithResponse request with any body
+	SubjectsV1UpsertWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SubjectsV1UpsertResponse, error)
 
-	SubjectsV1CreateWithResponse(ctx context.Context, body SubjectsV1CreateJSONRequestBody, reqEditors ...RequestEditorFn) (*SubjectsV1CreateResponse, error)
+	SubjectsV1UpsertWithResponse(ctx context.Context, body SubjectsV1UpsertJSONRequestBody, reqEditors ...RequestEditorFn) (*SubjectsV1UpsertResponse, error)
 
 	// SubjectsV1DeleteWithResponse request
 	SubjectsV1DeleteWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*SubjectsV1DeleteResponse, error)
@@ -1882,257 +1094,15 @@ type ClientWithResponsesInterface interface {
 	// SubjectsV1DetailWithResponse request
 	SubjectsV1DetailWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*SubjectsV1DetailResponse, error)
 
-	// SubjectsV1UpdateWithBodyWithResponse request with any body
-	SubjectsV1UpdateWithBodyWithResponse(ctx context.Context, id string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SubjectsV1UpdateResponse, error)
-
-	SubjectsV1UpdateWithResponse(ctx context.Context, id string, body SubjectsV1UpdateJSONRequestBody, reqEditors ...RequestEditorFn) (*SubjectsV1UpdateResponse, error)
-}
-
-type CoursesV1ListResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON200      *struct {
-		Courses []Course `json:"courses"`
-	}
-}
-
-// Status returns HTTPResponse.Status
-func (r CoursesV1ListResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r CoursesV1ListResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
-type CoursesV1CreateResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON201      *struct {
-		// Course コース
-		Course Course `json:"course"`
-	}
-}
-
-// Status returns HTTPResponse.Status
-func (r CoursesV1CreateResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r CoursesV1CreateResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
-type CoursesV1DeleteResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-}
-
-// Status returns HTTPResponse.Status
-func (r CoursesV1DeleteResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r CoursesV1DeleteResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
-type CoursesV1DetailResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON200      *struct {
-		// Course コース
-		Course Course `json:"course"`
-	}
-}
-
-// Status returns HTTPResponse.Status
-func (r CoursesV1DetailResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r CoursesV1DetailResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
-type CoursesV1UpdateResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON200      *struct {
-		// Course コース
-		Course Course `json:"course"`
-	}
-}
-
-// Status returns HTTPResponse.Status
-func (r CoursesV1UpdateResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r CoursesV1UpdateResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
-type DayOfWeekTimetableSlotsV1ListResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON200      *struct {
-		DayOfWeekTimetableSlots []DayOfWeekTimetableSlot `json:"dayOfWeekTimetableSlots"`
-	}
-}
-
-// Status returns HTTPResponse.Status
-func (r DayOfWeekTimetableSlotsV1ListResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r DayOfWeekTimetableSlotsV1ListResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
-type DayOfWeekTimetableSlotsV1CreateResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON201      *struct {
-		// DayOfWeekTimetableSlot 曜日・時限
-		DayOfWeekTimetableSlot DayOfWeekTimetableSlot `json:"dayOfWeekTimetableSlot"`
-	}
-}
-
-// Status returns HTTPResponse.Status
-func (r DayOfWeekTimetableSlotsV1CreateResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r DayOfWeekTimetableSlotsV1CreateResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
-type DayOfWeekTimetableSlotsV1DeleteResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-}
-
-// Status returns HTTPResponse.Status
-func (r DayOfWeekTimetableSlotsV1DeleteResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r DayOfWeekTimetableSlotsV1DeleteResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
-type DayOfWeekTimetableSlotsV1DetailResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON200      *struct {
-		// DayOfWeekTimetableSlot 曜日・時限
-		DayOfWeekTimetableSlot DayOfWeekTimetableSlot `json:"dayOfWeekTimetableSlot"`
-	}
-}
-
-// Status returns HTTPResponse.Status
-func (r DayOfWeekTimetableSlotsV1DetailResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r DayOfWeekTimetableSlotsV1DetailResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
-type DayOfWeekTimetableSlotsV1UpdateResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON200      *struct {
-		// DayOfWeekTimetableSlot 曜日・時限
-		DayOfWeekTimetableSlot DayOfWeekTimetableSlot `json:"dayOfWeekTimetableSlot"`
-	}
-}
-
-// Status returns HTTPResponse.Status
-func (r DayOfWeekTimetableSlotsV1UpdateResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r DayOfWeekTimetableSlotsV1UpdateResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
+	// SyllabusV1DetailWithResponse request
+	SyllabusV1DetailWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*SyllabusV1DetailResponse, error)
 }
 
 type FacultiesV1ListResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *struct {
-		Faculties []Faculty `json:"faculties"`
+		Faculties []DottoFoundationV1Faculty `json:"faculties"`
 	}
 }
 
@@ -2157,7 +1127,7 @@ type FacultiesV1CreateResponse struct {
 	HTTPResponse *http.Response
 	JSON201      *struct {
 		// Faculty 教員
-		Faculty Faculty `json:"faculty"`
+		Faculty DottoFoundationV1Faculty `json:"faculty"`
 	}
 }
 
@@ -2203,7 +1173,7 @@ type FacultiesV1DetailResponse struct {
 	HTTPResponse *http.Response
 	JSON200      *struct {
 		// Faculty 教員
-		Faculty Faculty `json:"faculty"`
+		Faculty DottoFoundationV1Faculty `json:"faculty"`
 	}
 }
 
@@ -2228,7 +1198,7 @@ type FacultiesV1UpdateResponse struct {
 	HTTPResponse *http.Response
 	JSON200      *struct {
 		// Faculty 教員
-		Faculty Faculty `json:"faculty"`
+		Faculty DottoFoundationV1Faculty `json:"faculty"`
 	}
 }
 
@@ -2248,131 +1218,11 @@ func (r FacultiesV1UpdateResponse) StatusCode() int {
 	return 0
 }
 
-type SubjectCategoriesV1ListResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON200      *struct {
-		SubjectCategories []SubjectCategory `json:"subjectCategories"`
-	}
-}
-
-// Status returns HTTPResponse.Status
-func (r SubjectCategoriesV1ListResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r SubjectCategoriesV1ListResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
-type SubjectCategoriesV1CreateResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON201      *struct {
-		// SubjectCategory 科目群・科目区分
-		SubjectCategory SubjectCategory `json:"subjectCategory"`
-	}
-}
-
-// Status returns HTTPResponse.Status
-func (r SubjectCategoriesV1CreateResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r SubjectCategoriesV1CreateResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
-type SubjectCategoriesV1DeleteResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-}
-
-// Status returns HTTPResponse.Status
-func (r SubjectCategoriesV1DeleteResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r SubjectCategoriesV1DeleteResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
-type SubjectCategoriesV1DetailResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON200      *struct {
-		// SubjectCategory 科目群・科目区分
-		SubjectCategory SubjectCategory `json:"subjectCategory"`
-	}
-}
-
-// Status returns HTTPResponse.Status
-func (r SubjectCategoriesV1DetailResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r SubjectCategoriesV1DetailResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
-type SubjectCategoriesV1UpdateResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON200      *struct {
-		// SubjectCategory 科目群・科目区分
-		SubjectCategory SubjectCategory `json:"subjectCategory"`
-	}
-}
-
-// Status returns HTTPResponse.Status
-func (r SubjectCategoriesV1UpdateResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r SubjectCategoriesV1UpdateResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
 type SubjectsV1ListResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *struct {
-		Subjects []Subject `json:"subjects"`
+		Subjects []SubjectSummary `json:"subjects"`
 	}
 }
 
@@ -2392,16 +1242,16 @@ func (r SubjectsV1ListResponse) StatusCode() int {
 	return 0
 }
 
-type SubjectsV1CreateResponse struct {
+type SubjectsV1UpsertResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON201      *struct {
+	JSON200      *struct {
 		Subject Subject `json:"subject"`
 	}
 }
 
 // Status returns HTTPResponse.Status
-func (r SubjectsV1CreateResponse) Status() string {
+func (r SubjectsV1UpsertResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -2409,7 +1259,7 @@ func (r SubjectsV1CreateResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r SubjectsV1CreateResponse) StatusCode() int {
+func (r SubjectsV1UpsertResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -2461,16 +1311,16 @@ func (r SubjectsV1DetailResponse) StatusCode() int {
 	return 0
 }
 
-type SubjectsV1UpdateResponse struct {
+type SyllabusV1DetailResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *struct {
-		Subject Subject `json:"subject"`
+		Syllabus Syllabus `json:"syllabus"`
 	}
 }
 
 // Status returns HTTPResponse.Status
-func (r SubjectsV1UpdateResponse) Status() string {
+func (r SyllabusV1DetailResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -2478,133 +1328,11 @@ func (r SubjectsV1UpdateResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r SubjectsV1UpdateResponse) StatusCode() int {
+func (r SyllabusV1DetailResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
 	return 0
-}
-
-// CoursesV1ListWithResponse request returning *CoursesV1ListResponse
-func (c *ClientWithResponses) CoursesV1ListWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*CoursesV1ListResponse, error) {
-	rsp, err := c.CoursesV1List(ctx, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseCoursesV1ListResponse(rsp)
-}
-
-// CoursesV1CreateWithBodyWithResponse request with arbitrary body returning *CoursesV1CreateResponse
-func (c *ClientWithResponses) CoursesV1CreateWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CoursesV1CreateResponse, error) {
-	rsp, err := c.CoursesV1CreateWithBody(ctx, contentType, body, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseCoursesV1CreateResponse(rsp)
-}
-
-func (c *ClientWithResponses) CoursesV1CreateWithResponse(ctx context.Context, body CoursesV1CreateJSONRequestBody, reqEditors ...RequestEditorFn) (*CoursesV1CreateResponse, error) {
-	rsp, err := c.CoursesV1Create(ctx, body, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseCoursesV1CreateResponse(rsp)
-}
-
-// CoursesV1DeleteWithResponse request returning *CoursesV1DeleteResponse
-func (c *ClientWithResponses) CoursesV1DeleteWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*CoursesV1DeleteResponse, error) {
-	rsp, err := c.CoursesV1Delete(ctx, id, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseCoursesV1DeleteResponse(rsp)
-}
-
-// CoursesV1DetailWithResponse request returning *CoursesV1DetailResponse
-func (c *ClientWithResponses) CoursesV1DetailWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*CoursesV1DetailResponse, error) {
-	rsp, err := c.CoursesV1Detail(ctx, id, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseCoursesV1DetailResponse(rsp)
-}
-
-// CoursesV1UpdateWithBodyWithResponse request with arbitrary body returning *CoursesV1UpdateResponse
-func (c *ClientWithResponses) CoursesV1UpdateWithBodyWithResponse(ctx context.Context, id string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CoursesV1UpdateResponse, error) {
-	rsp, err := c.CoursesV1UpdateWithBody(ctx, id, contentType, body, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseCoursesV1UpdateResponse(rsp)
-}
-
-func (c *ClientWithResponses) CoursesV1UpdateWithResponse(ctx context.Context, id string, body CoursesV1UpdateJSONRequestBody, reqEditors ...RequestEditorFn) (*CoursesV1UpdateResponse, error) {
-	rsp, err := c.CoursesV1Update(ctx, id, body, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseCoursesV1UpdateResponse(rsp)
-}
-
-// DayOfWeekTimetableSlotsV1ListWithResponse request returning *DayOfWeekTimetableSlotsV1ListResponse
-func (c *ClientWithResponses) DayOfWeekTimetableSlotsV1ListWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*DayOfWeekTimetableSlotsV1ListResponse, error) {
-	rsp, err := c.DayOfWeekTimetableSlotsV1List(ctx, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseDayOfWeekTimetableSlotsV1ListResponse(rsp)
-}
-
-// DayOfWeekTimetableSlotsV1CreateWithBodyWithResponse request with arbitrary body returning *DayOfWeekTimetableSlotsV1CreateResponse
-func (c *ClientWithResponses) DayOfWeekTimetableSlotsV1CreateWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*DayOfWeekTimetableSlotsV1CreateResponse, error) {
-	rsp, err := c.DayOfWeekTimetableSlotsV1CreateWithBody(ctx, contentType, body, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseDayOfWeekTimetableSlotsV1CreateResponse(rsp)
-}
-
-func (c *ClientWithResponses) DayOfWeekTimetableSlotsV1CreateWithResponse(ctx context.Context, body DayOfWeekTimetableSlotsV1CreateJSONRequestBody, reqEditors ...RequestEditorFn) (*DayOfWeekTimetableSlotsV1CreateResponse, error) {
-	rsp, err := c.DayOfWeekTimetableSlotsV1Create(ctx, body, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseDayOfWeekTimetableSlotsV1CreateResponse(rsp)
-}
-
-// DayOfWeekTimetableSlotsV1DeleteWithResponse request returning *DayOfWeekTimetableSlotsV1DeleteResponse
-func (c *ClientWithResponses) DayOfWeekTimetableSlotsV1DeleteWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*DayOfWeekTimetableSlotsV1DeleteResponse, error) {
-	rsp, err := c.DayOfWeekTimetableSlotsV1Delete(ctx, id, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseDayOfWeekTimetableSlotsV1DeleteResponse(rsp)
-}
-
-// DayOfWeekTimetableSlotsV1DetailWithResponse request returning *DayOfWeekTimetableSlotsV1DetailResponse
-func (c *ClientWithResponses) DayOfWeekTimetableSlotsV1DetailWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*DayOfWeekTimetableSlotsV1DetailResponse, error) {
-	rsp, err := c.DayOfWeekTimetableSlotsV1Detail(ctx, id, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseDayOfWeekTimetableSlotsV1DetailResponse(rsp)
-}
-
-// DayOfWeekTimetableSlotsV1UpdateWithBodyWithResponse request with arbitrary body returning *DayOfWeekTimetableSlotsV1UpdateResponse
-func (c *ClientWithResponses) DayOfWeekTimetableSlotsV1UpdateWithBodyWithResponse(ctx context.Context, id string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*DayOfWeekTimetableSlotsV1UpdateResponse, error) {
-	rsp, err := c.DayOfWeekTimetableSlotsV1UpdateWithBody(ctx, id, contentType, body, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseDayOfWeekTimetableSlotsV1UpdateResponse(rsp)
-}
-
-func (c *ClientWithResponses) DayOfWeekTimetableSlotsV1UpdateWithResponse(ctx context.Context, id string, body DayOfWeekTimetableSlotsV1UpdateJSONRequestBody, reqEditors ...RequestEditorFn) (*DayOfWeekTimetableSlotsV1UpdateResponse, error) {
-	rsp, err := c.DayOfWeekTimetableSlotsV1Update(ctx, id, body, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseDayOfWeekTimetableSlotsV1UpdateResponse(rsp)
 }
 
 // FacultiesV1ListWithResponse request returning *FacultiesV1ListResponse
@@ -2668,91 +1396,30 @@ func (c *ClientWithResponses) FacultiesV1UpdateWithResponse(ctx context.Context,
 	return ParseFacultiesV1UpdateResponse(rsp)
 }
 
-// SubjectCategoriesV1ListWithResponse request returning *SubjectCategoriesV1ListResponse
-func (c *ClientWithResponses) SubjectCategoriesV1ListWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*SubjectCategoriesV1ListResponse, error) {
-	rsp, err := c.SubjectCategoriesV1List(ctx, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseSubjectCategoriesV1ListResponse(rsp)
-}
-
-// SubjectCategoriesV1CreateWithBodyWithResponse request with arbitrary body returning *SubjectCategoriesV1CreateResponse
-func (c *ClientWithResponses) SubjectCategoriesV1CreateWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SubjectCategoriesV1CreateResponse, error) {
-	rsp, err := c.SubjectCategoriesV1CreateWithBody(ctx, contentType, body, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseSubjectCategoriesV1CreateResponse(rsp)
-}
-
-func (c *ClientWithResponses) SubjectCategoriesV1CreateWithResponse(ctx context.Context, body SubjectCategoriesV1CreateJSONRequestBody, reqEditors ...RequestEditorFn) (*SubjectCategoriesV1CreateResponse, error) {
-	rsp, err := c.SubjectCategoriesV1Create(ctx, body, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseSubjectCategoriesV1CreateResponse(rsp)
-}
-
-// SubjectCategoriesV1DeleteWithResponse request returning *SubjectCategoriesV1DeleteResponse
-func (c *ClientWithResponses) SubjectCategoriesV1DeleteWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*SubjectCategoriesV1DeleteResponse, error) {
-	rsp, err := c.SubjectCategoriesV1Delete(ctx, id, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseSubjectCategoriesV1DeleteResponse(rsp)
-}
-
-// SubjectCategoriesV1DetailWithResponse request returning *SubjectCategoriesV1DetailResponse
-func (c *ClientWithResponses) SubjectCategoriesV1DetailWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*SubjectCategoriesV1DetailResponse, error) {
-	rsp, err := c.SubjectCategoriesV1Detail(ctx, id, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseSubjectCategoriesV1DetailResponse(rsp)
-}
-
-// SubjectCategoriesV1UpdateWithBodyWithResponse request with arbitrary body returning *SubjectCategoriesV1UpdateResponse
-func (c *ClientWithResponses) SubjectCategoriesV1UpdateWithBodyWithResponse(ctx context.Context, id string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SubjectCategoriesV1UpdateResponse, error) {
-	rsp, err := c.SubjectCategoriesV1UpdateWithBody(ctx, id, contentType, body, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseSubjectCategoriesV1UpdateResponse(rsp)
-}
-
-func (c *ClientWithResponses) SubjectCategoriesV1UpdateWithResponse(ctx context.Context, id string, body SubjectCategoriesV1UpdateJSONRequestBody, reqEditors ...RequestEditorFn) (*SubjectCategoriesV1UpdateResponse, error) {
-	rsp, err := c.SubjectCategoriesV1Update(ctx, id, body, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseSubjectCategoriesV1UpdateResponse(rsp)
-}
-
 // SubjectsV1ListWithResponse request returning *SubjectsV1ListResponse
-func (c *ClientWithResponses) SubjectsV1ListWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*SubjectsV1ListResponse, error) {
-	rsp, err := c.SubjectsV1List(ctx, reqEditors...)
+func (c *ClientWithResponses) SubjectsV1ListWithResponse(ctx context.Context, params *SubjectsV1ListParams, reqEditors ...RequestEditorFn) (*SubjectsV1ListResponse, error) {
+	rsp, err := c.SubjectsV1List(ctx, params, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
 	return ParseSubjectsV1ListResponse(rsp)
 }
 
-// SubjectsV1CreateWithBodyWithResponse request with arbitrary body returning *SubjectsV1CreateResponse
-func (c *ClientWithResponses) SubjectsV1CreateWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SubjectsV1CreateResponse, error) {
-	rsp, err := c.SubjectsV1CreateWithBody(ctx, contentType, body, reqEditors...)
+// SubjectsV1UpsertWithBodyWithResponse request with arbitrary body returning *SubjectsV1UpsertResponse
+func (c *ClientWithResponses) SubjectsV1UpsertWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SubjectsV1UpsertResponse, error) {
+	rsp, err := c.SubjectsV1UpsertWithBody(ctx, contentType, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParseSubjectsV1CreateResponse(rsp)
+	return ParseSubjectsV1UpsertResponse(rsp)
 }
 
-func (c *ClientWithResponses) SubjectsV1CreateWithResponse(ctx context.Context, body SubjectsV1CreateJSONRequestBody, reqEditors ...RequestEditorFn) (*SubjectsV1CreateResponse, error) {
-	rsp, err := c.SubjectsV1Create(ctx, body, reqEditors...)
+func (c *ClientWithResponses) SubjectsV1UpsertWithResponse(ctx context.Context, body SubjectsV1UpsertJSONRequestBody, reqEditors ...RequestEditorFn) (*SubjectsV1UpsertResponse, error) {
+	rsp, err := c.SubjectsV1Upsert(ctx, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParseSubjectsV1CreateResponse(rsp)
+	return ParseSubjectsV1UpsertResponse(rsp)
 }
 
 // SubjectsV1DeleteWithResponse request returning *SubjectsV1DeleteResponse
@@ -2773,283 +1440,13 @@ func (c *ClientWithResponses) SubjectsV1DetailWithResponse(ctx context.Context, 
 	return ParseSubjectsV1DetailResponse(rsp)
 }
 
-// SubjectsV1UpdateWithBodyWithResponse request with arbitrary body returning *SubjectsV1UpdateResponse
-func (c *ClientWithResponses) SubjectsV1UpdateWithBodyWithResponse(ctx context.Context, id string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SubjectsV1UpdateResponse, error) {
-	rsp, err := c.SubjectsV1UpdateWithBody(ctx, id, contentType, body, reqEditors...)
+// SyllabusV1DetailWithResponse request returning *SyllabusV1DetailResponse
+func (c *ClientWithResponses) SyllabusV1DetailWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*SyllabusV1DetailResponse, error) {
+	rsp, err := c.SyllabusV1Detail(ctx, id, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParseSubjectsV1UpdateResponse(rsp)
-}
-
-func (c *ClientWithResponses) SubjectsV1UpdateWithResponse(ctx context.Context, id string, body SubjectsV1UpdateJSONRequestBody, reqEditors ...RequestEditorFn) (*SubjectsV1UpdateResponse, error) {
-	rsp, err := c.SubjectsV1Update(ctx, id, body, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseSubjectsV1UpdateResponse(rsp)
-}
-
-// ParseCoursesV1ListResponse parses an HTTP response from a CoursesV1ListWithResponse call
-func ParseCoursesV1ListResponse(rsp *http.Response) (*CoursesV1ListResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &CoursesV1ListResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest struct {
-			Courses []Course `json:"courses"`
-		}
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON200 = &dest
-
-	}
-
-	return response, nil
-}
-
-// ParseCoursesV1CreateResponse parses an HTTP response from a CoursesV1CreateWithResponse call
-func ParseCoursesV1CreateResponse(rsp *http.Response) (*CoursesV1CreateResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &CoursesV1CreateResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 201:
-		var dest struct {
-			// Course コース
-			Course Course `json:"course"`
-		}
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON201 = &dest
-
-	}
-
-	return response, nil
-}
-
-// ParseCoursesV1DeleteResponse parses an HTTP response from a CoursesV1DeleteWithResponse call
-func ParseCoursesV1DeleteResponse(rsp *http.Response) (*CoursesV1DeleteResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &CoursesV1DeleteResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	return response, nil
-}
-
-// ParseCoursesV1DetailResponse parses an HTTP response from a CoursesV1DetailWithResponse call
-func ParseCoursesV1DetailResponse(rsp *http.Response) (*CoursesV1DetailResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &CoursesV1DetailResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest struct {
-			// Course コース
-			Course Course `json:"course"`
-		}
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON200 = &dest
-
-	}
-
-	return response, nil
-}
-
-// ParseCoursesV1UpdateResponse parses an HTTP response from a CoursesV1UpdateWithResponse call
-func ParseCoursesV1UpdateResponse(rsp *http.Response) (*CoursesV1UpdateResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &CoursesV1UpdateResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest struct {
-			// Course コース
-			Course Course `json:"course"`
-		}
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON200 = &dest
-
-	}
-
-	return response, nil
-}
-
-// ParseDayOfWeekTimetableSlotsV1ListResponse parses an HTTP response from a DayOfWeekTimetableSlotsV1ListWithResponse call
-func ParseDayOfWeekTimetableSlotsV1ListResponse(rsp *http.Response) (*DayOfWeekTimetableSlotsV1ListResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &DayOfWeekTimetableSlotsV1ListResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest struct {
-			DayOfWeekTimetableSlots []DayOfWeekTimetableSlot `json:"dayOfWeekTimetableSlots"`
-		}
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON200 = &dest
-
-	}
-
-	return response, nil
-}
-
-// ParseDayOfWeekTimetableSlotsV1CreateResponse parses an HTTP response from a DayOfWeekTimetableSlotsV1CreateWithResponse call
-func ParseDayOfWeekTimetableSlotsV1CreateResponse(rsp *http.Response) (*DayOfWeekTimetableSlotsV1CreateResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &DayOfWeekTimetableSlotsV1CreateResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 201:
-		var dest struct {
-			// DayOfWeekTimetableSlot 曜日・時限
-			DayOfWeekTimetableSlot DayOfWeekTimetableSlot `json:"dayOfWeekTimetableSlot"`
-		}
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON201 = &dest
-
-	}
-
-	return response, nil
-}
-
-// ParseDayOfWeekTimetableSlotsV1DeleteResponse parses an HTTP response from a DayOfWeekTimetableSlotsV1DeleteWithResponse call
-func ParseDayOfWeekTimetableSlotsV1DeleteResponse(rsp *http.Response) (*DayOfWeekTimetableSlotsV1DeleteResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &DayOfWeekTimetableSlotsV1DeleteResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	return response, nil
-}
-
-// ParseDayOfWeekTimetableSlotsV1DetailResponse parses an HTTP response from a DayOfWeekTimetableSlotsV1DetailWithResponse call
-func ParseDayOfWeekTimetableSlotsV1DetailResponse(rsp *http.Response) (*DayOfWeekTimetableSlotsV1DetailResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &DayOfWeekTimetableSlotsV1DetailResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest struct {
-			// DayOfWeekTimetableSlot 曜日・時限
-			DayOfWeekTimetableSlot DayOfWeekTimetableSlot `json:"dayOfWeekTimetableSlot"`
-		}
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON200 = &dest
-
-	}
-
-	return response, nil
-}
-
-// ParseDayOfWeekTimetableSlotsV1UpdateResponse parses an HTTP response from a DayOfWeekTimetableSlotsV1UpdateWithResponse call
-func ParseDayOfWeekTimetableSlotsV1UpdateResponse(rsp *http.Response) (*DayOfWeekTimetableSlotsV1UpdateResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &DayOfWeekTimetableSlotsV1UpdateResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest struct {
-			// DayOfWeekTimetableSlot 曜日・時限
-			DayOfWeekTimetableSlot DayOfWeekTimetableSlot `json:"dayOfWeekTimetableSlot"`
-		}
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON200 = &dest
-
-	}
-
-	return response, nil
+	return ParseSyllabusV1DetailResponse(rsp)
 }
 
 // ParseFacultiesV1ListResponse parses an HTTP response from a FacultiesV1ListWithResponse call
@@ -3068,7 +1465,7 @@ func ParseFacultiesV1ListResponse(rsp *http.Response) (*FacultiesV1ListResponse,
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest struct {
-			Faculties []Faculty `json:"faculties"`
+			Faculties []DottoFoundationV1Faculty `json:"faculties"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
@@ -3097,7 +1494,7 @@ func ParseFacultiesV1CreateResponse(rsp *http.Response) (*FacultiesV1CreateRespo
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 201:
 		var dest struct {
 			// Faculty 教員
-			Faculty Faculty `json:"faculty"`
+			Faculty DottoFoundationV1Faculty `json:"faculty"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
@@ -3142,7 +1539,7 @@ func ParseFacultiesV1DetailResponse(rsp *http.Response) (*FacultiesV1DetailRespo
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest struct {
 			// Faculty 教員
-			Faculty Faculty `json:"faculty"`
+			Faculty DottoFoundationV1Faculty `json:"faculty"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
@@ -3171,138 +1568,7 @@ func ParseFacultiesV1UpdateResponse(rsp *http.Response) (*FacultiesV1UpdateRespo
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest struct {
 			// Faculty 教員
-			Faculty Faculty `json:"faculty"`
-		}
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON200 = &dest
-
-	}
-
-	return response, nil
-}
-
-// ParseSubjectCategoriesV1ListResponse parses an HTTP response from a SubjectCategoriesV1ListWithResponse call
-func ParseSubjectCategoriesV1ListResponse(rsp *http.Response) (*SubjectCategoriesV1ListResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &SubjectCategoriesV1ListResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest struct {
-			SubjectCategories []SubjectCategory `json:"subjectCategories"`
-		}
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON200 = &dest
-
-	}
-
-	return response, nil
-}
-
-// ParseSubjectCategoriesV1CreateResponse parses an HTTP response from a SubjectCategoriesV1CreateWithResponse call
-func ParseSubjectCategoriesV1CreateResponse(rsp *http.Response) (*SubjectCategoriesV1CreateResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &SubjectCategoriesV1CreateResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 201:
-		var dest struct {
-			// SubjectCategory 科目群・科目区分
-			SubjectCategory SubjectCategory `json:"subjectCategory"`
-		}
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON201 = &dest
-
-	}
-
-	return response, nil
-}
-
-// ParseSubjectCategoriesV1DeleteResponse parses an HTTP response from a SubjectCategoriesV1DeleteWithResponse call
-func ParseSubjectCategoriesV1DeleteResponse(rsp *http.Response) (*SubjectCategoriesV1DeleteResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &SubjectCategoriesV1DeleteResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	return response, nil
-}
-
-// ParseSubjectCategoriesV1DetailResponse parses an HTTP response from a SubjectCategoriesV1DetailWithResponse call
-func ParseSubjectCategoriesV1DetailResponse(rsp *http.Response) (*SubjectCategoriesV1DetailResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &SubjectCategoriesV1DetailResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest struct {
-			// SubjectCategory 科目群・科目区分
-			SubjectCategory SubjectCategory `json:"subjectCategory"`
-		}
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON200 = &dest
-
-	}
-
-	return response, nil
-}
-
-// ParseSubjectCategoriesV1UpdateResponse parses an HTTP response from a SubjectCategoriesV1UpdateWithResponse call
-func ParseSubjectCategoriesV1UpdateResponse(rsp *http.Response) (*SubjectCategoriesV1UpdateResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &SubjectCategoriesV1UpdateResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest struct {
-			// SubjectCategory 科目群・科目区分
-			SubjectCategory SubjectCategory `json:"subjectCategory"`
+			Faculty DottoFoundationV1Faculty `json:"faculty"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
@@ -3330,7 +1596,7 @@ func ParseSubjectsV1ListResponse(rsp *http.Response) (*SubjectsV1ListResponse, e
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest struct {
-			Subjects []Subject `json:"subjects"`
+			Subjects []SubjectSummary `json:"subjects"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
@@ -3342,28 +1608,28 @@ func ParseSubjectsV1ListResponse(rsp *http.Response) (*SubjectsV1ListResponse, e
 	return response, nil
 }
 
-// ParseSubjectsV1CreateResponse parses an HTTP response from a SubjectsV1CreateWithResponse call
-func ParseSubjectsV1CreateResponse(rsp *http.Response) (*SubjectsV1CreateResponse, error) {
+// ParseSubjectsV1UpsertResponse parses an HTTP response from a SubjectsV1UpsertWithResponse call
+func ParseSubjectsV1UpsertResponse(rsp *http.Response) (*SubjectsV1UpsertResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &SubjectsV1CreateResponse{
+	response := &SubjectsV1UpsertResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
 
 	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 201:
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest struct {
 			Subject Subject `json:"subject"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
-		response.JSON201 = &dest
+		response.JSON200 = &dest
 
 	}
 
@@ -3414,15 +1680,15 @@ func ParseSubjectsV1DetailResponse(rsp *http.Response) (*SubjectsV1DetailRespons
 	return response, nil
 }
 
-// ParseSubjectsV1UpdateResponse parses an HTTP response from a SubjectsV1UpdateWithResponse call
-func ParseSubjectsV1UpdateResponse(rsp *http.Response) (*SubjectsV1UpdateResponse, error) {
+// ParseSyllabusV1DetailResponse parses an HTTP response from a SyllabusV1DetailWithResponse call
+func ParseSyllabusV1DetailResponse(rsp *http.Response) (*SyllabusV1DetailResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &SubjectsV1UpdateResponse{
+	response := &SyllabusV1DetailResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
@@ -3430,7 +1696,7 @@ func ParseSubjectsV1UpdateResponse(rsp *http.Response) (*SubjectsV1UpdateRespons
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest struct {
-			Subject Subject `json:"subject"`
+			Syllabus Syllabus `json:"syllabus"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
