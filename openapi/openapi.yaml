@@ -130,7 +130,7 @@ paths:
                   subjects:
                     type: array
                     items:
-                      $ref: '#/components/schemas/SubjectDetail'
+                      $ref: '#/components/schemas/SubjectSummary'
                 required:
                   - subjects
       tags:

@@ -253,6 +253,20 @@ type SubjectServiceSyllabus struct {
 	Textbooks string `json:"textbooks"`
 }
 
+// SubjectSummary defines model for SubjectSummary.
+type SubjectSummary struct {
+	// DayOfWeekTimetableSlots TODO: 時間割APIを作成したら、曜日・時限を取得する
+	// 曜日・時限
+	DayOfWeekTimetableSlots string                     `json:"dayOfWeekTimetableSlots"`
+	Faculties               []DottoFoundationV1Faculty `json:"faculties"`
+	Id                      string                     `json:"id"`
+
+	// IsAddedToTimetable TODO: 時間割APIを作成したら、時間割に追加されているかを取得する
+	// 時間割に追加されているか
+	IsAddedToTimetable bool   `json:"isAddedToTimetable"`
+	Name               string `json:"name"`
+}
+
 // SubjectsV1ListParams defines parameters for SubjectsV1List.
 type SubjectsV1ListParams struct {
 	// Q 検索ワード
@@ -569,7 +583,7 @@ type SubjectsV1ListResponseObject interface {
 }
 
 type SubjectsV1List200JSONResponse struct {
-	Subjects []SubjectDetail `json:"subjects"`
+	Subjects []SubjectSummary `json:"subjects"`
 }
 
 func (response SubjectsV1List200JSONResponse) VisitSubjectsV1ListResponse(w http.ResponseWriter) error {
