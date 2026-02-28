@@ -17,6 +17,7 @@ func NewSubjectRepository(client *subject_api.ClientWithResponses) *SubjectRepos
 	return &SubjectRepository{client: client}
 }
 
+// GetSubjects は外部APIから科目一覧を取得する
 func (r *SubjectRepository) GetSubjects(query domain.SubjectQuery) ([]domain.Subject, error) {
 	params := external.ToExternalSubjectQuery(query)
 
@@ -38,16 +39,32 @@ func (r *SubjectRepository) GetSubjects(query domain.SubjectQuery) ([]domain.Sub
 	return result, nil
 }
 
+// GetSubject は外部APIから科目詳細を取得する
 func (r *SubjectRepository) GetSubject(id string) (*domain.Subject, error) {
-	response, err := r.client.SubjectsV1DetailWithResponse(context.Background(), id)
+	ctx := context.Background()
+
+	// 科目詳細を取得
+	subjectResponse, err := r.client.SubjectsV1DetailWithResponse(ctx, id)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to get subject: %w", err)
+	}
+	if subjectResponse.JSON200 == nil {
+		return nil, fmt.Errorf("failed to get subject: status %d", subjectResponse.StatusCode())
 	}
 
-	if response.JSON200 == nil {
-		return nil, fmt.Errorf("failed to get subject: status %d", response.StatusCode())
+	// シラバスを取得
+	syllabusResponse, err := r.client.SyllabusV1DetailWithResponse(ctx, id)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get syllabus: %w", err)
 	}
 
-	s := external.ToDomainSubject(response.JSON200.Subject)
+	s := external.ToDomainSubject(subjectResponse.JSON200.Subject)
+
+	// シラバスが取得できた場合は結合
+	if syllabusResponse.JSON200 != nil {
+		syllabus := external.ToDomainSyllabus(syllabusResponse.JSON200.Syllabus)
+		s.Syllabus = &syllabus
+	}
+
 	return &s, nil
 }
