@@ -40,7 +40,7 @@ func (h *Handler) SubjectsV1Detail(ctx context.Context, request api.SubjectsV1De
 	}, nil
 }
 
-// toSubjectQuery はAPIのパラメータをDomainのクエリに変換する
+// toSubjectQuery は SubjectsV1List の API パラメータを domain.SubjectQuery に変換する
 func toSubjectQuery(params api.SubjectsV1ListParams) domain.SubjectQuery {
 	return domain.SubjectQuery{
 		Q:                       params.Q,
