@@ -31,9 +31,6 @@ func (h *Handler) SubjectsV1Detail(ctx context.Context, request api.SubjectsV1De
 	if err != nil {
 		return nil, fmt.Errorf("failed to get subject: %w", err)
 	}
-	if subject == nil {
-		return nil, fmt.Errorf("subject not found")
-	}
 
 	return api.SubjectsV1Detail200JSONResponse{
 		Subject: toApiSubjectDetail(*subject),
