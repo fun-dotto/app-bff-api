@@ -11,7 +11,82 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/oapi-codegen/runtime"
 	strictgin "github.com/oapi-codegen/runtime/strictmiddleware/gin"
+)
+
+// Defines values for DottoFoundationV1Class.
+const (
+	A DottoFoundationV1Class = "A"
+	B DottoFoundationV1Class = "B"
+	C DottoFoundationV1Class = "C"
+	D DottoFoundationV1Class = "D"
+	E DottoFoundationV1Class = "E"
+	F DottoFoundationV1Class = "F"
+	G DottoFoundationV1Class = "G"
+	H DottoFoundationV1Class = "H"
+	I DottoFoundationV1Class = "I"
+	J DottoFoundationV1Class = "J"
+	K DottoFoundationV1Class = "K"
+	L DottoFoundationV1Class = "L"
+)
+
+// Defines values for DottoFoundationV1Course.
+const (
+	AdvancedICT       DottoFoundationV1Course = "AdvancedICT"
+	ComplexSystem     DottoFoundationV1Course = "ComplexSystem"
+	InformationDesign DottoFoundationV1Course = "InformationDesign"
+	InformationSystem DottoFoundationV1Course = "InformationSystem"
+	IntelligentSystem DottoFoundationV1Course = "IntelligentSystem"
+)
+
+// Defines values for DottoFoundationV1CourseSemester.
+const (
+	AllYear         DottoFoundationV1CourseSemester = "AllYear"
+	H1              DottoFoundationV1CourseSemester = "H1"
+	H2              DottoFoundationV1CourseSemester = "H2"
+	Q1              DottoFoundationV1CourseSemester = "Q1"
+	Q2              DottoFoundationV1CourseSemester = "Q2"
+	Q3              DottoFoundationV1CourseSemester = "Q3"
+	Q4              DottoFoundationV1CourseSemester = "Q4"
+	SummerIntensive DottoFoundationV1CourseSemester = "SummerIntensive"
+	WinterIntensive DottoFoundationV1CourseSemester = "WinterIntensive"
+)
+
+// Defines values for DottoFoundationV1CulturalSubjectCategory.
+const (
+	Communication DottoFoundationV1CulturalSubjectCategory = "Communication"
+	Health        DottoFoundationV1CulturalSubjectCategory = "Health"
+	Human         DottoFoundationV1CulturalSubjectCategory = "Human"
+	Science       DottoFoundationV1CulturalSubjectCategory = "Science"
+	Society       DottoFoundationV1CulturalSubjectCategory = "Society"
+)
+
+// Defines values for DottoFoundationV1Grade.
+const (
+	B1 DottoFoundationV1Grade = "B1"
+	B2 DottoFoundationV1Grade = "B2"
+	B3 DottoFoundationV1Grade = "B3"
+	B4 DottoFoundationV1Grade = "B4"
+	D1 DottoFoundationV1Grade = "D1"
+	D2 DottoFoundationV1Grade = "D2"
+	D3 DottoFoundationV1Grade = "D3"
+	M1 DottoFoundationV1Grade = "M1"
+	M2 DottoFoundationV1Grade = "M2"
+)
+
+// Defines values for DottoFoundationV1SubjectClassification.
+const (
+	Cultural            DottoFoundationV1SubjectClassification = "Cultural"
+	ResearchInstruction DottoFoundationV1SubjectClassification = "ResearchInstruction"
+	Specialized         DottoFoundationV1SubjectClassification = "Specialized"
+)
+
+// Defines values for DottoFoundationV1SubjectRequirementType.
+const (
+	Optional         DottoFoundationV1SubjectRequirementType = "Optional"
+	OptionalRequired DottoFoundationV1SubjectRequirementType = "OptionalRequired"
+	Required         DottoFoundationV1SubjectRequirementType = "Required"
 )
 
 // Announcement defines model for Announcement.
@@ -22,6 +97,189 @@ type Announcement struct {
 	Url   string    `json:"url"`
 }
 
+// DottoFoundationV1Class クラス
+type DottoFoundationV1Class string
+
+// DottoFoundationV1Course コース
+type DottoFoundationV1Course string
+
+// DottoFoundationV1CourseSemester 開講時期
+type DottoFoundationV1CourseSemester string
+
+// DottoFoundationV1CulturalSubjectCategory 教養科目カテゴリ
+type DottoFoundationV1CulturalSubjectCategory string
+
+// DottoFoundationV1Faculty 教員
+type DottoFoundationV1Faculty struct {
+	Email string `json:"email"`
+	Id    string `json:"id"`
+	Name  string `json:"name"`
+}
+
+// DottoFoundationV1Grade 学年
+type DottoFoundationV1Grade string
+
+// DottoFoundationV1SubjectClassification 科目カテゴリ
+type DottoFoundationV1SubjectClassification string
+
+// DottoFoundationV1SubjectRequirementType 必修・選択
+type DottoFoundationV1SubjectRequirementType string
+
+// SubjectDetail defines model for SubjectDetail.
+type SubjectDetail struct {
+	// Credit 単位数
+	Credit int `json:"credit"`
+
+	// EligibleAttributes 授業名末尾の`学年-クラス`をもとに決定
+	EligibleAttributes []SubjectServiceSubjectTargetClass `json:"eligibleAttributes"`
+	Faculties          []SubjectServiceSubjectFaculty     `json:"faculties"`
+	Id                 string                             `json:"id"`
+	Name               string                             `json:"name"`
+
+	// Requirements 科目群・科目区分をもとに決定
+	Requirements []SubjectServiceSubjectRequirement `json:"requirements"`
+
+	// Semester 開講時期
+	Semester DottoFoundationV1CourseSemester `json:"semester"`
+	Syllabus SubjectServiceSyllabus          `json:"syllabus"`
+}
+
+// SubjectServiceSubjectFaculty defines model for SubjectService.SubjectFaculty.
+type SubjectServiceSubjectFaculty struct {
+	// Faculty 教員
+	Faculty   DottoFoundationV1Faculty `json:"faculty"`
+	IsPrimary bool                     `json:"isPrimary"`
+}
+
+// SubjectServiceSubjectRequirement defines model for SubjectService.SubjectRequirement.
+type SubjectServiceSubjectRequirement struct {
+	// Course コース
+	Course DottoFoundationV1Course `json:"course"`
+
+	// RequirementType 必修・選択
+	RequirementType DottoFoundationV1SubjectRequirementType `json:"requirementType"`
+}
+
+// SubjectServiceSubjectTargetClass 対象学年・クラス
+type SubjectServiceSubjectTargetClass struct {
+	// Class 修士課程・博士課程対象の場合はnull
+	Class *DottoFoundationV1Class `json:"class,omitempty"`
+
+	// Grade 学年
+	Grade DottoFoundationV1Grade `json:"grade"`
+}
+
+// SubjectServiceSyllabus defines model for SubjectService.Syllabus.
+type SubjectServiceSyllabus struct {
+	// Assignments 提出課題等
+	Assignments string `json:"assignments"`
+
+	// Classifications 科目群・科目区分
+	Classifications string `json:"classifications"`
+
+	// ContentsAndSchedule 授業内容とスケジュール
+	ContentsAndSchedule string `json:"contentsAndSchedule"`
+
+	// Credit 単位数
+	Credit int `json:"credit"`
+
+	// DspoSubject DSOP対象科目
+	DspoSubject string `json:"dspoSubject"`
+
+	// EnName 授業名 (en)
+	EnName string `json:"enName"`
+
+	// EvaluationMethod 成績の評価方法・基準
+	EvaluationMethod string `json:"evaluationMethod"`
+
+	// FacultyNames 担当教員名
+	FacultyNames string `json:"facultyNames"`
+
+	// Grades 配当年次
+	Grades string `json:"grades"`
+
+	// Id 教務システムのシラバスID
+	Id string `json:"id"`
+
+	// Keywords キーワード
+	Keywords string `json:"keywords"`
+
+	// LearningOutcomes 授業の到達目標
+	LearningOutcomes string `json:"learningOutcomes"`
+
+	// MultiplePersonTeachingForm 複数人担当形式
+	MultiplePersonTeachingForm string `json:"multiplePersonTeachingForm"`
+
+	// Name 授業名
+	Name string `json:"name"`
+
+	// Notes 履修上の留意点
+	Notes string `json:"notes"`
+
+	// PostLearning 事後学習
+	PostLearning string `json:"postLearning"`
+
+	// PracticalHomeFacultyCategory 実務家教員区分
+	PracticalHomeFacultyCategory string `json:"practicalHomeFacultyCategory"`
+
+	// PreLearning 事前学習
+	PreLearning string `json:"preLearning"`
+
+	// Prerequisites 履修条件
+	Prerequisites string `json:"prerequisites"`
+
+	// ReferenceBooks 参考書
+	ReferenceBooks string `json:"referenceBooks"`
+
+	// Summary 授業の概要
+	Summary string `json:"summary"`
+
+	// TargetAreas 対象領域
+	TargetAreas string `json:"targetAreas"`
+
+	// TargetCourses 対象コース・領域
+	TargetCourses string `json:"targetCourses"`
+
+	// TeachingAndExamForm 授業・試験の形式
+	TeachingAndExamForm string `json:"teachingAndExamForm"`
+
+	// TeachingForm 授業形態
+	TeachingForm string `json:"teachingForm"`
+
+	// TeachingLanguage 教授言語
+	TeachingLanguage string `json:"teachingLanguage"`
+
+	// Textbooks テキスト
+	Textbooks string `json:"textbooks"`
+}
+
+// SubjectsV1ListParams defines parameters for SubjectsV1List.
+type SubjectsV1ListParams struct {
+	// Q 検索ワード
+	Q string `form:"q" json:"q"`
+
+	// Grade 学年
+	Grade []DottoFoundationV1Grade `form:"grade" json:"grade"`
+
+	// Courses コース; 大学院の場合は大学院コースに読み替え
+	Courses []DottoFoundationV1Course `form:"courses" json:"courses"`
+
+	// Class クラス; 大学院の学年を選択した場合は選択できない
+	Class []DottoFoundationV1Class `form:"class" json:"class"`
+
+	// Classification 学部: 専門・教養; 大学院: 専門・研究指導
+	Classification []DottoFoundationV1SubjectClassification `form:"classification" json:"classification"`
+
+	// Semester 開講時期
+	Semester []DottoFoundationV1CourseSemester `form:"semester" json:"semester"`
+
+	// RequirementType 必修・選択・選択必修
+	RequirementType []DottoFoundationV1SubjectRequirementType `form:"requirementType" json:"requirementType"`
+
+	// CalturalSubjectCategory 教養科目カテゴリ
+	CalturalSubjectCategory []DottoFoundationV1CulturalSubjectCategory `form:"calturalSubjectCategory" json:"calturalSubjectCategory"`
+}
+
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
 
@@ -30,6 +288,12 @@ type ServerInterface interface {
 
 	// (GET /v1/announcements)
 	AnnouncementsV1List(c *gin.Context)
+
+	// (GET /v1/subjects)
+	SubjectsV1List(c *gin.Context, params SubjectsV1ListParams)
+
+	// (GET /v1/subjects/{id})
+	SubjectsV1Detail(c *gin.Context, id string)
 }
 
 // ServerInterfaceWrapper converts contexts to parameters.
@@ -67,6 +331,168 @@ func (siw *ServerInterfaceWrapper) AnnouncementsV1List(c *gin.Context) {
 	siw.Handler.AnnouncementsV1List(c)
 }
 
+// SubjectsV1List operation middleware
+func (siw *ServerInterfaceWrapper) SubjectsV1List(c *gin.Context) {
+
+	var err error
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params SubjectsV1ListParams
+
+	// ------------- Required query parameter "q" -------------
+
+	if paramValue := c.Query("q"); paramValue != "" {
+
+	} else {
+		siw.ErrorHandler(c, fmt.Errorf("Query argument q is required, but not found"), http.StatusBadRequest)
+		return
+	}
+
+	err = runtime.BindQueryParameter("form", false, true, "q", c.Request.URL.Query(), &params.Q)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter q: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Required query parameter "grade" -------------
+
+	if paramValue := c.Query("grade"); paramValue != "" {
+
+	} else {
+		siw.ErrorHandler(c, fmt.Errorf("Query argument grade is required, but not found"), http.StatusBadRequest)
+		return
+	}
+
+	err = runtime.BindQueryParameter("form", false, true, "grade", c.Request.URL.Query(), &params.Grade)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter grade: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Required query parameter "courses" -------------
+
+	if paramValue := c.Query("courses"); paramValue != "" {
+
+	} else {
+		siw.ErrorHandler(c, fmt.Errorf("Query argument courses is required, but not found"), http.StatusBadRequest)
+		return
+	}
+
+	err = runtime.BindQueryParameter("form", false, true, "courses", c.Request.URL.Query(), &params.Courses)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter courses: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Required query parameter "class" -------------
+
+	if paramValue := c.Query("class"); paramValue != "" {
+
+	} else {
+		siw.ErrorHandler(c, fmt.Errorf("Query argument class is required, but not found"), http.StatusBadRequest)
+		return
+	}
+
+	err = runtime.BindQueryParameter("form", false, true, "class", c.Request.URL.Query(), &params.Class)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter class: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Required query parameter "classification" -------------
+
+	if paramValue := c.Query("classification"); paramValue != "" {
+
+	} else {
+		siw.ErrorHandler(c, fmt.Errorf("Query argument classification is required, but not found"), http.StatusBadRequest)
+		return
+	}
+
+	err = runtime.BindQueryParameter("form", false, true, "classification", c.Request.URL.Query(), &params.Classification)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter classification: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Required query parameter "semester" -------------
+
+	if paramValue := c.Query("semester"); paramValue != "" {
+
+	} else {
+		siw.ErrorHandler(c, fmt.Errorf("Query argument semester is required, but not found"), http.StatusBadRequest)
+		return
+	}
+
+	err = runtime.BindQueryParameter("form", false, true, "semester", c.Request.URL.Query(), &params.Semester)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter semester: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Required query parameter "requirementType" -------------
+
+	if paramValue := c.Query("requirementType"); paramValue != "" {
+
+	} else {
+		siw.ErrorHandler(c, fmt.Errorf("Query argument requirementType is required, but not found"), http.StatusBadRequest)
+		return
+	}
+
+	err = runtime.BindQueryParameter("form", false, true, "requirementType", c.Request.URL.Query(), &params.RequirementType)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter requirementType: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Required query parameter "calturalSubjectCategory" -------------
+
+	if paramValue := c.Query("calturalSubjectCategory"); paramValue != "" {
+
+	} else {
+		siw.ErrorHandler(c, fmt.Errorf("Query argument calturalSubjectCategory is required, but not found"), http.StatusBadRequest)
+		return
+	}
+
+	err = runtime.BindQueryParameter("form", false, true, "calturalSubjectCategory", c.Request.URL.Query(), &params.CalturalSubjectCategory)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter calturalSubjectCategory: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.SubjectsV1List(c, params)
+}
+
+// SubjectsV1Detail operation middleware
+func (siw *ServerInterfaceWrapper) SubjectsV1Detail(c *gin.Context) {
+
+	var err error
+
+	// ------------- Path parameter "id" -------------
+	var id string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", c.Param("id"), &id, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter id: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.SubjectsV1Detail(c, id)
+}
+
 // GinServerOptions provides options for the Gin server.
 type GinServerOptions struct {
 	BaseURL      string
@@ -96,6 +522,8 @@ func RegisterHandlersWithOptions(router gin.IRouter, si ServerInterface, options
 
 	router.GET(options.BaseURL+"/announcements", wrapper.AnnouncementsV0List)
 	router.GET(options.BaseURL+"/v1/announcements", wrapper.AnnouncementsV1List)
+	router.GET(options.BaseURL+"/v1/subjects", wrapper.SubjectsV1List)
+	router.GET(options.BaseURL+"/v1/subjects/:id", wrapper.SubjectsV1Detail)
 }
 
 type AnnouncementsV0ListRequestObject struct {
@@ -132,6 +560,44 @@ func (response AnnouncementsV1List200JSONResponse) VisitAnnouncementsV1ListRespo
 	return json.NewEncoder(w).Encode(response)
 }
 
+type SubjectsV1ListRequestObject struct {
+	Params SubjectsV1ListParams
+}
+
+type SubjectsV1ListResponseObject interface {
+	VisitSubjectsV1ListResponse(w http.ResponseWriter) error
+}
+
+type SubjectsV1List200JSONResponse struct {
+	Subjects []SubjectDetail `json:"subjects"`
+}
+
+func (response SubjectsV1List200JSONResponse) VisitSubjectsV1ListResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type SubjectsV1DetailRequestObject struct {
+	Id string `json:"id"`
+}
+
+type SubjectsV1DetailResponseObject interface {
+	VisitSubjectsV1DetailResponse(w http.ResponseWriter) error
+}
+
+type SubjectsV1Detail200JSONResponse struct {
+	Subject SubjectDetail `json:"subject"`
+}
+
+func (response SubjectsV1Detail200JSONResponse) VisitSubjectsV1DetailResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
 // StrictServerInterface represents all server handlers.
 type StrictServerInterface interface {
 
@@ -140,6 +606,12 @@ type StrictServerInterface interface {
 
 	// (GET /v1/announcements)
 	AnnouncementsV1List(ctx context.Context, request AnnouncementsV1ListRequestObject) (AnnouncementsV1ListResponseObject, error)
+
+	// (GET /v1/subjects)
+	SubjectsV1List(ctx context.Context, request SubjectsV1ListRequestObject) (SubjectsV1ListResponseObject, error)
+
+	// (GET /v1/subjects/{id})
+	SubjectsV1Detail(ctx context.Context, request SubjectsV1DetailRequestObject) (SubjectsV1DetailResponseObject, error)
 }
 
 type StrictHandlerFunc = strictgin.StrictGinHandlerFunc
@@ -197,6 +669,60 @@ func (sh *strictHandler) AnnouncementsV1List(ctx *gin.Context) {
 		ctx.Status(http.StatusInternalServerError)
 	} else if validResponse, ok := response.(AnnouncementsV1ListResponseObject); ok {
 		if err := validResponse.VisitAnnouncementsV1ListResponse(ctx.Writer); err != nil {
+			ctx.Error(err)
+		}
+	} else if response != nil {
+		ctx.Error(fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// SubjectsV1List operation middleware
+func (sh *strictHandler) SubjectsV1List(ctx *gin.Context, params SubjectsV1ListParams) {
+	var request SubjectsV1ListRequestObject
+
+	request.Params = params
+
+	handler := func(ctx *gin.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.SubjectsV1List(ctx, request.(SubjectsV1ListRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "SubjectsV1List")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		ctx.Error(err)
+		ctx.Status(http.StatusInternalServerError)
+	} else if validResponse, ok := response.(SubjectsV1ListResponseObject); ok {
+		if err := validResponse.VisitSubjectsV1ListResponse(ctx.Writer); err != nil {
+			ctx.Error(err)
+		}
+	} else if response != nil {
+		ctx.Error(fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// SubjectsV1Detail operation middleware
+func (sh *strictHandler) SubjectsV1Detail(ctx *gin.Context, id string) {
+	var request SubjectsV1DetailRequestObject
+
+	request.Id = id
+
+	handler := func(ctx *gin.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.SubjectsV1Detail(ctx, request.(SubjectsV1DetailRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "SubjectsV1Detail")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		ctx.Error(err)
+		ctx.Status(http.StatusInternalServerError)
+	} else if validResponse, ok := response.(SubjectsV1DetailResponseObject); ok {
+		if err := validResponse.VisitSubjectsV1DetailResponse(ctx.Writer); err != nil {
 			ctx.Error(err)
 		}
 	} else if response != nil {
