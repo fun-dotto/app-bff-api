@@ -13,7 +13,7 @@ paths:
       description: 教員一覧を取得する
       parameters: []
       responses:
-        "200":
+        '200':
           description: 教員のリスト
           content:
             application/json:
@@ -23,7 +23,7 @@ paths:
                   faculties:
                     type: array
                     items:
-                      $ref: "#/components/schemas/DottoFoundationV1.Faculty"
+                      $ref: '#/components/schemas/DottoFoundationV1.Faculty'
                 required:
                   - faculties
       tags:
@@ -33,7 +33,7 @@ paths:
       description: 教員を作成する
       parameters: []
       responses:
-        "201":
+        '201':
           description: 作成された教員
           content:
             application/json:
@@ -41,7 +41,7 @@ paths:
                 type: object
                 properties:
                   faculty:
-                    $ref: "#/components/schemas/DottoFoundationV1.Faculty"
+                    $ref: '#/components/schemas/DottoFoundationV1.Faculty'
                 required:
                   - faculty
       tags:
@@ -51,7 +51,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/DottoFoundationV1.FacultyRequest"
+              $ref: '#/components/schemas/DottoFoundationV1.FacultyRequest'
         description: 作成する教員の情報
   /v1/faculties/{id}:
     get:
@@ -65,7 +65,7 @@ paths:
           schema:
             type: string
       responses:
-        "200":
+        '200':
           description: 教員の詳細
           content:
             application/json:
@@ -73,7 +73,7 @@ paths:
                 type: object
                 properties:
                   faculty:
-                    $ref: "#/components/schemas/DottoFoundationV1.Faculty"
+                    $ref: '#/components/schemas/DottoFoundationV1.Faculty'
                 required:
                   - faculty
       tags:
@@ -89,7 +89,7 @@ paths:
           schema:
             type: string
       responses:
-        "200":
+        '200':
           description: 更新された教員
           content:
             application/json:
@@ -97,7 +97,7 @@ paths:
                 type: object
                 properties:
                   faculty:
-                    $ref: "#/components/schemas/DottoFoundationV1.Faculty"
+                    $ref: '#/components/schemas/DottoFoundationV1.Faculty'
                 required:
                   - faculty
       tags:
@@ -107,7 +107,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/DottoFoundationV1.FacultyRequest"
+              $ref: '#/components/schemas/DottoFoundationV1.FacultyRequest'
         description: 更新する教員の情報
     delete:
       operationId: FacultiesV1_delete
@@ -120,7 +120,7 @@ paths:
           schema:
             type: string
       responses:
-        "204":
+        '204':
           description: There is no content to send for this request, but the headers may be useful.
       tags:
         - Faculties
@@ -146,7 +146,7 @@ paths:
           schema:
             type: array
             items:
-              $ref: "#/components/schemas/DottoFoundationV1.Grade"
+              $ref: '#/components/schemas/DottoFoundationV1.Grade'
           explode: false
         - name: courses
           in: query
@@ -155,7 +155,7 @@ paths:
           schema:
             type: array
             items:
-              $ref: "#/components/schemas/DottoFoundationV1.Course"
+              $ref: '#/components/schemas/DottoFoundationV1.Course'
           explode: false
         - name: class
           in: query
@@ -164,16 +164,16 @@ paths:
           schema:
             type: array
             items:
-              $ref: "#/components/schemas/DottoFoundationV1.Class"
+              $ref: '#/components/schemas/DottoFoundationV1.Class'
           explode: false
         - name: classification
           in: query
           required: true
-          description: "学部: 専門・教養; 大学院: 専門・研究指導"
+          description: '学部: 専門・教養; 大学院: 専門・研究指導'
           schema:
             type: array
             items:
-              $ref: "#/components/schemas/DottoFoundationV1.SubjectClassification"
+              $ref: '#/components/schemas/DottoFoundationV1.SubjectClassification'
           explode: false
         - name: semester
           in: query
@@ -182,7 +182,7 @@ paths:
           schema:
             type: array
             items:
-              $ref: "#/components/schemas/DottoFoundationV1.CourseSemester"
+              $ref: '#/components/schemas/DottoFoundationV1.CourseSemester'
           explode: false
         - name: requirementType
           in: query
@@ -191,19 +191,19 @@ paths:
           schema:
             type: array
             items:
-              $ref: "#/components/schemas/DottoFoundationV1.SubjectRequirementType"
+              $ref: '#/components/schemas/DottoFoundationV1.SubjectRequirementType'
           explode: false
-        - name: calturalSubjectCategory
+        - name: culturalSubjectCategory
           in: query
           required: true
           description: 教養科目カテゴリ
           schema:
             type: array
             items:
-              $ref: "#/components/schemas/DottoFoundationV1.CulturalSubjectCategory"
+              $ref: '#/components/schemas/DottoFoundationV1.CulturalSubjectCategory'
           explode: false
       responses:
-        "200":
+        '200':
           description: 科目のリスト
           content:
             application/json:
@@ -213,7 +213,7 @@ paths:
                   subjects:
                     type: array
                     items:
-                      $ref: "#/components/schemas/SubjectSummary"
+                      $ref: '#/components/schemas/SubjectSummary'
                 required:
                   - subjects
       tags:
@@ -223,7 +223,7 @@ paths:
       description: 科目を作成または更新する
       parameters: []
       responses:
-        "200":
+        '200':
           description: 作成された科目
           content:
             application/json:
@@ -231,7 +231,7 @@ paths:
                 type: object
                 properties:
                   subject:
-                    $ref: "#/components/schemas/Subject"
+                    $ref: '#/components/schemas/Subject'
                 required:
                   - subject
       tags:
@@ -241,7 +241,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/SubjectRequest"
+              $ref: '#/components/schemas/SubjectRequest'
         description: 作成する科目の情報
   /v1/subjects/{id}:
     get:
@@ -255,7 +255,7 @@ paths:
           schema:
             type: string
       responses:
-        "200":
+        '200':
           description: 科目の詳細
           content:
             application/json:
@@ -263,7 +263,7 @@ paths:
                 type: object
                 properties:
                   subject:
-                    $ref: "#/components/schemas/Subject"
+                    $ref: '#/components/schemas/Subject'
                 required:
                   - subject
       tags:
@@ -279,7 +279,7 @@ paths:
           schema:
             type: string
       responses:
-        "204":
+        '204':
           description: There is no content to send for this request, but the headers may be useful.
       tags:
         - Subjects
@@ -295,7 +295,7 @@ paths:
           schema:
             type: string
       responses:
-        "200":
+        '200':
           description: シラバス
           content:
             application/json:
@@ -303,7 +303,7 @@ paths:
                 type: object
                 properties:
                   syllabus:
-                    $ref: "#/components/schemas/Syllabus"
+                    $ref: '#/components/schemas/Syllabus'
                 required:
                   - syllabus
       tags:
@@ -426,21 +426,21 @@ components:
         faculties:
           type: array
           items:
-            $ref: "#/components/schemas/SubjectFaculty"
+            $ref: '#/components/schemas/SubjectFaculty'
         semester:
-          $ref: "#/components/schemas/DottoFoundationV1.CourseSemester"
+          $ref: '#/components/schemas/DottoFoundationV1.CourseSemester'
         credit:
           type: integer
           description: 単位数
         eligibleAttributes:
           type: array
           items:
-            $ref: "#/components/schemas/SubjectTargetClass"
+            $ref: '#/components/schemas/SubjectTargetClass'
           description: 授業名末尾の`学年-クラス`をもとに決定
         requirements:
           type: array
           items:
-            $ref: "#/components/schemas/SubjectRequirement"
+            $ref: '#/components/schemas/SubjectRequirement'
           description: 科目群・科目区分をもとに決定
     SubjectFaculty:
       type: object
@@ -449,7 +449,7 @@ components:
         - isPrimary
       properties:
         faculty:
-          $ref: "#/components/schemas/DottoFoundationV1.Faculty"
+          $ref: '#/components/schemas/DottoFoundationV1.Faculty'
         isPrimary:
           type: boolean
     SubjectFacultyRequest:
@@ -476,9 +476,9 @@ components:
         - requirementType
       properties:
         course:
-          $ref: "#/components/schemas/DottoFoundationV1.Course"
+          $ref: '#/components/schemas/DottoFoundationV1.Course'
         requirementType:
-          $ref: "#/components/schemas/DottoFoundationV1.SubjectRequirementType"
+          $ref: '#/components/schemas/DottoFoundationV1.SubjectRequirementType'
     SubjectRequirementRequest:
       type: object
       required:
@@ -486,9 +486,9 @@ components:
         - requirementType
       properties:
         course:
-          $ref: "#/components/schemas/DottoFoundationV1.Course"
+          $ref: '#/components/schemas/DottoFoundationV1.Course'
         requirementType:
-          $ref: "#/components/schemas/DottoFoundationV1.SubjectRequirementType"
+          $ref: '#/components/schemas/DottoFoundationV1.SubjectRequirementType'
     SubjectSummary:
       type: object
       required:
@@ -503,17 +503,17 @@ components:
         faculties:
           type: array
           items:
-            $ref: "#/components/schemas/SubjectFaculty"
+            $ref: '#/components/schemas/SubjectFaculty'
     SubjectTargetClass:
       type: object
       required:
         - grade
       properties:
         grade:
-          $ref: "#/components/schemas/DottoFoundationV1.Grade"
+          $ref: '#/components/schemas/DottoFoundationV1.Grade'
         class:
           allOf:
-            - $ref: "#/components/schemas/DottoFoundationV1.Class"
+            - $ref: '#/components/schemas/DottoFoundationV1.Class'
           description: 修士課程・博士課程対象の場合はnull
       description: 対象学年・クラス
     Syllabus:
