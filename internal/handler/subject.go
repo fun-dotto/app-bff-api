@@ -9,6 +9,10 @@ import (
 )
 
 func (h *Handler) SubjectsV1List(ctx context.Context, request api.SubjectsV1ListRequestObject) (api.SubjectsV1ListResponseObject, error) {
+	if h.subjectService == nil {
+		return nil, errSubjectServiceNotConfigured
+	}
+
 	query := toSubjectQuery(request.Params)
 
 	subjects, err := h.subjectService.GetSubjects(query)
@@ -27,6 +31,10 @@ func (h *Handler) SubjectsV1List(ctx context.Context, request api.SubjectsV1List
 }
 
 func (h *Handler) SubjectsV1Detail(ctx context.Context, request api.SubjectsV1DetailRequestObject) (api.SubjectsV1DetailResponseObject, error) {
+	if h.subjectService == nil {
+		return nil, errSubjectServiceNotConfigured
+	}
+
 	subject, err := h.subjectService.GetSubject(request.Id)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get subject: %w", err)

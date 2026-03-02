@@ -9,6 +9,10 @@ import (
 )
 
 func (h *Handler) AnnouncementsV0List(ctx context.Context, request api.AnnouncementsV0ListRequestObject) (api.AnnouncementsV0ListResponseObject, error) {
+	if h.announcementService == nil {
+		return nil, errAnnouncementServiceNotConfigured
+	}
+
 	announcements, err := h.announcementService.GetAnnouncements()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get announcements: %w", err)

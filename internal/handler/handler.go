@@ -1,6 +1,15 @@
 package handler
 
-import "github.com/fun-dotto/app-bff-api/internal/service"
+import (
+	"errors"
+
+	"github.com/fun-dotto/app-bff-api/internal/service"
+)
+
+var (
+	errAnnouncementServiceNotConfigured = errors.New("announcementService is not configured")
+	errSubjectServiceNotConfigured      = errors.New("subjectService is not configured")
+)
 
 type Handler struct {
 	announcementService *service.AnnouncementService
