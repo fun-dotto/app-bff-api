@@ -102,19 +102,6 @@ type DottoFoundationV1CourseSemester string
 // DottoFoundationV1CulturalSubjectCategory 教養科目カテゴリ
 type DottoFoundationV1CulturalSubjectCategory string
 
-// DottoFoundationV1Faculty 教員
-type DottoFoundationV1Faculty struct {
-	Email string `json:"email"`
-	Id    string `json:"id"`
-	Name  string `json:"name"`
-}
-
-// DottoFoundationV1FacultyRequest defines model for DottoFoundationV1.FacultyRequest.
-type DottoFoundationV1FacultyRequest struct {
-	Email string `json:"email"`
-	Name  string `json:"name"`
-}
-
 // DottoFoundationV1Grade 学年
 type DottoFoundationV1Grade string
 
@@ -140,13 +127,15 @@ type Subject struct {
 
 	// Semester 開講時期
 	Semester DottoFoundationV1CourseSemester `json:"semester"`
+
+	// Year 開講年度
+	Year int `json:"year"`
 }
 
 // SubjectFaculty defines model for SubjectFaculty.
 type SubjectFaculty struct {
-	// Faculty 教員
-	Faculty   DottoFoundationV1Faculty `json:"faculty"`
-	IsPrimary bool                     `json:"isPrimary"`
+	FacultyId string `json:"facultyId"`
+	IsPrimary bool   `json:"isPrimary"`
 }
 
 // SubjectRequest defines model for SubjectRequest.
@@ -265,36 +254,36 @@ type Syllabus struct {
 
 // SubjectsV1ListParams defines parameters for SubjectsV1List.
 type SubjectsV1ListParams struct {
+	// Ids 科目IDのリスト; 指定した場合は指定した科目IDのみを取得する
+	Ids *[]string `form:"ids,omitempty" json:"ids,omitempty"`
+
 	// Q 検索ワード
-	Q string `form:"q" json:"q"`
+	Q *string `form:"q,omitempty" json:"q,omitempty"`
 
 	// Grade 学年
-	Grade []DottoFoundationV1Grade `form:"grade" json:"grade"`
+	Grade *[]DottoFoundationV1Grade `form:"grade,omitempty" json:"grade,omitempty"`
 
 	// Courses コース; 大学院の場合は大学院コースに読み替え
-	Courses []DottoFoundationV1Course `form:"courses" json:"courses"`
+	Courses *[]DottoFoundationV1Course `form:"courses,omitempty" json:"courses,omitempty"`
 
 	// Class クラス; 大学院の学年を選択した場合は選択できない
-	Class []DottoFoundationV1Class `form:"class" json:"class"`
+	Class *[]DottoFoundationV1Class `form:"class,omitempty" json:"class,omitempty"`
 
 	// Classification 学部: 専門・教養; 大学院: 専門・研究指導
-	Classification []DottoFoundationV1SubjectClassification `form:"classification" json:"classification"`
+	Classification *[]DottoFoundationV1SubjectClassification `form:"classification,omitempty" json:"classification,omitempty"`
+
+	// Year 開講年度; 指定しない場合は今年度が選択される
+	Year *int `form:"year,omitempty" json:"year,omitempty"`
 
 	// Semester 開講時期
-	Semester []DottoFoundationV1CourseSemester `form:"semester" json:"semester"`
+	Semester *[]DottoFoundationV1CourseSemester `form:"semester,omitempty" json:"semester,omitempty"`
 
 	// RequirementType 必修・選択・選択必修
-	RequirementType []DottoFoundationV1SubjectRequirementType `form:"requirementType" json:"requirementType"`
+	RequirementType *[]DottoFoundationV1SubjectRequirementType `form:"requirementType,omitempty" json:"requirementType,omitempty"`
 
-	// CalturalSubjectCategory 教養科目カテゴリ
-	CalturalSubjectCategory []DottoFoundationV1CulturalSubjectCategory `form:"calturalSubjectCategory" json:"calturalSubjectCategory"`
+	// CulturalSubjectCategory 教養科目カテゴリ
+	CulturalSubjectCategory *[]DottoFoundationV1CulturalSubjectCategory `form:"culturalSubjectCategory,omitempty" json:"culturalSubjectCategory,omitempty"`
 }
-
-// FacultiesV1CreateJSONRequestBody defines body for FacultiesV1Create for application/json ContentType.
-type FacultiesV1CreateJSONRequestBody = DottoFoundationV1FacultyRequest
-
-// FacultiesV1UpdateJSONRequestBody defines body for FacultiesV1Update for application/json ContentType.
-type FacultiesV1UpdateJSONRequestBody = DottoFoundationV1FacultyRequest
 
 // SubjectsV1UpsertJSONRequestBody defines body for SubjectsV1Upsert for application/json ContentType.
 type SubjectsV1UpsertJSONRequestBody = SubjectRequest
@@ -372,25 +361,6 @@ func WithRequestEditorFn(fn RequestEditorFn) ClientOption {
 
 // The interface specification for the client above.
 type ClientInterface interface {
-	// FacultiesV1List request
-	FacultiesV1List(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	// FacultiesV1CreateWithBody request with any body
-	FacultiesV1CreateWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	FacultiesV1Create(ctx context.Context, body FacultiesV1CreateJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	// FacultiesV1Delete request
-	FacultiesV1Delete(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	// FacultiesV1Detail request
-	FacultiesV1Detail(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	// FacultiesV1UpdateWithBody request with any body
-	FacultiesV1UpdateWithBody(ctx context.Context, id string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	FacultiesV1Update(ctx context.Context, id string, body FacultiesV1UpdateJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
-
 	// SubjectsV1List request
 	SubjectsV1List(ctx context.Context, params *SubjectsV1ListParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -407,90 +377,6 @@ type ClientInterface interface {
 
 	// SyllabusV1Detail request
 	SyllabusV1Detail(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error)
-}
-
-func (c *Client) FacultiesV1List(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewFacultiesV1ListRequest(c.Server)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) FacultiesV1CreateWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewFacultiesV1CreateRequestWithBody(c.Server, contentType, body)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) FacultiesV1Create(ctx context.Context, body FacultiesV1CreateJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewFacultiesV1CreateRequest(c.Server, body)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) FacultiesV1Delete(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewFacultiesV1DeleteRequest(c.Server, id)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) FacultiesV1Detail(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewFacultiesV1DetailRequest(c.Server, id)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) FacultiesV1UpdateWithBody(ctx context.Context, id string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewFacultiesV1UpdateRequestWithBody(c.Server, id, contentType, body)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) FacultiesV1Update(ctx context.Context, id string, body FacultiesV1UpdateJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewFacultiesV1UpdateRequest(c.Server, id, body)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
 }
 
 func (c *Client) SubjectsV1List(ctx context.Context, params *SubjectsV1ListParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
@@ -565,188 +451,6 @@ func (c *Client) SyllabusV1Detail(ctx context.Context, id string, reqEditors ...
 	return c.Client.Do(req)
 }
 
-// NewFacultiesV1ListRequest generates requests for FacultiesV1List
-func NewFacultiesV1ListRequest(server string) (*http.Request, error) {
-	var err error
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/v1/faculties")
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("GET", queryURL.String(), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return req, nil
-}
-
-// NewFacultiesV1CreateRequest calls the generic FacultiesV1Create builder with application/json body
-func NewFacultiesV1CreateRequest(server string, body FacultiesV1CreateJSONRequestBody) (*http.Request, error) {
-	var bodyReader io.Reader
-	buf, err := json.Marshal(body)
-	if err != nil {
-		return nil, err
-	}
-	bodyReader = bytes.NewReader(buf)
-	return NewFacultiesV1CreateRequestWithBody(server, "application/json", bodyReader)
-}
-
-// NewFacultiesV1CreateRequestWithBody generates requests for FacultiesV1Create with any type of body
-func NewFacultiesV1CreateRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
-	var err error
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/v1/faculties")
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("POST", queryURL.String(), body)
-	if err != nil {
-		return nil, err
-	}
-
-	req.Header.Add("Content-Type", contentType)
-
-	return req, nil
-}
-
-// NewFacultiesV1DeleteRequest generates requests for FacultiesV1Delete
-func NewFacultiesV1DeleteRequest(server string, id string) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "id", runtime.ParamLocationPath, id)
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/v1/faculties/%s", pathParam0)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("DELETE", queryURL.String(), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return req, nil
-}
-
-// NewFacultiesV1DetailRequest generates requests for FacultiesV1Detail
-func NewFacultiesV1DetailRequest(server string, id string) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "id", runtime.ParamLocationPath, id)
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/v1/faculties/%s", pathParam0)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("GET", queryURL.String(), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return req, nil
-}
-
-// NewFacultiesV1UpdateRequest calls the generic FacultiesV1Update builder with application/json body
-func NewFacultiesV1UpdateRequest(server string, id string, body FacultiesV1UpdateJSONRequestBody) (*http.Request, error) {
-	var bodyReader io.Reader
-	buf, err := json.Marshal(body)
-	if err != nil {
-		return nil, err
-	}
-	bodyReader = bytes.NewReader(buf)
-	return NewFacultiesV1UpdateRequestWithBody(server, id, "application/json", bodyReader)
-}
-
-// NewFacultiesV1UpdateRequestWithBody generates requests for FacultiesV1Update with any type of body
-func NewFacultiesV1UpdateRequestWithBody(server string, id string, contentType string, body io.Reader) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "id", runtime.ParamLocationPath, id)
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/v1/faculties/%s", pathParam0)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("PUT", queryURL.String(), body)
-	if err != nil {
-		return nil, err
-	}
-
-	req.Header.Add("Content-Type", contentType)
-
-	return req, nil
-}
-
 // NewSubjectsV1ListRequest generates requests for SubjectsV1List
 func NewSubjectsV1ListRequest(server string, params *SubjectsV1ListParams) (*http.Request, error) {
 	var err error
@@ -769,100 +473,164 @@ func NewSubjectsV1ListRequest(server string, params *SubjectsV1ListParams) (*htt
 	if params != nil {
 		queryValues := queryURL.Query()
 
-		if queryFrag, err := runtime.StyleParamWithLocation("form", false, "q", runtime.ParamLocationQuery, params.Q); err != nil {
-			return nil, err
-		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
-			return nil, err
-		} else {
-			for k, v := range parsed {
-				for _, v2 := range v {
-					queryValues.Add(k, v2)
+		if params.Ids != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", false, "ids", runtime.ParamLocationQuery, *params.Ids); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
 				}
 			}
+
 		}
 
-		if queryFrag, err := runtime.StyleParamWithLocation("form", false, "grade", runtime.ParamLocationQuery, params.Grade); err != nil {
-			return nil, err
-		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
-			return nil, err
-		} else {
-			for k, v := range parsed {
-				for _, v2 := range v {
-					queryValues.Add(k, v2)
+		if params.Q != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", false, "q", runtime.ParamLocationQuery, *params.Q); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
 				}
 			}
+
 		}
 
-		if queryFrag, err := runtime.StyleParamWithLocation("form", false, "courses", runtime.ParamLocationQuery, params.Courses); err != nil {
-			return nil, err
-		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
-			return nil, err
-		} else {
-			for k, v := range parsed {
-				for _, v2 := range v {
-					queryValues.Add(k, v2)
+		if params.Grade != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", false, "grade", runtime.ParamLocationQuery, *params.Grade); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
 				}
 			}
+
 		}
 
-		if queryFrag, err := runtime.StyleParamWithLocation("form", false, "class", runtime.ParamLocationQuery, params.Class); err != nil {
-			return nil, err
-		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
-			return nil, err
-		} else {
-			for k, v := range parsed {
-				for _, v2 := range v {
-					queryValues.Add(k, v2)
+		if params.Courses != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", false, "courses", runtime.ParamLocationQuery, *params.Courses); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
 				}
 			}
+
 		}
 
-		if queryFrag, err := runtime.StyleParamWithLocation("form", false, "classification", runtime.ParamLocationQuery, params.Classification); err != nil {
-			return nil, err
-		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
-			return nil, err
-		} else {
-			for k, v := range parsed {
-				for _, v2 := range v {
-					queryValues.Add(k, v2)
+		if params.Class != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", false, "class", runtime.ParamLocationQuery, *params.Class); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
 				}
 			}
+
 		}
 
-		if queryFrag, err := runtime.StyleParamWithLocation("form", false, "semester", runtime.ParamLocationQuery, params.Semester); err != nil {
-			return nil, err
-		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
-			return nil, err
-		} else {
-			for k, v := range parsed {
-				for _, v2 := range v {
-					queryValues.Add(k, v2)
+		if params.Classification != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", false, "classification", runtime.ParamLocationQuery, *params.Classification); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
 				}
 			}
+
 		}
 
-		if queryFrag, err := runtime.StyleParamWithLocation("form", false, "requirementType", runtime.ParamLocationQuery, params.RequirementType); err != nil {
-			return nil, err
-		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
-			return nil, err
-		} else {
-			for k, v := range parsed {
-				for _, v2 := range v {
-					queryValues.Add(k, v2)
+		if params.Year != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", false, "year", runtime.ParamLocationQuery, *params.Year); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
 				}
 			}
+
 		}
 
-		if queryFrag, err := runtime.StyleParamWithLocation("form", false, "calturalSubjectCategory", runtime.ParamLocationQuery, params.CalturalSubjectCategory); err != nil {
-			return nil, err
-		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
-			return nil, err
-		} else {
-			for k, v := range parsed {
-				for _, v2 := range v {
-					queryValues.Add(k, v2)
+		if params.Semester != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", false, "semester", runtime.ParamLocationQuery, *params.Semester); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
 				}
 			}
+
+		}
+
+		if params.RequirementType != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", false, "requirementType", runtime.ParamLocationQuery, *params.RequirementType); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.CulturalSubjectCategory != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", false, "culturalSubjectCategory", runtime.ParamLocationQuery, *params.CulturalSubjectCategory); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
 		}
 
 		queryURL.RawQuery = queryValues.Encode()
@@ -906,7 +674,7 @@ func NewSubjectsV1UpsertRequestWithBody(server string, contentType string, body 
 		return nil, err
 	}
 
-	req, err := http.NewRequest("PUT", queryURL.String(), body)
+	req, err := http.NewRequest("POST", queryURL.String(), body)
 	if err != nil {
 		return nil, err
 	}
@@ -1061,25 +829,6 @@ func WithBaseURL(baseURL string) ClientOption {
 
 // ClientWithResponsesInterface is the interface specification for the client with responses above.
 type ClientWithResponsesInterface interface {
-	// FacultiesV1ListWithResponse request
-	FacultiesV1ListWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*FacultiesV1ListResponse, error)
-
-	// FacultiesV1CreateWithBodyWithResponse request with any body
-	FacultiesV1CreateWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*FacultiesV1CreateResponse, error)
-
-	FacultiesV1CreateWithResponse(ctx context.Context, body FacultiesV1CreateJSONRequestBody, reqEditors ...RequestEditorFn) (*FacultiesV1CreateResponse, error)
-
-	// FacultiesV1DeleteWithResponse request
-	FacultiesV1DeleteWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*FacultiesV1DeleteResponse, error)
-
-	// FacultiesV1DetailWithResponse request
-	FacultiesV1DetailWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*FacultiesV1DetailResponse, error)
-
-	// FacultiesV1UpdateWithBodyWithResponse request with any body
-	FacultiesV1UpdateWithBodyWithResponse(ctx context.Context, id string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*FacultiesV1UpdateResponse, error)
-
-	FacultiesV1UpdateWithResponse(ctx context.Context, id string, body FacultiesV1UpdateJSONRequestBody, reqEditors ...RequestEditorFn) (*FacultiesV1UpdateResponse, error)
-
 	// SubjectsV1ListWithResponse request
 	SubjectsV1ListWithResponse(ctx context.Context, params *SubjectsV1ListParams, reqEditors ...RequestEditorFn) (*SubjectsV1ListResponse, error)
 
@@ -1096,126 +845,6 @@ type ClientWithResponsesInterface interface {
 
 	// SyllabusV1DetailWithResponse request
 	SyllabusV1DetailWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*SyllabusV1DetailResponse, error)
-}
-
-type FacultiesV1ListResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON200      *struct {
-		Faculties []DottoFoundationV1Faculty `json:"faculties"`
-	}
-}
-
-// Status returns HTTPResponse.Status
-func (r FacultiesV1ListResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r FacultiesV1ListResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
-type FacultiesV1CreateResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON201      *struct {
-		// Faculty 教員
-		Faculty DottoFoundationV1Faculty `json:"faculty"`
-	}
-}
-
-// Status returns HTTPResponse.Status
-func (r FacultiesV1CreateResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r FacultiesV1CreateResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
-type FacultiesV1DeleteResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-}
-
-// Status returns HTTPResponse.Status
-func (r FacultiesV1DeleteResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r FacultiesV1DeleteResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
-type FacultiesV1DetailResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON200      *struct {
-		// Faculty 教員
-		Faculty DottoFoundationV1Faculty `json:"faculty"`
-	}
-}
-
-// Status returns HTTPResponse.Status
-func (r FacultiesV1DetailResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r FacultiesV1DetailResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
-type FacultiesV1UpdateResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON200      *struct {
-		// Faculty 教員
-		Faculty DottoFoundationV1Faculty `json:"faculty"`
-	}
-}
-
-// Status returns HTTPResponse.Status
-func (r FacultiesV1UpdateResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r FacultiesV1UpdateResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
 }
 
 type SubjectsV1ListResponse struct {
@@ -1335,67 +964,6 @@ func (r SyllabusV1DetailResponse) StatusCode() int {
 	return 0
 }
 
-// FacultiesV1ListWithResponse request returning *FacultiesV1ListResponse
-func (c *ClientWithResponses) FacultiesV1ListWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*FacultiesV1ListResponse, error) {
-	rsp, err := c.FacultiesV1List(ctx, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseFacultiesV1ListResponse(rsp)
-}
-
-// FacultiesV1CreateWithBodyWithResponse request with arbitrary body returning *FacultiesV1CreateResponse
-func (c *ClientWithResponses) FacultiesV1CreateWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*FacultiesV1CreateResponse, error) {
-	rsp, err := c.FacultiesV1CreateWithBody(ctx, contentType, body, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseFacultiesV1CreateResponse(rsp)
-}
-
-func (c *ClientWithResponses) FacultiesV1CreateWithResponse(ctx context.Context, body FacultiesV1CreateJSONRequestBody, reqEditors ...RequestEditorFn) (*FacultiesV1CreateResponse, error) {
-	rsp, err := c.FacultiesV1Create(ctx, body, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseFacultiesV1CreateResponse(rsp)
-}
-
-// FacultiesV1DeleteWithResponse request returning *FacultiesV1DeleteResponse
-func (c *ClientWithResponses) FacultiesV1DeleteWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*FacultiesV1DeleteResponse, error) {
-	rsp, err := c.FacultiesV1Delete(ctx, id, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseFacultiesV1DeleteResponse(rsp)
-}
-
-// FacultiesV1DetailWithResponse request returning *FacultiesV1DetailResponse
-func (c *ClientWithResponses) FacultiesV1DetailWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*FacultiesV1DetailResponse, error) {
-	rsp, err := c.FacultiesV1Detail(ctx, id, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseFacultiesV1DetailResponse(rsp)
-}
-
-// FacultiesV1UpdateWithBodyWithResponse request with arbitrary body returning *FacultiesV1UpdateResponse
-func (c *ClientWithResponses) FacultiesV1UpdateWithBodyWithResponse(ctx context.Context, id string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*FacultiesV1UpdateResponse, error) {
-	rsp, err := c.FacultiesV1UpdateWithBody(ctx, id, contentType, body, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseFacultiesV1UpdateResponse(rsp)
-}
-
-func (c *ClientWithResponses) FacultiesV1UpdateWithResponse(ctx context.Context, id string, body FacultiesV1UpdateJSONRequestBody, reqEditors ...RequestEditorFn) (*FacultiesV1UpdateResponse, error) {
-	rsp, err := c.FacultiesV1Update(ctx, id, body, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseFacultiesV1UpdateResponse(rsp)
-}
-
 // SubjectsV1ListWithResponse request returning *SubjectsV1ListResponse
 func (c *ClientWithResponses) SubjectsV1ListWithResponse(ctx context.Context, params *SubjectsV1ListParams, reqEditors ...RequestEditorFn) (*SubjectsV1ListResponse, error) {
 	rsp, err := c.SubjectsV1List(ctx, params, reqEditors...)
@@ -1447,137 +1015,6 @@ func (c *ClientWithResponses) SyllabusV1DetailWithResponse(ctx context.Context, 
 		return nil, err
 	}
 	return ParseSyllabusV1DetailResponse(rsp)
-}
-
-// ParseFacultiesV1ListResponse parses an HTTP response from a FacultiesV1ListWithResponse call
-func ParseFacultiesV1ListResponse(rsp *http.Response) (*FacultiesV1ListResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &FacultiesV1ListResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest struct {
-			Faculties []DottoFoundationV1Faculty `json:"faculties"`
-		}
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON200 = &dest
-
-	}
-
-	return response, nil
-}
-
-// ParseFacultiesV1CreateResponse parses an HTTP response from a FacultiesV1CreateWithResponse call
-func ParseFacultiesV1CreateResponse(rsp *http.Response) (*FacultiesV1CreateResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &FacultiesV1CreateResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 201:
-		var dest struct {
-			// Faculty 教員
-			Faculty DottoFoundationV1Faculty `json:"faculty"`
-		}
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON201 = &dest
-
-	}
-
-	return response, nil
-}
-
-// ParseFacultiesV1DeleteResponse parses an HTTP response from a FacultiesV1DeleteWithResponse call
-func ParseFacultiesV1DeleteResponse(rsp *http.Response) (*FacultiesV1DeleteResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &FacultiesV1DeleteResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	return response, nil
-}
-
-// ParseFacultiesV1DetailResponse parses an HTTP response from a FacultiesV1DetailWithResponse call
-func ParseFacultiesV1DetailResponse(rsp *http.Response) (*FacultiesV1DetailResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &FacultiesV1DetailResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest struct {
-			// Faculty 教員
-			Faculty DottoFoundationV1Faculty `json:"faculty"`
-		}
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON200 = &dest
-
-	}
-
-	return response, nil
-}
-
-// ParseFacultiesV1UpdateResponse parses an HTTP response from a FacultiesV1UpdateWithResponse call
-func ParseFacultiesV1UpdateResponse(rsp *http.Response) (*FacultiesV1UpdateResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &FacultiesV1UpdateResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest struct {
-			// Faculty 教員
-			Faculty DottoFoundationV1Faculty `json:"faculty"`
-		}
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON200 = &dest
-
-	}
-
-	return response, nil
 }
 
 // ParseSubjectsV1ListResponse parses an HTTP response from a SubjectsV1ListWithResponse call
