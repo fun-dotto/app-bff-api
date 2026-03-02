@@ -42,7 +42,7 @@ func TestAnnouncementsV1List(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			mockRepo := repository.NewMockAnnouncementRepository()
-			h := NewHandler(service.NewAnnouncementService(mockRepo))
+			h := NewHandler(WithAnnouncementService(service.NewAnnouncementService(mockRepo)))
 
 			resp, err := h.AnnouncementsV1List(context.Background(), api.AnnouncementsV1ListRequestObject{})
 
