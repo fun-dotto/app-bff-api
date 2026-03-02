@@ -64,9 +64,7 @@ func toDomainSubjectFaculties(faculties []subject_api.SubjectFaculty) []domain.S
 	for i, f := range faculties {
 		result[i] = domain.SubjectFaculty{
 			Faculty: domain.Faculty{
-				ID:    f.Faculty.Id,
-				Name:  f.Faculty.Name,
-				Email: f.Faculty.Email,
+				ID: f.FacultyId,
 			},
 			IsPrimary: f.IsPrimary,
 		}
@@ -111,7 +109,7 @@ func ToExternalSubjectQuery(q domain.SubjectQuery) *subject_api.SubjectsV1ListPa
 		Classification:          toExternalClassifications(q.Classification),
 		Semester:                toExternalSemesters(q.Semester),
 		RequirementType:         toExternalRequirementTypes(q.RequirementType),
-		CalturalSubjectCategory: toExternalCulturalSubjectCategories(q.CulturalSubjectCategory),
+		CulturalSubjectCategory: toExternalCulturalSubjectCategories(q.CulturalSubjectCategory),
 	}
 }
 
