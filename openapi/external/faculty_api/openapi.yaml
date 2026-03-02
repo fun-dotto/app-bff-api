@@ -9,7 +9,16 @@ paths:
     get:
       operationId: FacultiesV1_list
       description: 教員一覧を取得する
-      parameters: []
+      parameters:
+        - name: ids
+          in: query
+          required: false
+          description: 教員IDのリスト; 指定した場合は指定した教員IDのみを取得する
+          schema:
+            type: array
+            items:
+              type: string
+          explode: false
       responses:
         '200':
           description: 教員のリスト
