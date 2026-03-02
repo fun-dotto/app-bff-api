@@ -19,7 +19,7 @@ func NewFacultyRepository(client *faculty_api.ClientWithResponses) *FacultyRepos
 
 // GetFaculties は全教員一覧を取得する
 func (r *FacultyRepository) GetFaculties() ([]domain.Faculty, error) {
-	response, err := r.client.FacultiesV1ListWithResponse(context.Background())
+	response, err := r.client.FacultiesV1ListWithResponse(context.Background(), nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to call faculty API: %w", err)
 	}
@@ -48,21 +48,25 @@ func (r *FacultyRepository) GetFaculty(id string) (*domain.Faculty, error) {
 
 // GetFacultiesByIDs は指定したIDの教員一覧を取得する
 func (r *FacultyRepository) GetFacultiesByIDs(ids []string) (map[string]domain.Faculty, error) {
-	allFaculties, err := r.GetFaculties()
+	if len(ids) == 0 {
+		return make(map[string]domain.Faculty), nil
+	}
+
+	params := &faculty_api.FacultiesV1ListParams{
+		Ids: &ids,
+	}
+	response, err := r.client.FacultiesV1ListWithResponse(context.Background(), params)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to call faculty API: %w", err)
 	}
 
-	idSet := make(map[string]struct{}, len(ids))
-	for _, id := range ids {
-		idSet[id] = struct{}{}
+	if response.JSON200 == nil {
+		return nil, fmt.Errorf("failed to get faculties by IDs: status %d", response.StatusCode())
 	}
 
-	result := make(map[string]domain.Faculty, len(ids))
-	for _, f := range allFaculties {
-		if _, ok := idSet[f.ID]; ok {
-			result[f.ID] = f
-		}
+	result := make(map[string]domain.Faculty, len(response.JSON200.Faculties))
+	for _, f := range response.JSON200.Faculties {
+		result[f.Id] = external.ToDomainFaculty(f)
 	}
 
 	return result, nil
