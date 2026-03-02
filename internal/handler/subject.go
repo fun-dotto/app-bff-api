@@ -39,15 +39,55 @@ func (h *Handler) SubjectsV1Detail(ctx context.Context, request api.SubjectsV1De
 
 // toSubjectQuery は SubjectsV1List の API パラメータを domain.SubjectQuery に変換する
 func toSubjectQuery(params api.SubjectsV1ListParams) domain.SubjectQuery {
+	var q string
+	if params.Q != nil {
+		q = *params.Q
+	}
+
+	var grade []api.DottoFoundationV1Grade
+	if params.Grade != nil {
+		grade = *params.Grade
+	}
+
+	var courses []api.DottoFoundationV1Course
+	if params.Courses != nil {
+		courses = *params.Courses
+	}
+
+	var class []api.DottoFoundationV1Class
+	if params.Class != nil {
+		class = *params.Class
+	}
+
+	var classification []api.DottoFoundationV1SubjectClassification
+	if params.Classification != nil {
+		classification = *params.Classification
+	}
+
+	var semester []api.DottoFoundationV1CourseSemester
+	if params.Semester != nil {
+		semester = *params.Semester
+	}
+
+	var requirementType []api.DottoFoundationV1SubjectRequirementType
+	if params.RequirementType != nil {
+		requirementType = *params.RequirementType
+	}
+
+	var culturalSubjectCategory []api.DottoFoundationV1CulturalSubjectCategory
+	if params.CulturalSubjectCategory != nil {
+		culturalSubjectCategory = *params.CulturalSubjectCategory
+	}
+
 	return domain.SubjectQuery{
-		Q:                       params.Q,
-		Grade:                   toGrades(params.Grade),
-		Courses:                 toCourses(params.Courses),
-		Class:                   toClasses(params.Class),
-		Classification:          toClassifications(params.Classification),
-		Semester:                toSemesters(params.Semester),
-		RequirementType:         toRequirementTypes(params.RequirementType),
-		CulturalSubjectCategory: toCulturalSubjectCategories(params.CulturalSubjectCategory),
+		Q:                       q,
+		Grade:                   toGrades(grade),
+		Courses:                 toCourses(courses),
+		Class:                   toClasses(class),
+		Classification:          toClassifications(classification),
+		Semester:                toSemesters(semester),
+		RequirementType:         toRequirementTypes(requirementType),
+		CulturalSubjectCategory: toCulturalSubjectCategories(culturalSubjectCategory),
 	}
 }
 
@@ -129,11 +169,12 @@ func toApiSubjectSummary(subject domain.Subject) api.SubjectSummary {
 	}
 
 	return api.SubjectSummary{
-		Id:                      subject.ID,
-		Name:                    subject.Name,
-		Faculties:               faculties,
-		DayOfWeekTimetableSlots: "", // TODO: 時間割APIを作成したら、曜日・時限を取得する
-		IsAddedToTimetable:      false, // TODO: 時間割APIを作成したら、時間割に追加されているかを取得する
+		Id:                 subject.ID,
+		Name:               subject.Name,
+		Faculties:          faculties,
+		DayOfWeek:          api.Monday, // TODO: 時間割APIを作成したら、曜日を取得する
+		Period:             api.Period1, // TODO: 時間割APIを作成したら、時限を取得する
+		IsAddedToTimetable: false, // TODO: 時間割APIを作成したら、時間割に追加されているかを取得する
 	}
 }
 
@@ -147,6 +188,7 @@ func toApiSubjectDetail(subject domain.Subject) api.SubjectDetail {
 	return api.SubjectDetail{
 		Id:                 subject.ID,
 		Name:               subject.Name,
+		Year:               subject.Year,
 		Credit:             subject.Credit,
 		Semester:           api.DottoFoundationV1CourseSemester(subject.Semester),
 		Faculties:          toApiFaculties(subject.Faculties),
