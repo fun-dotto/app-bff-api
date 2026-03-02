@@ -266,20 +266,6 @@ components:
         - Optional
         - OptionalRequired
       description: 必修・選択
-    FacultyService.Faculty:
-      type: object
-      required:
-        - id
-        - name
-        - email
-      properties:
-        id:
-          type: string
-        name:
-          type: string
-        email:
-          type: string
-      description: 教員
     Subject:
       type: object
       required:
@@ -317,11 +303,11 @@ components:
     SubjectFaculty:
       type: object
       required:
-        - faculty
+        - facultyId
         - isPrimary
       properties:
-        faculty:
-          $ref: '#/components/schemas/FacultyService.Faculty'
+        facultyId:
+          type: string
         isPrimary:
           type: boolean
     SubjectFacultyRequest:
