@@ -109,13 +109,6 @@ type DottoFoundationV1CourseSemester string
 // DottoFoundationV1CulturalSubjectCategory 教養科目カテゴリ
 type DottoFoundationV1CulturalSubjectCategory string
 
-// DottoFoundationV1Faculty 教員
-type DottoFoundationV1Faculty struct {
-	Email string `json:"email"`
-	Id    string `json:"id"`
-	Name  string `json:"name"`
-}
-
 // DottoFoundationV1Grade 学年
 type DottoFoundationV1Grade string
 
@@ -125,6 +118,13 @@ type DottoFoundationV1SubjectClassification string
 // DottoFoundationV1SubjectRequirementType 必修・選択
 type DottoFoundationV1SubjectRequirementType string
 
+// FacultyServiceFaculty 教員
+type FacultyServiceFaculty struct {
+	Email string `json:"email"`
+	Id    string `json:"id"`
+	Name  string `json:"name"`
+}
+
 // SubjectDetail defines model for SubjectDetail.
 type SubjectDetail struct {
 	// Credit 単位数
@@ -132,7 +132,7 @@ type SubjectDetail struct {
 
 	// EligibleAttributes 授業名末尾の`学年-クラス`をもとに決定
 	EligibleAttributes []SubjectServiceSubjectTargetClass `json:"eligibleAttributes"`
-	Faculties          []SubjectServiceSubjectFaculty     `json:"faculties"`
+	Faculties          []SubjectFaculty                   `json:"faculties"`
 	Id                 string                             `json:"id"`
 	Name               string                             `json:"name"`
 
@@ -144,11 +144,11 @@ type SubjectDetail struct {
 	Syllabus SubjectServiceSyllabus          `json:"syllabus"`
 }
 
-// SubjectServiceSubjectFaculty defines model for SubjectService.SubjectFaculty.
-type SubjectServiceSubjectFaculty struct {
+// SubjectFaculty defines model for SubjectFaculty.
+type SubjectFaculty struct {
 	// Faculty 教員
-	Faculty   DottoFoundationV1Faculty `json:"faculty"`
-	IsPrimary bool                     `json:"isPrimary"`
+	Faculty   FacultyServiceFaculty `json:"faculty"`
+	IsPrimary bool                  `json:"isPrimary"`
 }
 
 // SubjectServiceSubjectRequirement defines model for SubjectService.SubjectRequirement.
@@ -257,9 +257,9 @@ type SubjectServiceSyllabus struct {
 type SubjectSummary struct {
 	// DayOfWeekTimetableSlots TODO: 時間割APIを作成したら、曜日・時限を取得する
 	// 曜日・時限
-	DayOfWeekTimetableSlots string                     `json:"dayOfWeekTimetableSlots"`
-	Faculties               []DottoFoundationV1Faculty `json:"faculties"`
-	Id                      string                     `json:"id"`
+	DayOfWeekTimetableSlots string           `json:"dayOfWeekTimetableSlots"`
+	Faculties               []SubjectFaculty `json:"faculties"`
+	Id                      string           `json:"id"`
 
 	// IsAddedToTimetable TODO: 時間割APIを作成したら、時間割に追加されているかを取得する
 	// 時間割に追加されているか
@@ -290,8 +290,8 @@ type SubjectsV1ListParams struct {
 	// RequirementType 必修・選択・選択必修
 	RequirementType []DottoFoundationV1SubjectRequirementType `form:"requirementType" json:"requirementType"`
 
-	// CalturalSubjectCategory 教養科目カテゴリ
-	CalturalSubjectCategory []DottoFoundationV1CulturalSubjectCategory `form:"calturalSubjectCategory" json:"calturalSubjectCategory"`
+	// CulturalSubjectCategory 教養科目カテゴリ
+	CulturalSubjectCategory []DottoFoundationV1CulturalSubjectCategory `form:"culturalSubjectCategory" json:"culturalSubjectCategory"`
 }
 
 // ServerInterface represents all server handlers.
@@ -458,18 +458,18 @@ func (siw *ServerInterfaceWrapper) SubjectsV1List(c *gin.Context) {
 		return
 	}
 
-	// ------------- Required query parameter "calturalSubjectCategory" -------------
+	// ------------- Required query parameter "culturalSubjectCategory" -------------
 
-	if paramValue := c.Query("calturalSubjectCategory"); paramValue != "" {
+	if paramValue := c.Query("culturalSubjectCategory"); paramValue != "" {
 
 	} else {
-		siw.ErrorHandler(c, fmt.Errorf("Query argument calturalSubjectCategory is required, but not found"), http.StatusBadRequest)
+		siw.ErrorHandler(c, fmt.Errorf("Query argument culturalSubjectCategory is required, but not found"), http.StatusBadRequest)
 		return
 	}
 
-	err = runtime.BindQueryParameter("form", false, true, "calturalSubjectCategory", c.Request.URL.Query(), &params.CalturalSubjectCategory)
+	err = runtime.BindQueryParameter("form", false, true, "culturalSubjectCategory", c.Request.URL.Query(), &params.CulturalSubjectCategory)
 	if err != nil {
-		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter calturalSubjectCategory: %w", err), http.StatusBadRequest)
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter culturalSubjectCategory: %w", err), http.StatusBadRequest)
 		return
 	}
 
