@@ -10,6 +10,7 @@ func ToDomainSubject(m subject_api.Subject) domain.Subject {
 	return domain.Subject{
 		ID:                 m.Id,
 		Name:               m.Name,
+		Year:               m.Year,
 		Credit:             m.Credit,
 		Semester:           domain.CourseSemester(m.Semester),
 		Faculties:          toDomainSubjectFaculties(m.Faculties),
@@ -101,16 +102,41 @@ func toDomainSubjectTargetClasses(targetClasses []subject_api.SubjectTargetClass
 
 // ToExternalSubjectQuery はDomainのSubjectQueryを外部APIのSubjectsV1ListParamsに変換する
 func ToExternalSubjectQuery(q domain.SubjectQuery) *subject_api.SubjectsV1ListParams {
-	return &subject_api.SubjectsV1ListParams{
-		Q:                       q.Q,
-		Grade:                   toExternalGrades(q.Grade),
-		Courses:                 toExternalCourses(q.Courses),
-		Class:                   toExternalClasses(q.Class),
-		Classification:          toExternalClassifications(q.Classification),
-		Semester:                toExternalSemesters(q.Semester),
-		RequirementType:         toExternalRequirementTypes(q.RequirementType),
-		CulturalSubjectCategory: toExternalCulturalSubjectCategories(q.CulturalSubjectCategory),
+	params := &subject_api.SubjectsV1ListParams{}
+
+	if q.Q != "" {
+		params.Q = &q.Q
 	}
+	if len(q.Grade) > 0 {
+		grades := toExternalGrades(q.Grade)
+		params.Grade = &grades
+	}
+	if len(q.Courses) > 0 {
+		courses := toExternalCourses(q.Courses)
+		params.Courses = &courses
+	}
+	if len(q.Class) > 0 {
+		classes := toExternalClasses(q.Class)
+		params.Class = &classes
+	}
+	if len(q.Classification) > 0 {
+		classifications := toExternalClassifications(q.Classification)
+		params.Classification = &classifications
+	}
+	if len(q.Semester) > 0 {
+		semesters := toExternalSemesters(q.Semester)
+		params.Semester = &semesters
+	}
+	if len(q.RequirementType) > 0 {
+		requirementTypes := toExternalRequirementTypes(q.RequirementType)
+		params.RequirementType = &requirementTypes
+	}
+	if len(q.CulturalSubjectCategory) > 0 {
+		culturalSubjectCategories := toExternalCulturalSubjectCategories(q.CulturalSubjectCategory)
+		params.CulturalSubjectCategory = &culturalSubjectCategories
+	}
+
+	return params
 }
 
 func toExternalGrades(grades []domain.Grade) []subject_api.DottoFoundationV1Grade {
