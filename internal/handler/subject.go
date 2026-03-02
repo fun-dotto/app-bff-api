@@ -180,10 +180,10 @@ func toApiSubjectSummary(subject domain.Subject) api.SubjectSummary {
 
 // toApiSubjectDetail はDomainの科目をAPIの科目に変換する
 func toApiSubjectDetail(subject domain.Subject) api.SubjectDetail {
-	if subject.Syllabus == nil {
-		panic("subject.Syllabus is nil: syllabus is required for api.SubjectDetail")
+	var syllabus api.SubjectServiceSyllabus
+	if subject.Syllabus != nil {
+		syllabus = toApiSyllabus(*subject.Syllabus)
 	}
-	syllabus := toApiSyllabus(*subject.Syllabus)
 
 	return api.SubjectDetail{
 		Id:                 subject.ID,
