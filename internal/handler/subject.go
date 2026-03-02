@@ -47,7 +47,7 @@ func toSubjectQuery(params api.SubjectsV1ListParams) domain.SubjectQuery {
 		Classification:          toClassifications(params.Classification),
 		Semester:                toSemesters(params.Semester),
 		RequirementType:         toRequirementTypes(params.RequirementType),
-		CulturalSubjectCategory: toCulturalSubjectCategories(params.CalturalSubjectCategory),
+		CulturalSubjectCategory: toCulturalSubjectCategories(params.CulturalSubjectCategory),
 	}
 }
 
@@ -116,12 +116,15 @@ func toCulturalSubjectCategories(categories []api.DottoFoundationV1CulturalSubje
 
 // toApiSubjectSummary はDomainの科目をAPIの科目サマリーに変換する
 func toApiSubjectSummary(subject domain.Subject) api.SubjectSummary {
-	faculties := make([]api.DottoFoundationV1Faculty, len(subject.Faculties))
+	faculties := make([]api.SubjectFaculty, len(subject.Faculties))
 	for i, f := range subject.Faculties {
-		faculties[i] = api.DottoFoundationV1Faculty{
-			Id:    f.Faculty.ID,
-			Name:  f.Faculty.Name,
-			Email: f.Faculty.Email,
+		faculties[i] = api.SubjectFaculty{
+			Faculty: api.FacultyServiceFaculty{
+				Id:    f.Faculty.ID,
+				Name:  f.Faculty.Name,
+				Email: f.Faculty.Email,
+			},
+			IsPrimary: f.IsPrimary,
 		}
 	}
 
@@ -187,11 +190,11 @@ func toApiSyllabus(syllabus domain.Syllabus) api.SubjectServiceSyllabus {
 }
 
 // toApiFaculties はDomainの教員をAPIの教員に変換する
-func toApiFaculties(faculties []domain.SubjectFaculty) []api.SubjectServiceSubjectFaculty {
-	result := make([]api.SubjectServiceSubjectFaculty, len(faculties))
+func toApiFaculties(faculties []domain.SubjectFaculty) []api.SubjectFaculty {
+	result := make([]api.SubjectFaculty, len(faculties))
 	for i, f := range faculties {
-		result[i] = api.SubjectServiceSubjectFaculty{
-			Faculty: api.DottoFoundationV1Faculty{
+		result[i] = api.SubjectFaculty{
+			Faculty: api.FacultyServiceFaculty{
 				Id:    f.Faculty.ID,
 				Name:  f.Faculty.Name,
 				Email: f.Faculty.Email,
