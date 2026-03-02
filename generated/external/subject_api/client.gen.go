@@ -127,6 +127,9 @@ type Subject struct {
 
 	// Semester 開講時期
 	Semester DottoFoundationV1CourseSemester `json:"semester"`
+
+	// Year 開講年度
+	Year int `json:"year"`
 }
 
 // SubjectFaculty defines model for SubjectFaculty.
@@ -251,29 +254,35 @@ type Syllabus struct {
 
 // SubjectsV1ListParams defines parameters for SubjectsV1List.
 type SubjectsV1ListParams struct {
+	// Ids 科目IDのリスト; 指定した場合は指定した科目IDのみを取得する
+	Ids *[]string `form:"ids,omitempty" json:"ids,omitempty"`
+
 	// Q 検索ワード
-	Q string `form:"q" json:"q"`
+	Q *string `form:"q,omitempty" json:"q,omitempty"`
 
 	// Grade 学年
-	Grade []DottoFoundationV1Grade `form:"grade" json:"grade"`
+	Grade *[]DottoFoundationV1Grade `form:"grade,omitempty" json:"grade,omitempty"`
 
 	// Courses コース; 大学院の場合は大学院コースに読み替え
-	Courses []DottoFoundationV1Course `form:"courses" json:"courses"`
+	Courses *[]DottoFoundationV1Course `form:"courses,omitempty" json:"courses,omitempty"`
 
 	// Class クラス; 大学院の学年を選択した場合は選択できない
-	Class []DottoFoundationV1Class `form:"class" json:"class"`
+	Class *[]DottoFoundationV1Class `form:"class,omitempty" json:"class,omitempty"`
 
 	// Classification 学部: 専門・教養; 大学院: 専門・研究指導
-	Classification []DottoFoundationV1SubjectClassification `form:"classification" json:"classification"`
+	Classification *[]DottoFoundationV1SubjectClassification `form:"classification,omitempty" json:"classification,omitempty"`
+
+	// Year 開講年度; 指定しない場合は今年度が選択される
+	Year *int `form:"year,omitempty" json:"year,omitempty"`
 
 	// Semester 開講時期
-	Semester []DottoFoundationV1CourseSemester `form:"semester" json:"semester"`
+	Semester *[]DottoFoundationV1CourseSemester `form:"semester,omitempty" json:"semester,omitempty"`
 
 	// RequirementType 必修・選択・選択必修
-	RequirementType []DottoFoundationV1SubjectRequirementType `form:"requirementType" json:"requirementType"`
+	RequirementType *[]DottoFoundationV1SubjectRequirementType `form:"requirementType,omitempty" json:"requirementType,omitempty"`
 
 	// CulturalSubjectCategory 教養科目カテゴリ
-	CulturalSubjectCategory []DottoFoundationV1CulturalSubjectCategory `form:"culturalSubjectCategory" json:"culturalSubjectCategory"`
+	CulturalSubjectCategory *[]DottoFoundationV1CulturalSubjectCategory `form:"culturalSubjectCategory,omitempty" json:"culturalSubjectCategory,omitempty"`
 }
 
 // SubjectsV1UpsertJSONRequestBody defines body for SubjectsV1Upsert for application/json ContentType.
@@ -464,100 +473,164 @@ func NewSubjectsV1ListRequest(server string, params *SubjectsV1ListParams) (*htt
 	if params != nil {
 		queryValues := queryURL.Query()
 
-		if queryFrag, err := runtime.StyleParamWithLocation("form", false, "q", runtime.ParamLocationQuery, params.Q); err != nil {
-			return nil, err
-		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
-			return nil, err
-		} else {
-			for k, v := range parsed {
-				for _, v2 := range v {
-					queryValues.Add(k, v2)
+		if params.Ids != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", false, "ids", runtime.ParamLocationQuery, *params.Ids); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
 				}
 			}
+
 		}
 
-		if queryFrag, err := runtime.StyleParamWithLocation("form", false, "grade", runtime.ParamLocationQuery, params.Grade); err != nil {
-			return nil, err
-		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
-			return nil, err
-		} else {
-			for k, v := range parsed {
-				for _, v2 := range v {
-					queryValues.Add(k, v2)
+		if params.Q != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", false, "q", runtime.ParamLocationQuery, *params.Q); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
 				}
 			}
+
 		}
 
-		if queryFrag, err := runtime.StyleParamWithLocation("form", false, "courses", runtime.ParamLocationQuery, params.Courses); err != nil {
-			return nil, err
-		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
-			return nil, err
-		} else {
-			for k, v := range parsed {
-				for _, v2 := range v {
-					queryValues.Add(k, v2)
+		if params.Grade != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", false, "grade", runtime.ParamLocationQuery, *params.Grade); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
 				}
 			}
+
 		}
 
-		if queryFrag, err := runtime.StyleParamWithLocation("form", false, "class", runtime.ParamLocationQuery, params.Class); err != nil {
-			return nil, err
-		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
-			return nil, err
-		} else {
-			for k, v := range parsed {
-				for _, v2 := range v {
-					queryValues.Add(k, v2)
+		if params.Courses != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", false, "courses", runtime.ParamLocationQuery, *params.Courses); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
 				}
 			}
+
 		}
 
-		if queryFrag, err := runtime.StyleParamWithLocation("form", false, "classification", runtime.ParamLocationQuery, params.Classification); err != nil {
-			return nil, err
-		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
-			return nil, err
-		} else {
-			for k, v := range parsed {
-				for _, v2 := range v {
-					queryValues.Add(k, v2)
+		if params.Class != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", false, "class", runtime.ParamLocationQuery, *params.Class); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
 				}
 			}
+
 		}
 
-		if queryFrag, err := runtime.StyleParamWithLocation("form", false, "semester", runtime.ParamLocationQuery, params.Semester); err != nil {
-			return nil, err
-		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
-			return nil, err
-		} else {
-			for k, v := range parsed {
-				for _, v2 := range v {
-					queryValues.Add(k, v2)
+		if params.Classification != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", false, "classification", runtime.ParamLocationQuery, *params.Classification); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
 				}
 			}
+
 		}
 
-		if queryFrag, err := runtime.StyleParamWithLocation("form", false, "requirementType", runtime.ParamLocationQuery, params.RequirementType); err != nil {
-			return nil, err
-		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
-			return nil, err
-		} else {
-			for k, v := range parsed {
-				for _, v2 := range v {
-					queryValues.Add(k, v2)
+		if params.Year != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", false, "year", runtime.ParamLocationQuery, *params.Year); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
 				}
 			}
+
 		}
 
-		if queryFrag, err := runtime.StyleParamWithLocation("form", false, "culturalSubjectCategory", runtime.ParamLocationQuery, params.CulturalSubjectCategory); err != nil {
-			return nil, err
-		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
-			return nil, err
-		} else {
-			for k, v := range parsed {
-				for _, v2 := range v {
-					queryValues.Add(k, v2)
+		if params.Semester != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", false, "semester", runtime.ParamLocationQuery, *params.Semester); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
 				}
 			}
+
+		}
+
+		if params.RequirementType != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", false, "requirementType", runtime.ParamLocationQuery, *params.RequirementType); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.CulturalSubjectCategory != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", false, "culturalSubjectCategory", runtime.ParamLocationQuery, *params.CulturalSubjectCategory); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
 		}
 
 		queryURL.RawQuery = queryValues.Encode()
@@ -601,7 +674,7 @@ func NewSubjectsV1UpsertRequestWithBody(server string, contentType string, body 
 		return nil, err
 	}
 
-	req, err := http.NewRequest("PUT", queryURL.String(), body)
+	req, err := http.NewRequest("POST", queryURL.String(), body)
 	if err != nil {
 		return nil, err
 	}

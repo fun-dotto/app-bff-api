@@ -29,6 +29,12 @@ type FacultyRequest struct {
 	Name  string `json:"name"`
 }
 
+// FacultiesV1ListParams defines parameters for FacultiesV1List.
+type FacultiesV1ListParams struct {
+	// Ids 教員IDのリスト; 指定した場合は指定した教員IDのみを取得する
+	Ids *[]string `form:"ids,omitempty" json:"ids,omitempty"`
+}
+
 // FacultiesV1CreateJSONRequestBody defines body for FacultiesV1Create for application/json ContentType.
 type FacultiesV1CreateJSONRequestBody = FacultyRequest
 
@@ -109,7 +115,7 @@ func WithRequestEditorFn(fn RequestEditorFn) ClientOption {
 // The interface specification for the client above.
 type ClientInterface interface {
 	// FacultiesV1List request
-	FacultiesV1List(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+	FacultiesV1List(ctx context.Context, params *FacultiesV1ListParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// FacultiesV1CreateWithBody request with any body
 	FacultiesV1CreateWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -128,8 +134,8 @@ type ClientInterface interface {
 	FacultiesV1Update(ctx context.Context, id string, body FacultiesV1UpdateJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 }
 
-func (c *Client) FacultiesV1List(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewFacultiesV1ListRequest(c.Server)
+func (c *Client) FacultiesV1List(ctx context.Context, params *FacultiesV1ListParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewFacultiesV1ListRequest(c.Server, params)
 	if err != nil {
 		return nil, err
 	}
@@ -213,7 +219,7 @@ func (c *Client) FacultiesV1Update(ctx context.Context, id string, body Facultie
 }
 
 // NewFacultiesV1ListRequest generates requests for FacultiesV1List
-func NewFacultiesV1ListRequest(server string) (*http.Request, error) {
+func NewFacultiesV1ListRequest(server string, params *FacultiesV1ListParams) (*http.Request, error) {
 	var err error
 
 	serverURL, err := url.Parse(server)
@@ -229,6 +235,28 @@ func NewFacultiesV1ListRequest(server string) (*http.Request, error) {
 	queryURL, err := serverURL.Parse(operationPath)
 	if err != nil {
 		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.Ids != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", false, "ids", runtime.ParamLocationQuery, *params.Ids); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
 	}
 
 	req, err := http.NewRequest("GET", queryURL.String(), nil)
@@ -438,7 +466,7 @@ func WithBaseURL(baseURL string) ClientOption {
 // ClientWithResponsesInterface is the interface specification for the client with responses above.
 type ClientWithResponsesInterface interface {
 	// FacultiesV1ListWithResponse request
-	FacultiesV1ListWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*FacultiesV1ListResponse, error)
+	FacultiesV1ListWithResponse(ctx context.Context, params *FacultiesV1ListParams, reqEditors ...RequestEditorFn) (*FacultiesV1ListResponse, error)
 
 	// FacultiesV1CreateWithBodyWithResponse request with any body
 	FacultiesV1CreateWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*FacultiesV1CreateResponse, error)
@@ -578,8 +606,8 @@ func (r FacultiesV1UpdateResponse) StatusCode() int {
 }
 
 // FacultiesV1ListWithResponse request returning *FacultiesV1ListResponse
-func (c *ClientWithResponses) FacultiesV1ListWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*FacultiesV1ListResponse, error) {
-	rsp, err := c.FacultiesV1List(ctx, reqEditors...)
+func (c *ClientWithResponses) FacultiesV1ListWithResponse(ctx context.Context, params *FacultiesV1ListParams, reqEditors ...RequestEditorFn) (*FacultiesV1ListResponse, error) {
+	rsp, err := c.FacultiesV1List(ctx, params, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
