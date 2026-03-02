@@ -4,6 +4,7 @@ package domain
 type Subject struct {
 	ID                 string
 	Name               string
+	Year               int
 	Credit             int
 	Semester           CourseSemester
 	Faculties          []SubjectFaculty
