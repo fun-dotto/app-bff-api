@@ -100,13 +100,13 @@ paths:
                   - subjects
       tags:
         - Subjects
-    put:
+    post:
       operationId: SubjectsV1_upsert
       description: 科目を作成または更新する
       parameters: []
       responses:
         '200':
-          description: 作成された科目
+          description: 作成または更新された科目
           content:
             application/json:
               schema:
@@ -124,7 +124,7 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/SubjectRequest'
-        description: 作成する科目の情報
+        description: 作成または更新する科目の情報
   /v1/subjects/{id}:
     get:
       operationId: SubjectsV1_detail
