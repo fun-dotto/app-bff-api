@@ -46,13 +46,38 @@ func (s *SubjectService) GetSubject(id string) (*domain.Subject, error) {
 		return nil, err
 	}
 
-	if err := s.enrichWithFaculties([]domain.Subject{*subject}); err != nil {
+	if err := s.enrichSubjectWithFaculties(subject); err != nil {
 		return nil, fmt.Errorf("failed to enrich with faculties: %w", err)
 	}
 
 	return subject, nil
 }
 
+// enrichSubjectWithFaculties は単一の科目にFaculty情報を補完する
+func (s *SubjectService) enrichSubjectWithFaculties(subject *domain.Subject) error {
+	if subject == nil {
+		return nil
+	}
+
+	// collectFacultyIDs は読み取り専用なので、値コピーで包んでも問題ない
+	facultyIDs := collectFacultyIDs([]domain.Subject{*subject})
+	if len(facultyIDs) == 0 {
+		return nil
+	}
+
+	facultyMap, err := s.facultyService.GetFacultiesByIDs(facultyIDs)
+	if err != nil {
+		return err
+	}
+
+	for i := range subject.Faculties {
+		if faculty, ok := facultyMap[subject.Faculties[i].Faculty.ID]; ok {
+			subject.Faculties[i].Faculty = faculty
+		}
+	}
+
+	return nil
+}
 // enrichWithFaculties は科目一覧にFaculty情報を補完する
 func (s *SubjectService) enrichWithFaculties(subjects []domain.Subject) error {
 	facultyIDs := collectFacultyIDs(subjects)
