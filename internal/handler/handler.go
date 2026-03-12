@@ -8,12 +8,12 @@ import (
 
 var (
 	errAnnouncementServiceNotConfigured = errors.New("announcementService is not configured")
-	errSubjectServiceNotConfigured      = errors.New("subjectService is not configured")
+	errAcademicServiceNotConfigured     = errors.New("academicService is not configured")
 )
 
 type Handler struct {
 	announcementService *service.AnnouncementService
-	subjectService      *service.SubjectService
+	academicService     *service.AcademicService
 }
 
 type Option func(*Handler)
@@ -24,9 +24,9 @@ func WithAnnouncementService(s *service.AnnouncementService) Option {
 	}
 }
 
-func WithSubjectService(s *service.SubjectService) Option {
+func WithAcademicService(s *service.AcademicService) Option {
 	return func(h *Handler) {
-		h.subjectService = s
+		h.academicService = s
 	}
 }
 

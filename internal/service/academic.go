@@ -6,29 +6,36 @@ import (
 	"github.com/fun-dotto/app-bff-api/internal/domain"
 )
 
-type SubjectRepository interface {
+type AcademicRepository interface {
+	GetFaculties() ([]domain.Faculty, error)
+	GetFaculty(id string) (*domain.Faculty, error)
+	GetFacultiesByIDs(ids []string) (map[string]domain.Faculty, error)
 	GetSubjects(query domain.SubjectQuery) ([]domain.Subject, error)
 	GetSubject(id string) (*domain.Subject, error)
 }
 
-type FacultyGetter interface {
-	GetFacultiesByIDs(ids []string) (map[string]domain.Faculty, error)
+type AcademicService struct {
+	repository AcademicRepository
 }
 
-type SubjectService struct {
-	subjectRepository SubjectRepository
-	facultyService    FacultyGetter
+func NewAcademicService(repository AcademicRepository) *AcademicService {
+	return &AcademicService{repository: repository}
 }
 
-func NewSubjectService(subjectRepository SubjectRepository, facultyService FacultyGetter) *SubjectService {
-	return &SubjectService{
-		subjectRepository: subjectRepository,
-		facultyService:    facultyService,
-	}
+func (s *AcademicService) GetFaculties() ([]domain.Faculty, error) {
+	return s.repository.GetFaculties()
 }
 
-func (s *SubjectService) GetSubjects(query domain.SubjectQuery) ([]domain.Subject, error) {
-	subjects, err := s.subjectRepository.GetSubjects(query)
+func (s *AcademicService) GetFaculty(id string) (*domain.Faculty, error) {
+	return s.repository.GetFaculty(id)
+}
+
+func (s *AcademicService) GetFacultiesByIDs(ids []string) (map[string]domain.Faculty, error) {
+	return s.repository.GetFacultiesByIDs(ids)
+}
+
+func (s *AcademicService) GetSubjects(query domain.SubjectQuery) ([]domain.Subject, error) {
+	subjects, err := s.repository.GetSubjects(query)
 	if err != nil {
 		return nil, err
 	}
@@ -40,8 +47,8 @@ func (s *SubjectService) GetSubjects(query domain.SubjectQuery) ([]domain.Subjec
 	return subjects, nil
 }
 
-func (s *SubjectService) GetSubject(id string) (*domain.Subject, error) {
-	subject, err := s.subjectRepository.GetSubject(id)
+func (s *AcademicService) GetSubject(id string) (*domain.Subject, error) {
+	subject, err := s.repository.GetSubject(id)
 	if err != nil {
 		return nil, err
 	}
@@ -54,7 +61,7 @@ func (s *SubjectService) GetSubject(id string) (*domain.Subject, error) {
 }
 
 // enrichSubjectWithFaculties は単一の科目にFaculty情報を補完する
-func (s *SubjectService) enrichSubjectWithFaculties(subject *domain.Subject) error {
+func (s *AcademicService) enrichSubjectWithFaculties(subject *domain.Subject) error {
 	if subject == nil {
 		return nil
 	}
@@ -65,7 +72,7 @@ func (s *SubjectService) enrichSubjectWithFaculties(subject *domain.Subject) err
 		return nil
 	}
 
-	facultyMap, err := s.facultyService.GetFacultiesByIDs(facultyIDs)
+	facultyMap, err := s.repository.GetFacultiesByIDs(facultyIDs)
 	if err != nil {
 		return err
 	}
@@ -78,14 +85,15 @@ func (s *SubjectService) enrichSubjectWithFaculties(subject *domain.Subject) err
 
 	return nil
 }
+
 // enrichWithFaculties は科目一覧にFaculty情報を補完する
-func (s *SubjectService) enrichWithFaculties(subjects []domain.Subject) error {
+func (s *AcademicService) enrichWithFaculties(subjects []domain.Subject) error {
 	facultyIDs := collectFacultyIDs(subjects)
 	if len(facultyIDs) == 0 {
 		return nil
 	}
 
-	facultyMap, err := s.facultyService.GetFacultiesByIDs(facultyIDs)
+	facultyMap, err := s.repository.GetFacultiesByIDs(facultyIDs)
 	if err != nil {
 		return err
 	}

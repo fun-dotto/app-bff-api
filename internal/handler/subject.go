@@ -9,13 +9,13 @@ import (
 )
 
 func (h *Handler) SubjectsV1List(ctx context.Context, request api.SubjectsV1ListRequestObject) (api.SubjectsV1ListResponseObject, error) {
-	if h.subjectService == nil {
-		return nil, errSubjectServiceNotConfigured
+	if h.academicService == nil {
+		return nil, errAcademicServiceNotConfigured
 	}
 
 	query := toSubjectQuery(request.Params)
 
-	subjects, err := h.subjectService.GetSubjects(query)
+	subjects, err := h.academicService.GetSubjects(query)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get subjects: %w", err)
 	}
@@ -31,11 +31,11 @@ func (h *Handler) SubjectsV1List(ctx context.Context, request api.SubjectsV1List
 }
 
 func (h *Handler) SubjectsV1Detail(ctx context.Context, request api.SubjectsV1DetailRequestObject) (api.SubjectsV1DetailResponseObject, error) {
-	if h.subjectService == nil {
-		return nil, errSubjectServiceNotConfigured
+	if h.academicService == nil {
+		return nil, errAcademicServiceNotConfigured
 	}
 
-	subject, err := h.subjectService.GetSubject(request.Id)
+	subject, err := h.academicService.GetSubject(request.Id)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get subject: %w", err)
 	}
