@@ -110,79 +110,15 @@ const (
 	Required         DottoFoundationV1SubjectRequirementType = "Required"
 )
 
-// Announcement defines model for Announcement.
-type Announcement struct {
-	Date  time.Time `json:"date"`
-	Id    string    `json:"id"`
-	Title string    `json:"title"`
-	Url   string    `json:"url"`
-}
-
-// DottoFoundationV1Class クラス
-type DottoFoundationV1Class string
-
-// DottoFoundationV1Course コース
-type DottoFoundationV1Course string
-
-// DottoFoundationV1CourseSemester 開講時期
-type DottoFoundationV1CourseSemester string
-
-// DottoFoundationV1CulturalSubjectCategory 教養科目カテゴリ
-type DottoFoundationV1CulturalSubjectCategory string
-
-// DottoFoundationV1DayOfWeek defines model for DottoFoundationV1.DayOfWeek.
-type DottoFoundationV1DayOfWeek string
-
-// DottoFoundationV1Grade 学年
-type DottoFoundationV1Grade string
-
-// DottoFoundationV1Period defines model for DottoFoundationV1.Period.
-type DottoFoundationV1Period string
-
-// DottoFoundationV1SubjectClassification 科目カテゴリ
-type DottoFoundationV1SubjectClassification string
-
-// DottoFoundationV1SubjectRequirementType 必修・選択
-type DottoFoundationV1SubjectRequirementType string
-
-// FacultyServiceFaculty 教員
-type FacultyServiceFaculty struct {
+// AcademicServiceFaculty 教員
+type AcademicServiceFaculty struct {
 	Email string `json:"email"`
 	Id    string `json:"id"`
 	Name  string `json:"name"`
 }
 
-// SubjectDetail defines model for SubjectDetail.
-type SubjectDetail struct {
-	// Credit 単位数
-	Credit int `json:"credit"`
-
-	// EligibleAttributes 授業名末尾の`学年-クラス`をもとに決定
-	EligibleAttributes []SubjectServiceSubjectTargetClass `json:"eligibleAttributes"`
-	Faculties          []SubjectFaculty                   `json:"faculties"`
-	Id                 string                             `json:"id"`
-	Name               string                             `json:"name"`
-
-	// Requirements 科目群・科目区分をもとに決定
-	Requirements []SubjectServiceSubjectRequirement `json:"requirements"`
-
-	// Semester 開講時期
-	Semester DottoFoundationV1CourseSemester `json:"semester"`
-	Syllabus SubjectServiceSyllabus          `json:"syllabus"`
-
-	// Year 開講年度
-	Year int `json:"year"`
-}
-
-// SubjectFaculty defines model for SubjectFaculty.
-type SubjectFaculty struct {
-	// Faculty 教員
-	Faculty   FacultyServiceFaculty `json:"faculty"`
-	IsPrimary bool                  `json:"isPrimary"`
-}
-
-// SubjectServiceSubjectRequirement defines model for SubjectService.SubjectRequirement.
-type SubjectServiceSubjectRequirement struct {
+// AcademicServiceSubjectRequirement defines model for AcademicService.SubjectRequirement.
+type AcademicServiceSubjectRequirement struct {
 	// Course コース
 	Course DottoFoundationV1Course `json:"course"`
 
@@ -190,8 +126,8 @@ type SubjectServiceSubjectRequirement struct {
 	RequirementType DottoFoundationV1SubjectRequirementType `json:"requirementType"`
 }
 
-// SubjectServiceSubjectTargetClass 対象学年・クラス
-type SubjectServiceSubjectTargetClass struct {
+// AcademicServiceSubjectTargetClass 対象学年・クラス
+type AcademicServiceSubjectTargetClass struct {
 	// Class 修士課程・博士課程対象の場合はnull
 	Class *DottoFoundationV1Class `json:"class,omitempty"`
 
@@ -199,8 +135,8 @@ type SubjectServiceSubjectTargetClass struct {
 	Grade DottoFoundationV1Grade `json:"grade"`
 }
 
-// SubjectServiceSyllabus defines model for SubjectService.Syllabus.
-type SubjectServiceSyllabus struct {
+// AcademicServiceSyllabus defines model for AcademicService.Syllabus.
+type AcademicServiceSyllabus struct {
 	// Assignments 提出課題等
 	Assignments string `json:"assignments"`
 
@@ -213,8 +149,8 @@ type SubjectServiceSyllabus struct {
 	// Credit 単位数
 	Credit int `json:"credit"`
 
-	// DspoSubject DSOP対象科目
-	DspoSubject string `json:"dspoSubject"`
+	// DsopSubject DSOP対象科目
+	DsopSubject string `json:"dsopSubject"`
 
 	// EnName 授業名 (en)
 	EnName string `json:"enName"`
@@ -281,6 +217,70 @@ type SubjectServiceSyllabus struct {
 
 	// Textbooks テキスト
 	Textbooks string `json:"textbooks"`
+}
+
+// Announcement defines model for Announcement.
+type Announcement struct {
+	Date  time.Time `json:"date"`
+	Id    string    `json:"id"`
+	Title string    `json:"title"`
+	Url   string    `json:"url"`
+}
+
+// DottoFoundationV1Class クラス
+type DottoFoundationV1Class string
+
+// DottoFoundationV1Course コース
+type DottoFoundationV1Course string
+
+// DottoFoundationV1CourseSemester 開講時期
+type DottoFoundationV1CourseSemester string
+
+// DottoFoundationV1CulturalSubjectCategory 教養科目カテゴリ
+type DottoFoundationV1CulturalSubjectCategory string
+
+// DottoFoundationV1DayOfWeek defines model for DottoFoundationV1.DayOfWeek.
+type DottoFoundationV1DayOfWeek string
+
+// DottoFoundationV1Grade 学年
+type DottoFoundationV1Grade string
+
+// DottoFoundationV1Period defines model for DottoFoundationV1.Period.
+type DottoFoundationV1Period string
+
+// DottoFoundationV1SubjectClassification 科目カテゴリ
+type DottoFoundationV1SubjectClassification string
+
+// DottoFoundationV1SubjectRequirementType 必修・選択
+type DottoFoundationV1SubjectRequirementType string
+
+// SubjectDetail defines model for SubjectDetail.
+type SubjectDetail struct {
+	// Credit 単位数
+	Credit int `json:"credit"`
+
+	// EligibleAttributes 授業名末尾の`学年-クラス`をもとに決定
+	EligibleAttributes []AcademicServiceSubjectTargetClass `json:"eligibleAttributes"`
+	Faculties          []SubjectFaculty                    `json:"faculties"`
+	Id                 string                              `json:"id"`
+	Name               string                              `json:"name"`
+
+	// Requirements 科目群・科目区分をもとに決定
+	Requirements []AcademicServiceSubjectRequirement `json:"requirements"`
+
+	// Semester 開講時期
+	Semester DottoFoundationV1CourseSemester `json:"semester"`
+	Syllabus AcademicServiceSyllabus         `json:"syllabus"`
+
+	// Year 開講年度
+	Year int `json:"year"`
+}
+
+// SubjectFaculty defines model for SubjectFaculty.
+type SubjectFaculty struct {
+	// Faculty 教員
+	Faculty   AcademicServiceFaculty `json:"faculty"`
+	IsPrimary bool                   `json:"isPrimary"`
 }
 
 // SubjectSummary defines model for SubjectSummary.
