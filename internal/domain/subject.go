@@ -64,7 +64,7 @@ type Syllabus struct {
 	TeachingLanguage             string
 	MultiplePersonTeachingForm   string
 	PracticalHomeFacultyCategory string
-	DspoSubject                  string
+	DsopSubject                  string
 	TargetAreas                  string
 	TargetCourses                string
 }

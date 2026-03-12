@@ -4,16 +4,16 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/fun-dotto/app-bff-api/generated/external/subject_api"
+	"github.com/fun-dotto/app-bff-api/generated/external/academic_api"
 	"github.com/fun-dotto/app-bff-api/internal/domain"
 	"github.com/fun-dotto/app-bff-api/internal/external"
 )
 
 type SubjectRepository struct {
-	client *subject_api.ClientWithResponses
+	client *academic_api.ClientWithResponses
 }
 
-func NewSubjectRepository(client *subject_api.ClientWithResponses) *SubjectRepository {
+func NewSubjectRepository(client *academic_api.ClientWithResponses) *SubjectRepository {
 	return &SubjectRepository{client: client}
 }
 

@@ -4,16 +4,16 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/fun-dotto/app-bff-api/generated/external/faculty_api"
+	"github.com/fun-dotto/app-bff-api/generated/external/academic_api"
 	"github.com/fun-dotto/app-bff-api/internal/domain"
 	"github.com/fun-dotto/app-bff-api/internal/external"
 )
 
 type FacultyRepository struct {
-	client *faculty_api.ClientWithResponses
+	client *academic_api.ClientWithResponses
 }
 
-func NewFacultyRepository(client *faculty_api.ClientWithResponses) *FacultyRepository {
+func NewFacultyRepository(client *academic_api.ClientWithResponses) *FacultyRepository {
 	return &FacultyRepository{client: client}
 }
 
@@ -52,7 +52,7 @@ func (r *FacultyRepository) GetFacultiesByIDs(ids []string) (map[string]domain.F
 		return make(map[string]domain.Faculty), nil
 	}
 
-	params := &faculty_api.FacultiesV1ListParams{
+	params := &academic_api.FacultiesV1ListParams{
 		Ids: &ids,
 	}
 	response, err := r.client.FacultiesV1ListWithResponse(context.Background(), params)
