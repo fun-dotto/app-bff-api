@@ -47,11 +47,9 @@ func main() {
 	announcementRepository := repository.NewAnnouncementRepository(clients.Announcement)
 	announcementService := service.NewAnnouncementService(announcementRepository)
 
-	facultyRepository := repository.NewFacultyRepository(clients.Academic)
-	facultyService := service.NewFacultyService(facultyRepository)
-
-	subjectRepository := repository.NewSubjectRepository(clients.Academic)
-	subjectService := service.NewSubjectService(subjectRepository, facultyService)
+	academicRepository := repository.NewAcademicRepository(clients.Academic)
+	facultyService := service.NewFacultyService(academicRepository)
+	subjectService := service.NewSubjectService(academicRepository, facultyService)
 
 	h := handler.NewHandler(
 		handler.WithAnnouncementService(announcementService),
