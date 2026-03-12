@@ -21,7 +21,7 @@ func NewAcademicRepository(client *academic_api.ClientWithResponses) *AcademicRe
 func (r *AcademicRepository) GetFaculties() ([]domain.Faculty, error) {
 	response, err := r.client.FacultiesV1ListWithResponse(context.Background(), nil)
 	if err != nil {
-		return nil, fmt.Errorf("failed to call faculty API: %w", err)
+		return nil, fmt.Errorf("failed to call academic API: %w", err)
 	}
 
 	if response.JSON200 == nil {
@@ -35,7 +35,7 @@ func (r *AcademicRepository) GetFaculties() ([]domain.Faculty, error) {
 func (r *AcademicRepository) GetFaculty(id string) (*domain.Faculty, error) {
 	response, err := r.client.FacultiesV1DetailWithResponse(context.Background(), id)
 	if err != nil {
-		return nil, fmt.Errorf("failed to call faculty API: %w", err)
+		return nil, fmt.Errorf("failed to call academic API: %w", err)
 	}
 
 	if response.JSON200 == nil {
@@ -57,7 +57,7 @@ func (r *AcademicRepository) GetFacultiesByIDs(ids []string) (map[string]domain.
 	}
 	response, err := r.client.FacultiesV1ListWithResponse(context.Background(), params)
 	if err != nil {
-		return nil, fmt.Errorf("failed to call faculty API: %w", err)
+		return nil, fmt.Errorf("failed to call academic API: %w", err)
 	}
 
 	if response.JSON200 == nil {
