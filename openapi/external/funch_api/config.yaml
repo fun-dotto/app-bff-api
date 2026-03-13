@@ -1,0 +1,5 @@
+package: funch_api
+generate:
+  client: true
+  models: true
+output: generated/external/funch_api/client.gen.go

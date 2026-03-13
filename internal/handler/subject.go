@@ -9,13 +9,13 @@ import (
 )
 
 func (h *Handler) SubjectsV1List(ctx context.Context, request api.SubjectsV1ListRequestObject) (api.SubjectsV1ListResponseObject, error) {
-	if h.subjectService == nil {
-		return nil, errSubjectServiceNotConfigured
+	if h.academicService == nil {
+		return nil, errAcademicServiceNotConfigured
 	}
 
 	query := toSubjectQuery(request.Params)
 
-	subjects, err := h.subjectService.GetSubjects(query)
+	subjects, err := h.academicService.GetSubjects(query)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get subjects: %w", err)
 	}
@@ -31,11 +31,11 @@ func (h *Handler) SubjectsV1List(ctx context.Context, request api.SubjectsV1List
 }
 
 func (h *Handler) SubjectsV1Detail(ctx context.Context, request api.SubjectsV1DetailRequestObject) (api.SubjectsV1DetailResponseObject, error) {
-	if h.subjectService == nil {
-		return nil, errSubjectServiceNotConfigured
+	if h.academicService == nil {
+		return nil, errAcademicServiceNotConfigured
 	}
 
-	subject, err := h.subjectService.GetSubject(request.Id)
+	subject, err := h.academicService.GetSubject(request.Id)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get subject: %w", err)
 	}
@@ -167,7 +167,7 @@ func toApiSubjectSummary(subject domain.Subject) api.SubjectSummary {
 	faculties := make([]api.SubjectFaculty, len(subject.Faculties))
 	for i, f := range subject.Faculties {
 		faculties[i] = api.SubjectFaculty{
-			Faculty: api.FacultyServiceFaculty{
+			Faculty: api.AcademicServiceFaculty{
 				Id:    f.Faculty.ID,
 				Name:  f.Faculty.Name,
 				Email: f.Faculty.Email,
@@ -180,15 +180,15 @@ func toApiSubjectSummary(subject domain.Subject) api.SubjectSummary {
 		Id:                 subject.ID,
 		Name:               subject.Name,
 		Faculties:          faculties,
-		DayOfWeek:          api.Monday, // TODO: 時間割APIを作成したら、曜日を取得する
+		DayOfWeek:          api.Monday,  // TODO: 時間割APIを作成したら、曜日を取得する
 		Period:             api.Period1, // TODO: 時間割APIを作成したら、時限を取得する
-		IsAddedToTimetable: false, // TODO: 時間割APIを作成したら、時間割に追加されているかを取得する
+		IsAddedToTimetable: false,       // TODO: 時間割APIを作成したら、時間割に追加されているかを取得する
 	}
 }
 
 // toApiSubjectDetail はDomainの科目をAPIの科目に変換する
 func toApiSubjectDetail(subject domain.Subject) api.SubjectDetail {
-	var syllabus api.SubjectServiceSyllabus
+	var syllabus api.AcademicServiceSyllabus
 	if subject.Syllabus != nil {
 		syllabus = toApiSyllabus(*subject.Syllabus)
 	}
@@ -207,8 +207,8 @@ func toApiSubjectDetail(subject domain.Subject) api.SubjectDetail {
 }
 
 // toApiSyllabus はDomainのシラバスをAPIのシラバスに変換する
-func toApiSyllabus(syllabus domain.Syllabus) api.SubjectServiceSyllabus {
-	return api.SubjectServiceSyllabus{
+func toApiSyllabus(syllabus domain.Syllabus) api.AcademicServiceSyllabus {
+	return api.AcademicServiceSyllabus{
 		Id:                           syllabus.ID,
 		Name:                         syllabus.Name,
 		EnName:                       syllabus.EnName,
@@ -233,7 +233,7 @@ func toApiSyllabus(syllabus domain.Syllabus) api.SubjectServiceSyllabus {
 		TeachingLanguage:             syllabus.TeachingLanguage,
 		MultiplePersonTeachingForm:   syllabus.MultiplePersonTeachingForm,
 		PracticalHomeFacultyCategory: syllabus.PracticalHomeFacultyCategory,
-		DspoSubject:                  syllabus.DspoSubject,
+		DsopSubject:                  syllabus.DsopSubject,
 		TargetAreas:                  syllabus.TargetAreas,
 		TargetCourses:                syllabus.TargetCourses,
 	}
@@ -244,7 +244,7 @@ func toApiFaculties(faculties []domain.SubjectFaculty) []api.SubjectFaculty {
 	result := make([]api.SubjectFaculty, len(faculties))
 	for i, f := range faculties {
 		result[i] = api.SubjectFaculty{
-			Faculty: api.FacultyServiceFaculty{
+			Faculty: api.AcademicServiceFaculty{
 				Id:    f.Faculty.ID,
 				Name:  f.Faculty.Name,
 				Email: f.Faculty.Email,
@@ -256,10 +256,10 @@ func toApiFaculties(faculties []domain.SubjectFaculty) []api.SubjectFaculty {
 }
 
 // toApiRequirements はDomainの科目群・科目区分をAPIの科目群・科目区分に変換する
-func toApiRequirements(requirements []domain.SubjectRequirement) []api.SubjectServiceSubjectRequirement {
-	result := make([]api.SubjectServiceSubjectRequirement, len(requirements))
+func toApiRequirements(requirements []domain.SubjectRequirement) []api.AcademicServiceSubjectRequirement {
+	result := make([]api.AcademicServiceSubjectRequirement, len(requirements))
 	for i, r := range requirements {
-		result[i] = api.SubjectServiceSubjectRequirement{
+		result[i] = api.AcademicServiceSubjectRequirement{
 			Course:          api.DottoFoundationV1Course(r.Course),
 			RequirementType: api.DottoFoundationV1SubjectRequirementType(r.RequirementType),
 		}
@@ -268,15 +268,15 @@ func toApiRequirements(requirements []domain.SubjectRequirement) []api.SubjectSe
 }
 
 // toApiTargetClasses はDomainの対象学年・クラスをAPIの対象学年・クラスに変換する
-func toApiTargetClasses(targetClasses []domain.SubjectTargetClass) []api.SubjectServiceSubjectTargetClass {
-	result := make([]api.SubjectServiceSubjectTargetClass, len(targetClasses))
+func toApiTargetClasses(targetClasses []domain.SubjectTargetClass) []api.AcademicServiceSubjectTargetClass {
+	result := make([]api.AcademicServiceSubjectTargetClass, len(targetClasses))
 	for i, tc := range targetClasses {
 		var class *api.DottoFoundationV1Class
 		if tc.Class != nil {
 			c := api.DottoFoundationV1Class(*tc.Class)
 			class = &c
 		}
-		result[i] = api.SubjectServiceSubjectTargetClass{
+		result[i] = api.AcademicServiceSubjectTargetClass{
 			Grade: api.DottoFoundationV1Grade(tc.Grade),
 			Class: class,
 		}

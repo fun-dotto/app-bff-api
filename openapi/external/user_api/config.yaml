@@ -1,0 +1,5 @@
+package: user_api
+generate:
+  client: true
+  models: true
+output: generated/external/user_api/client.gen.go

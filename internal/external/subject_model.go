@@ -1,12 +1,12 @@
 package external
 
 import (
-	"github.com/fun-dotto/app-bff-api/generated/external/subject_api"
+	"github.com/fun-dotto/app-bff-api/generated/external/academic_api"
 	"github.com/fun-dotto/app-bff-api/internal/domain"
 )
 
 // ToDomainSubject は外部APIのSubjectをDomainのSubjectに変換する
-func ToDomainSubject(m subject_api.Subject) domain.Subject {
+func ToDomainSubject(m academic_api.Subject) domain.Subject {
 	return domain.Subject{
 		ID:                 m.Id,
 		Name:               m.Name,
@@ -20,7 +20,7 @@ func ToDomainSubject(m subject_api.Subject) domain.Subject {
 	}
 }
 
-func ToDomainSubjectSummary(m subject_api.SubjectSummary) domain.Subject {
+func ToDomainSubjectSummary(m academic_api.SubjectSummary) domain.Subject {
 	return domain.Subject{
 		ID:        m.Id,
 		Name:      m.Name,
@@ -28,7 +28,7 @@ func ToDomainSubjectSummary(m subject_api.SubjectSummary) domain.Subject {
 	}
 }
 
-func ToDomainSyllabus(m subject_api.Syllabus) domain.Syllabus {
+func ToDomainSyllabus(m academic_api.Syllabus) domain.Syllabus {
 	return domain.Syllabus{
 		ID:                           m.Id,
 		Name:                         m.Name,
@@ -54,13 +54,13 @@ func ToDomainSyllabus(m subject_api.Syllabus) domain.Syllabus {
 		TeachingLanguage:             m.TeachingLanguage,
 		MultiplePersonTeachingForm:   m.MultiplePersonTeachingForm,
 		PracticalHomeFacultyCategory: m.PracticalHomeFacultyCategory,
-		DspoSubject:                  m.DspoSubject,
+		DsopSubject:                  m.DsopSubject,
 		TargetAreas:                  m.TargetAreas,
 		TargetCourses:                m.TargetCourses,
 	}
 }
 
-func toDomainSubjectFaculties(faculties []subject_api.SubjectFaculty) []domain.SubjectFaculty {
+func toDomainSubjectFaculties(faculties []academic_api.SubjectFaculty) []domain.SubjectFaculty {
 	result := make([]domain.SubjectFaculty, len(faculties))
 	for i, f := range faculties {
 		result[i] = domain.SubjectFaculty{
@@ -73,7 +73,7 @@ func toDomainSubjectFaculties(faculties []subject_api.SubjectFaculty) []domain.S
 	return result
 }
 
-func toDomainSubjectRequirements(requirements []subject_api.SubjectRequirement) []domain.SubjectRequirement {
+func toDomainSubjectRequirements(requirements []academic_api.SubjectRequirement) []domain.SubjectRequirement {
 	result := make([]domain.SubjectRequirement, len(requirements))
 	for i, r := range requirements {
 		result[i] = domain.SubjectRequirement{
@@ -84,7 +84,7 @@ func toDomainSubjectRequirements(requirements []subject_api.SubjectRequirement) 
 	return result
 }
 
-func toDomainSubjectTargetClasses(targetClasses []subject_api.SubjectTargetClass) []domain.SubjectTargetClass {
+func toDomainSubjectTargetClasses(targetClasses []academic_api.SubjectTargetClass) []domain.SubjectTargetClass {
 	result := make([]domain.SubjectTargetClass, len(targetClasses))
 	for i, tc := range targetClasses {
 		var class *domain.Class
@@ -101,8 +101,8 @@ func toDomainSubjectTargetClasses(targetClasses []subject_api.SubjectTargetClass
 }
 
 // ToExternalSubjectQuery はDomainのSubjectQueryを外部APIのSubjectsV1ListParamsに変換する
-func ToExternalSubjectQuery(q domain.SubjectQuery) *subject_api.SubjectsV1ListParams {
-	params := &subject_api.SubjectsV1ListParams{}
+func ToExternalSubjectQuery(q domain.SubjectQuery) *academic_api.SubjectsV1ListParams {
+	params := &academic_api.SubjectsV1ListParams{}
 
 	if q.Q != "" {
 		params.Q = &q.Q
@@ -139,58 +139,58 @@ func ToExternalSubjectQuery(q domain.SubjectQuery) *subject_api.SubjectsV1ListPa
 	return params
 }
 
-func toExternalGrades(grades []domain.Grade) []subject_api.DottoFoundationV1Grade {
-	result := make([]subject_api.DottoFoundationV1Grade, len(grades))
+func toExternalGrades(grades []domain.Grade) []academic_api.DottoFoundationV1Grade {
+	result := make([]academic_api.DottoFoundationV1Grade, len(grades))
 	for i, g := range grades {
-		result[i] = subject_api.DottoFoundationV1Grade(g)
+		result[i] = academic_api.DottoFoundationV1Grade(g)
 	}
 	return result
 }
 
-func toExternalCourses(courses []domain.Course) []subject_api.DottoFoundationV1Course {
-	result := make([]subject_api.DottoFoundationV1Course, len(courses))
+func toExternalCourses(courses []domain.Course) []academic_api.DottoFoundationV1Course {
+	result := make([]academic_api.DottoFoundationV1Course, len(courses))
 	for i, c := range courses {
-		result[i] = subject_api.DottoFoundationV1Course(c)
+		result[i] = academic_api.DottoFoundationV1Course(c)
 	}
 	return result
 }
 
-func toExternalClasses(classes []domain.Class) []subject_api.DottoFoundationV1Class {
-	result := make([]subject_api.DottoFoundationV1Class, len(classes))
+func toExternalClasses(classes []domain.Class) []academic_api.DottoFoundationV1Class {
+	result := make([]academic_api.DottoFoundationV1Class, len(classes))
 	for i, c := range classes {
-		result[i] = subject_api.DottoFoundationV1Class(c)
+		result[i] = academic_api.DottoFoundationV1Class(c)
 	}
 	return result
 }
 
-func toExternalClassifications(classifications []domain.SubjectClassification) []subject_api.DottoFoundationV1SubjectClassification {
-	result := make([]subject_api.DottoFoundationV1SubjectClassification, len(classifications))
+func toExternalClassifications(classifications []domain.SubjectClassification) []academic_api.DottoFoundationV1SubjectClassification {
+	result := make([]academic_api.DottoFoundationV1SubjectClassification, len(classifications))
 	for i, c := range classifications {
-		result[i] = subject_api.DottoFoundationV1SubjectClassification(c)
+		result[i] = academic_api.DottoFoundationV1SubjectClassification(c)
 	}
 	return result
 }
 
-func toExternalSemesters(semesters []domain.CourseSemester) []subject_api.DottoFoundationV1CourseSemester {
-	result := make([]subject_api.DottoFoundationV1CourseSemester, len(semesters))
+func toExternalSemesters(semesters []domain.CourseSemester) []academic_api.DottoFoundationV1CourseSemester {
+	result := make([]academic_api.DottoFoundationV1CourseSemester, len(semesters))
 	for i, s := range semesters {
-		result[i] = subject_api.DottoFoundationV1CourseSemester(s)
+		result[i] = academic_api.DottoFoundationV1CourseSemester(s)
 	}
 	return result
 }
 
-func toExternalRequirementTypes(types []domain.SubjectRequirementType) []subject_api.DottoFoundationV1SubjectRequirementType {
-	result := make([]subject_api.DottoFoundationV1SubjectRequirementType, len(types))
+func toExternalRequirementTypes(types []domain.SubjectRequirementType) []academic_api.DottoFoundationV1SubjectRequirementType {
+	result := make([]academic_api.DottoFoundationV1SubjectRequirementType, len(types))
 	for i, t := range types {
-		result[i] = subject_api.DottoFoundationV1SubjectRequirementType(t)
+		result[i] = academic_api.DottoFoundationV1SubjectRequirementType(t)
 	}
 	return result
 }
 
-func toExternalCulturalSubjectCategories(categories []domain.CulturalSubjectCategory) []subject_api.DottoFoundationV1CulturalSubjectCategory {
-	result := make([]subject_api.DottoFoundationV1CulturalSubjectCategory, len(categories))
+func toExternalCulturalSubjectCategories(categories []domain.CulturalSubjectCategory) []academic_api.DottoFoundationV1CulturalSubjectCategory {
+	result := make([]academic_api.DottoFoundationV1CulturalSubjectCategory, len(categories))
 	for i, c := range categories {
-		result[i] = subject_api.DottoFoundationV1CulturalSubjectCategory(c)
+		result[i] = academic_api.DottoFoundationV1CulturalSubjectCategory(c)
 	}
 	return result
 }

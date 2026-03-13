@@ -1,0 +1,23 @@
+openapi: 3.1.0
+info:
+  title: Funch Service
+  version: 1.0.0
+tags: []
+paths: {}
+components: {}
+servers:
+  - url: http://localhost:8080
+    description: Local
+    variables: {}
+  - url: https://funch-api-dev-107577467292.asia-northeast1.run.app
+    description: Development
+    variables: {}
+  - url: https://funch-api-stg-107577467292.asia-northeast1.run.app
+    description: Staging
+    variables: {}
+  - url: https://funch-api-qa-107577467292.asia-northeast1.run.app
+    description: QA
+    variables: {}
+  - url: https://funch-api-107577467292.asia-northeast1.run.app
+    description: Production
+    variables: {}
