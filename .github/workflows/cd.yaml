@@ -126,8 +126,8 @@ jobs:
           image: ${{ env.IMAGE_TAG }}
           region: ${{ vars._DEPLOY_REGION }}
           env_vars: |
-            ANNOUNCEMENT_API_URL=${{ vars.ANNOUNCEMENT_API_URL }}
             ACADEMIC_API_URL=${{ vars.ACADEMIC_API_URL }}
+            ANNOUNCEMENT_API_URL=${{ vars.ANNOUNCEMENT_API_URL }}
             FUNCH_API_URL=${{ vars.FUNCH_API_URL }}
             USER_API_URL=${{ vars.USER_API_URL }}
           env_vars_update_strategy: overwrite
