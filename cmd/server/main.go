@@ -33,10 +33,18 @@ func main() {
 		log.Fatalf("error initializing App Check client: %v\n", err)
 	}
 
+	authClient, err := app.Auth(ctx)
+	if err != nil {
+		log.Fatalf("error initializing Auth client: %v\n", err)
+	}
+
 	router := gin.Default()
 
 	// App Check ミドルウェアを適用
 	router.Use(middleware.AppCheckMiddleware(appCheckClient))
+
+	// Auth ミドルウェアを適用
+	router.Use(middleware.AuthMiddleware(authClient))
 
 	// 外部APIクライアントを初期化
 	clients, err := infrastructure.NewExternalClients(ctx)
@@ -50,9 +58,13 @@ func main() {
 	academicRepository := repository.NewAcademicRepository(clients.Academic)
 	academicService := service.NewAcademicService(academicRepository)
 
+	userRepository := repository.NewUserRepository(clients.User)
+	userService := service.NewUserService(userRepository)
+
 	h := handler.NewHandler(
 		handler.WithAnnouncementService(announcementService),
 		handler.WithAcademicService(academicService),
+		handler.WithUserService(userService),
 	)
 
 	strictHandler := api.NewStrictHandler(h, nil)
