@@ -358,11 +358,11 @@ type ServerInterface interface {
 	// (GET /v1/subjects/{id})
 	SubjectsV1Detail(c *gin.Context, id string)
 
-	// (GET /v1/users/{id})
-	UsersV1Detail(c *gin.Context, id string)
+	// (GET /v1/users)
+	UsersV1Detail(c *gin.Context)
 
-	// (POST /v1/users/{id})
-	UsersV1Upsert(c *gin.Context, id string)
+	// (POST /v1/users)
+	UsersV1Upsert(c *gin.Context)
 }
 
 // ServerInterfaceWrapper converts contexts to parameters.
@@ -509,17 +509,6 @@ func (siw *ServerInterfaceWrapper) SubjectsV1Detail(c *gin.Context) {
 // UsersV1Detail operation middleware
 func (siw *ServerInterfaceWrapper) UsersV1Detail(c *gin.Context) {
 
-	var err error
-
-	// ------------- Path parameter "id" -------------
-	var id string
-
-	err = runtime.BindStyledParameterWithOptions("simple", "id", c.Param("id"), &id, runtime.BindStyledParameterOptions{Explode: false, Required: true})
-	if err != nil {
-		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter id: %w", err), http.StatusBadRequest)
-		return
-	}
-
 	for _, middleware := range siw.HandlerMiddlewares {
 		middleware(c)
 		if c.IsAborted() {
@@ -527,23 +516,12 @@ func (siw *ServerInterfaceWrapper) UsersV1Detail(c *gin.Context) {
 		}
 	}
 
-	siw.Handler.UsersV1Detail(c, id)
+	siw.Handler.UsersV1Detail(c)
 }
 
 // UsersV1Upsert operation middleware
 func (siw *ServerInterfaceWrapper) UsersV1Upsert(c *gin.Context) {
 
-	var err error
-
-	// ------------- Path parameter "id" -------------
-	var id string
-
-	err = runtime.BindStyledParameterWithOptions("simple", "id", c.Param("id"), &id, runtime.BindStyledParameterOptions{Explode: false, Required: true})
-	if err != nil {
-		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter id: %w", err), http.StatusBadRequest)
-		return
-	}
-
 	for _, middleware := range siw.HandlerMiddlewares {
 		middleware(c)
 		if c.IsAborted() {
@@ -551,7 +529,7 @@ func (siw *ServerInterfaceWrapper) UsersV1Upsert(c *gin.Context) {
 		}
 	}
 
-	siw.Handler.UsersV1Upsert(c, id)
+	siw.Handler.UsersV1Upsert(c)
 }
 
 // GinServerOptions provides options for the Gin server.
@@ -585,8 +563,8 @@ func RegisterHandlersWithOptions(router gin.IRouter, si ServerInterface, options
 	router.GET(options.BaseURL+"/v1/announcements", wrapper.AnnouncementsV1List)
 	router.GET(options.BaseURL+"/v1/subjects", wrapper.SubjectsV1List)
 	router.GET(options.BaseURL+"/v1/subjects/:id", wrapper.SubjectsV1Detail)
-	router.GET(options.BaseURL+"/v1/users/:id", wrapper.UsersV1Detail)
-	router.POST(options.BaseURL+"/v1/users/:id", wrapper.UsersV1Upsert)
+	router.GET(options.BaseURL+"/v1/users", wrapper.UsersV1Detail)
+	router.POST(options.BaseURL+"/v1/users", wrapper.UsersV1Upsert)
 }
 
 type AnnouncementsV0ListRequestObject struct {
@@ -662,7 +640,6 @@ func (response SubjectsV1Detail200JSONResponse) VisitSubjectsV1DetailResponse(w 
 }
 
 type UsersV1DetailRequestObject struct {
-	Id string `json:"id"`
 }
 
 type UsersV1DetailResponseObject interface {
@@ -681,7 +658,6 @@ func (response UsersV1Detail200JSONResponse) VisitUsersV1DetailResponse(w http.R
 }
 
 type UsersV1UpsertRequestObject struct {
-	Id   string `json:"id"`
 	Body *UsersV1UpsertJSONRequestBody
 }
 
@@ -715,10 +691,10 @@ type StrictServerInterface interface {
 	// (GET /v1/subjects/{id})
 	SubjectsV1Detail(ctx context.Context, request SubjectsV1DetailRequestObject) (SubjectsV1DetailResponseObject, error)
 
-	// (GET /v1/users/{id})
+	// (GET /v1/users)
 	UsersV1Detail(ctx context.Context, request UsersV1DetailRequestObject) (UsersV1DetailResponseObject, error)
 
-	// (POST /v1/users/{id})
+	// (POST /v1/users)
 	UsersV1Upsert(ctx context.Context, request UsersV1UpsertRequestObject) (UsersV1UpsertResponseObject, error)
 }
 
@@ -839,10 +815,8 @@ func (sh *strictHandler) SubjectsV1Detail(ctx *gin.Context, id string) {
 }
 
 // UsersV1Detail operation middleware
-func (sh *strictHandler) UsersV1Detail(ctx *gin.Context, id string) {
+func (sh *strictHandler) UsersV1Detail(ctx *gin.Context) {
 	var request UsersV1DetailRequestObject
-
-	request.Id = id
 
 	handler := func(ctx *gin.Context, request interface{}) (interface{}, error) {
 		return sh.ssi.UsersV1Detail(ctx, request.(UsersV1DetailRequestObject))
@@ -866,10 +840,8 @@ func (sh *strictHandler) UsersV1Detail(ctx *gin.Context, id string) {
 }
 
 // UsersV1Upsert operation middleware
-func (sh *strictHandler) UsersV1Upsert(ctx *gin.Context, id string) {
+func (sh *strictHandler) UsersV1Upsert(ctx *gin.Context) {
 	var request UsersV1UpsertRequestObject
-
-	request.Id = id
 
 	var body UsersV1UpsertJSONRequestBody
 	if err := ctx.ShouldBindJSON(&body); err != nil {
