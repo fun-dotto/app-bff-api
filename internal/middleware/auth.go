@@ -12,8 +12,8 @@ import (
 type contextKey string
 
 const (
-	userIDKey    contextKey = "user_id"
-	userEmailKey contextKey = "email"
+	userIDKey    contextKey = "userID"
+	userEmailKey contextKey = "userEmail"
 )
 
 // AuthMiddleware returns a Gin middleware that verifies Firebase ID tokens
