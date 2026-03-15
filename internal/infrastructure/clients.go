@@ -9,6 +9,7 @@ import (
 
 	"github.com/fun-dotto/app-bff-api/generated/external/academic_api"
 	"github.com/fun-dotto/app-bff-api/generated/external/announcement_api"
+	"github.com/fun-dotto/app-bff-api/generated/external/user_api"
 	"google.golang.org/api/idtoken"
 )
 
@@ -18,6 +19,7 @@ const httpClientTimeout = 30 * time.Second
 type ExternalClients struct {
 	Announcement *announcement_api.ClientWithResponses
 	Academic     *academic_api.ClientWithResponses
+	User         *user_api.ClientWithResponses
 }
 
 // NewExternalClients 全ての外部APIクライアントを初期化
@@ -32,9 +34,15 @@ func NewExternalClients(ctx context.Context) (*ExternalClients, error) {
 		return nil, fmt.Errorf("academic client: %w", err)
 	}
 
+	user, err := newUserClient(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("user client: %w", err)
+	}
+
 	return &ExternalClients{
 		Announcement: announcement,
 		Academic:     academic,
+		User:         user,
 	}, nil
 }
 
@@ -69,6 +77,23 @@ func newAcademicClient(ctx context.Context) (*academic_api.ClientWithResponses, 
 	return academic_api.NewClientWithResponses(
 		url,
 		academic_api.WithHTTPClient(authClient),
+	)
+}
+
+func newUserClient(ctx context.Context) (*user_api.ClientWithResponses, error) {
+	url := os.Getenv("USER_API_URL")
+	if url == "" {
+		return nil, fmt.Errorf("USER_API_URL is required")
+	}
+
+	authClient, err := newAuthHTTPClient(ctx, url)
+	if err != nil {
+		return nil, err
+	}
+
+	return user_api.NewClientWithResponses(
+		url,
+		user_api.WithHTTPClient(authClient),
 	)
 }
 
