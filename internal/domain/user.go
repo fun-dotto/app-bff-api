@@ -1,5 +1,10 @@
 package domain
 
+import "errors"
+
+// ErrUserNotFound ユーザーが見つからない
+var ErrUserNotFound = errors.New("user not found")
+
 // User ユーザー
 type User struct {
 	ID     string

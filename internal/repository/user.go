@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"fmt"
+	"net/http"
 
 	"github.com/fun-dotto/app-bff-api/generated/external/user_api"
 	"github.com/fun-dotto/app-bff-api/internal/domain"
@@ -22,6 +23,10 @@ func (r *UserRepository) GetUser(id string) (*domain.User, error) {
 	response, err := r.client.UsersV1DetailWithResponse(context.Background(), id)
 	if err != nil {
 		return nil, err
+	}
+
+	if response.StatusCode() == http.StatusNotFound {
+		return nil, domain.ErrUserNotFound
 	}
 
 	if response.JSON200 == nil {
