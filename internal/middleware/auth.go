@@ -9,11 +9,9 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type contextKey string
-
 const (
-	userIDKey    contextKey = "userID"
-	userEmailKey contextKey = "userEmail"
+	userIDKey    = "userID"
+	userEmailKey = "userEmail"
 )
 
 // AuthMiddleware returns a Gin middleware that verifies Firebase ID tokens
@@ -34,13 +32,11 @@ func AuthMiddleware(authClient *auth.Client) gin.HandlerFunc {
 			return
 		}
 
-		ctx := context.WithValue(c.Request.Context(), userIDKey, token.UID)
+		c.Set(userIDKey, token.UID)
 
 		if email, ok := token.Claims["email"].(string); ok {
-			ctx = context.WithValue(ctx, userEmailKey, email)
+			c.Set(userEmailKey, email)
 		}
-
-		c.Request = c.Request.WithContext(ctx)
 
 		c.Next()
 	}
