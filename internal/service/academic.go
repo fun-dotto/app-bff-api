@@ -12,6 +12,9 @@ type AcademicRepository interface {
 	GetFacultiesByIDs(ids []string) (map[string]domain.Faculty, error)
 	GetSubjects(query domain.SubjectQuery) ([]domain.Subject, error)
 	GetSubject(id string) (*domain.Subject, error)
+	GetCourseRegistrations(userID string, semester domain.CourseSemester, year *int) ([]domain.CourseRegistration, error)
+	CreateCourseRegistration(userID string, subjectID string) (*domain.CourseRegistration, error)
+	DeleteCourseRegistration(id string) error
 }
 
 type AcademicService struct {
@@ -58,6 +61,18 @@ func (s *AcademicService) GetSubject(id string) (*domain.Subject, error) {
 	}
 
 	return subject, nil
+}
+
+func (s *AcademicService) GetCourseRegistrations(userID string, semester domain.CourseSemester, year *int) ([]domain.CourseRegistration, error) {
+	return s.repository.GetCourseRegistrations(userID, semester, year)
+}
+
+func (s *AcademicService) CreateCourseRegistration(userID string, subjectID string) (*domain.CourseRegistration, error) {
+	return s.repository.CreateCourseRegistration(userID, subjectID)
+}
+
+func (s *AcademicService) DeleteCourseRegistration(id string) error {
+	return s.repository.DeleteCourseRegistration(id)
 }
 
 // enrichSubjectWithFaculties は単一の科目にFaculty情報を補完する

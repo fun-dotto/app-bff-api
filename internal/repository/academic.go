@@ -94,6 +94,66 @@ func (r *AcademicRepository) GetSubjects(query domain.SubjectQuery) ([]domain.Su
 	return result, nil
 }
 
+// GetCourseRegistrations は外部APIから履修登録一覧を取得する
+func (r *AcademicRepository) GetCourseRegistrations(userID string, semester domain.CourseSemester, year *int) ([]domain.CourseRegistration, error) {
+	params := &academic_api.CourseRegistrationsV1ListParams{
+		UserId:   userID,
+		Semester: academic_api.DottoFoundationV1CourseSemester(semester),
+		Year:     year,
+	}
+
+	response, err := r.client.CourseRegistrationsV1ListWithResponse(context.Background(), params)
+	if err != nil {
+		return nil, fmt.Errorf("failed to call academic API: %w", err)
+	}
+
+	if response.JSON200 == nil {
+		return nil, fmt.Errorf("failed to get course registrations: status %d", response.StatusCode())
+	}
+
+	registrations := response.JSON200.CourseRegistrations
+	result := make([]domain.CourseRegistration, len(registrations))
+	for i, r := range registrations {
+		result[i] = external.ToDomainCourseRegistration(r)
+	}
+
+	return result, nil
+}
+
+// CreateCourseRegistration は外部APIに履修登録を作成する
+func (r *AcademicRepository) CreateCourseRegistration(userID string, subjectID string) (*domain.CourseRegistration, error) {
+	body := academic_api.CourseRegistrationsV1CreateJSONRequestBody{
+		SubjectId: subjectID,
+		UserId:    userID,
+	}
+
+	response, err := r.client.CourseRegistrationsV1CreateWithResponse(context.Background(), body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to call academic API: %w", err)
+	}
+
+	if response.JSON201 == nil {
+		return nil, fmt.Errorf("failed to create course registration: status %d", response.StatusCode())
+	}
+
+	cr := external.ToDomainCourseRegistration(response.JSON201.CourseRegistration)
+	return &cr, nil
+}
+
+// DeleteCourseRegistration は外部APIから履修登録を削除する
+func (r *AcademicRepository) DeleteCourseRegistration(id string) error {
+	response, err := r.client.CourseRegistrationsV1DeleteWithResponse(context.Background(), id)
+	if err != nil {
+		return fmt.Errorf("failed to call academic API: %w", err)
+	}
+
+	if response.StatusCode() != 204 {
+		return fmt.Errorf("failed to delete course registration: status %d", response.StatusCode())
+	}
+
+	return nil
+}
+
 // GetSubject は外部APIから科目詳細を取得する
 func (r *AcademicRepository) GetSubject(id string) (*domain.Subject, error) {
 	ctx := context.Background()
