@@ -690,14 +690,14 @@ components:
       required:
         - id
         - userId
-        - subjectId
+        - subject
       properties:
         id:
           type: string
         userId:
           type: string
-        subjectId:
-          type: string
+        subject:
+          $ref: '#/components/schemas/SubjectSummary'
     CourseRegistrationRequest:
       type: object
       required:
@@ -916,11 +916,11 @@ components:
     SubjectFaculty:
       type: object
       required:
-        - facultyId
+        - faculty
         - isPrimary
       properties:
-        facultyId:
-          type: string
+        faculty:
+          $ref: '#/components/schemas/Faculty'
         isPrimary:
           type: boolean
     SubjectFacultyRequest:
@@ -1103,28 +1103,24 @@ components:
       type: object
       required:
         - id
-        - subjectId
+        - subject
         - dayOfWeek
         - period
-        - roomId
       properties:
         id:
           type: string
-        subjectId:
-          type: string
+        subject:
+          $ref: '#/components/schemas/SubjectSummary'
         dayOfWeek:
           $ref: '#/components/schemas/DottoFoundationV1.DayOfWeek'
         period:
           $ref: '#/components/schemas/DottoFoundationV1.Period'
-        roomId:
-          type: string
     TimetableItemRequest:
       type: object
       required:
         - subjectId
         - dayOfWeek
         - period
-        - roomId
       properties:
         subjectId:
           type: string
@@ -1132,8 +1128,6 @@ components:
           $ref: '#/components/schemas/DottoFoundationV1.DayOfWeek'
         period:
           $ref: '#/components/schemas/DottoFoundationV1.Period'
-        roomId:
-          type: string
 servers:
   - url: http://localhost:8080
     description: Local
