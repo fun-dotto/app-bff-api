@@ -64,6 +64,12 @@ func (h *Handler) CourseRegistrationsV1Delete(ctx context.Context, request api.C
 		return nil, errAcademicServiceNotConfigured
 	}
 
+	userID, ok := middleware.UserIDFromContext(ctx)
+	if !ok {
+		return nil, fmt.Errorf("user ID not found in context: %w", fmt.Errorf("%d", http.StatusUnauthorized))
+	}
+	_ = userID
+
 	err := h.academicService.DeleteCourseRegistration(request.Id)
 	if err != nil {
 		return nil, fmt.Errorf("failed to delete course registration: %w", err)
