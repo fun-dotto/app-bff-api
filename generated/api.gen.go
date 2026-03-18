@@ -227,6 +227,17 @@ type Announcement struct {
 	Url   string    `json:"url"`
 }
 
+// CourseRegistration defines model for CourseRegistration.
+type CourseRegistration struct {
+	Id      string         `json:"id"`
+	Subject SubjectSummary `json:"subject"`
+}
+
+// CourseRegistrationRequest defines model for CourseRegistrationRequest.
+type CourseRegistrationRequest struct {
+	SubjectId string `json:"subjectId"`
+}
+
 // DottoFoundationV1Class クラス
 type DottoFoundationV1Class string
 
@@ -301,6 +312,14 @@ type SubjectSummary struct {
 	Period DottoFoundationV1Period `json:"period"`
 }
 
+// TimetableItem defines model for TimetableItem.
+type TimetableItem struct {
+	DayOfWeek DottoFoundationV1DayOfWeek `json:"dayOfWeek"`
+	Id        string                     `json:"id"`
+	Period    DottoFoundationV1Period    `json:"period"`
+	Subject   SubjectSummary             `json:"subject"`
+}
+
 // UserInfo defines model for UserInfo.
 type UserInfo struct {
 	// Class クラス
@@ -311,6 +330,15 @@ type UserInfo struct {
 
 	// Grade 学年
 	Grade *DottoFoundationV1Grade `json:"grade,omitempty"`
+}
+
+// CourseRegistrationsV1ListParams defines parameters for CourseRegistrationsV1List.
+type CourseRegistrationsV1ListParams struct {
+	// Year 開講年度; 指定しない場合は今年度が選択される
+	Year *int `form:"year,omitempty" json:"year,omitempty"`
+
+	// Semester 開講時期
+	Semester DottoFoundationV1CourseSemester `form:"semester" json:"semester"`
 }
 
 // SubjectsV1ListParams defines parameters for SubjectsV1List.
@@ -340,6 +368,21 @@ type SubjectsV1ListParams struct {
 	CulturalSubjectCategory *[]DottoFoundationV1CulturalSubjectCategory `form:"culturalSubjectCategory,omitempty" json:"culturalSubjectCategory,omitempty"`
 }
 
+// TimetableItemsV1ListParams defines parameters for TimetableItemsV1List.
+type TimetableItemsV1ListParams struct {
+	// Year 開講年度; 指定しない場合は今年度が選択される
+	Year *int `form:"year,omitempty" json:"year,omitempty"`
+
+	// Semester 開講時期
+	Semester DottoFoundationV1CourseSemester `form:"semester" json:"semester"`
+
+	// DayOfWeek 曜日; 複数指定時はORでフィルタリングされる; 指定しない場合は全ての曜日が選択される
+	DayOfWeek *[]DottoFoundationV1DayOfWeek `form:"dayOfWeek,omitempty" json:"dayOfWeek,omitempty"`
+}
+
+// CourseRegistrationsV1CreateJSONRequestBody defines body for CourseRegistrationsV1Create for application/json ContentType.
+type CourseRegistrationsV1CreateJSONRequestBody = CourseRegistrationRequest
+
 // UsersV1UpsertJSONRequestBody defines body for UsersV1Upsert for application/json ContentType.
 type UsersV1UpsertJSONRequestBody = UserInfo
 
@@ -352,11 +395,23 @@ type ServerInterface interface {
 	// (GET /v1/announcements)
 	AnnouncementsV1List(c *gin.Context)
 
+	// (GET /v1/courseRegistrations)
+	CourseRegistrationsV1List(c *gin.Context, params CourseRegistrationsV1ListParams)
+
+	// (POST /v1/courseRegistrations)
+	CourseRegistrationsV1Create(c *gin.Context)
+
+	// (DELETE /v1/courseRegistrations/{id})
+	CourseRegistrationsV1Delete(c *gin.Context, id string)
+
 	// (GET /v1/subjects)
 	SubjectsV1List(c *gin.Context, params SubjectsV1ListParams)
 
 	// (GET /v1/subjects/{id})
 	SubjectsV1Detail(c *gin.Context, id string)
+
+	// (GET /v1/timetableItems)
+	TimetableItemsV1List(c *gin.Context, params TimetableItemsV1ListParams)
 
 	// (GET /v1/users)
 	UsersV1Detail(c *gin.Context)
@@ -398,6 +453,84 @@ func (siw *ServerInterfaceWrapper) AnnouncementsV1List(c *gin.Context) {
 	}
 
 	siw.Handler.AnnouncementsV1List(c)
+}
+
+// CourseRegistrationsV1List operation middleware
+func (siw *ServerInterfaceWrapper) CourseRegistrationsV1List(c *gin.Context) {
+
+	var err error
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params CourseRegistrationsV1ListParams
+
+	// ------------- Optional query parameter "year" -------------
+
+	err = runtime.BindQueryParameter("form", false, false, "year", c.Request.URL.Query(), &params.Year)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter year: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Required query parameter "semester" -------------
+
+	if paramValue := c.Query("semester"); paramValue != "" {
+
+	} else {
+		siw.ErrorHandler(c, fmt.Errorf("Query argument semester is required, but not found"), http.StatusBadRequest)
+		return
+	}
+
+	err = runtime.BindQueryParameter("form", false, true, "semester", c.Request.URL.Query(), &params.Semester)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter semester: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.CourseRegistrationsV1List(c, params)
+}
+
+// CourseRegistrationsV1Create operation middleware
+func (siw *ServerInterfaceWrapper) CourseRegistrationsV1Create(c *gin.Context) {
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.CourseRegistrationsV1Create(c)
+}
+
+// CourseRegistrationsV1Delete operation middleware
+func (siw *ServerInterfaceWrapper) CourseRegistrationsV1Delete(c *gin.Context) {
+
+	var err error
+
+	// ------------- Path parameter "id" -------------
+	var id string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", c.Param("id"), &id, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter id: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.CourseRegistrationsV1Delete(c, id)
 }
 
 // SubjectsV1List operation middleware
@@ -506,6 +639,55 @@ func (siw *ServerInterfaceWrapper) SubjectsV1Detail(c *gin.Context) {
 	siw.Handler.SubjectsV1Detail(c, id)
 }
 
+// TimetableItemsV1List operation middleware
+func (siw *ServerInterfaceWrapper) TimetableItemsV1List(c *gin.Context) {
+
+	var err error
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params TimetableItemsV1ListParams
+
+	// ------------- Optional query parameter "year" -------------
+
+	err = runtime.BindQueryParameter("form", false, false, "year", c.Request.URL.Query(), &params.Year)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter year: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Required query parameter "semester" -------------
+
+	if paramValue := c.Query("semester"); paramValue != "" {
+
+	} else {
+		siw.ErrorHandler(c, fmt.Errorf("Query argument semester is required, but not found"), http.StatusBadRequest)
+		return
+	}
+
+	err = runtime.BindQueryParameter("form", false, true, "semester", c.Request.URL.Query(), &params.Semester)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter semester: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Optional query parameter "dayOfWeek" -------------
+
+	err = runtime.BindQueryParameter("form", false, false, "dayOfWeek", c.Request.URL.Query(), &params.DayOfWeek)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter dayOfWeek: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.TimetableItemsV1List(c, params)
+}
+
 // UsersV1Detail operation middleware
 func (siw *ServerInterfaceWrapper) UsersV1Detail(c *gin.Context) {
 
@@ -561,8 +743,12 @@ func RegisterHandlersWithOptions(router gin.IRouter, si ServerInterface, options
 
 	router.GET(options.BaseURL+"/announcements", wrapper.AnnouncementsV0List)
 	router.GET(options.BaseURL+"/v1/announcements", wrapper.AnnouncementsV1List)
+	router.GET(options.BaseURL+"/v1/courseRegistrations", wrapper.CourseRegistrationsV1List)
+	router.POST(options.BaseURL+"/v1/courseRegistrations", wrapper.CourseRegistrationsV1Create)
+	router.DELETE(options.BaseURL+"/v1/courseRegistrations/:id", wrapper.CourseRegistrationsV1Delete)
 	router.GET(options.BaseURL+"/v1/subjects", wrapper.SubjectsV1List)
 	router.GET(options.BaseURL+"/v1/subjects/:id", wrapper.SubjectsV1Detail)
+	router.GET(options.BaseURL+"/v1/timetableItems", wrapper.TimetableItemsV1List)
 	router.GET(options.BaseURL+"/v1/users", wrapper.UsersV1Detail)
 	router.POST(options.BaseURL+"/v1/users", wrapper.UsersV1Upsert)
 }
@@ -601,6 +787,60 @@ func (response AnnouncementsV1List200JSONResponse) VisitAnnouncementsV1ListRespo
 	return json.NewEncoder(w).Encode(response)
 }
 
+type CourseRegistrationsV1ListRequestObject struct {
+	Params CourseRegistrationsV1ListParams
+}
+
+type CourseRegistrationsV1ListResponseObject interface {
+	VisitCourseRegistrationsV1ListResponse(w http.ResponseWriter) error
+}
+
+type CourseRegistrationsV1List200JSONResponse struct {
+	CourseRegistrations []CourseRegistration `json:"courseRegistrations"`
+}
+
+func (response CourseRegistrationsV1List200JSONResponse) VisitCourseRegistrationsV1ListResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CourseRegistrationsV1CreateRequestObject struct {
+	Body *CourseRegistrationsV1CreateJSONRequestBody
+}
+
+type CourseRegistrationsV1CreateResponseObject interface {
+	VisitCourseRegistrationsV1CreateResponse(w http.ResponseWriter) error
+}
+
+type CourseRegistrationsV1Create201JSONResponse struct {
+	CourseRegistration CourseRegistration `json:"courseRegistration"`
+}
+
+func (response CourseRegistrationsV1Create201JSONResponse) VisitCourseRegistrationsV1CreateResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(201)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CourseRegistrationsV1DeleteRequestObject struct {
+	Id string `json:"id"`
+}
+
+type CourseRegistrationsV1DeleteResponseObject interface {
+	VisitCourseRegistrationsV1DeleteResponse(w http.ResponseWriter) error
+}
+
+type CourseRegistrationsV1Delete204Response struct {
+}
+
+func (response CourseRegistrationsV1Delete204Response) VisitCourseRegistrationsV1DeleteResponse(w http.ResponseWriter) error {
+	w.WriteHeader(204)
+	return nil
+}
+
 type SubjectsV1ListRequestObject struct {
 	Params SubjectsV1ListParams
 }
@@ -633,6 +873,25 @@ type SubjectsV1Detail200JSONResponse struct {
 }
 
 func (response SubjectsV1Detail200JSONResponse) VisitSubjectsV1DetailResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type TimetableItemsV1ListRequestObject struct {
+	Params TimetableItemsV1ListParams
+}
+
+type TimetableItemsV1ListResponseObject interface {
+	VisitTimetableItemsV1ListResponse(w http.ResponseWriter) error
+}
+
+type TimetableItemsV1List200JSONResponse struct {
+	TimetableItems []TimetableItem `json:"timetableItems"`
+}
+
+func (response TimetableItemsV1List200JSONResponse) VisitTimetableItemsV1ListResponse(w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(200)
 
@@ -693,11 +952,23 @@ type StrictServerInterface interface {
 	// (GET /v1/announcements)
 	AnnouncementsV1List(ctx context.Context, request AnnouncementsV1ListRequestObject) (AnnouncementsV1ListResponseObject, error)
 
+	// (GET /v1/courseRegistrations)
+	CourseRegistrationsV1List(ctx context.Context, request CourseRegistrationsV1ListRequestObject) (CourseRegistrationsV1ListResponseObject, error)
+
+	// (POST /v1/courseRegistrations)
+	CourseRegistrationsV1Create(ctx context.Context, request CourseRegistrationsV1CreateRequestObject) (CourseRegistrationsV1CreateResponseObject, error)
+
+	// (DELETE /v1/courseRegistrations/{id})
+	CourseRegistrationsV1Delete(ctx context.Context, request CourseRegistrationsV1DeleteRequestObject) (CourseRegistrationsV1DeleteResponseObject, error)
+
 	// (GET /v1/subjects)
 	SubjectsV1List(ctx context.Context, request SubjectsV1ListRequestObject) (SubjectsV1ListResponseObject, error)
 
 	// (GET /v1/subjects/{id})
 	SubjectsV1Detail(ctx context.Context, request SubjectsV1DetailRequestObject) (SubjectsV1DetailResponseObject, error)
+
+	// (GET /v1/timetableItems)
+	TimetableItemsV1List(ctx context.Context, request TimetableItemsV1ListRequestObject) (TimetableItemsV1ListResponseObject, error)
 
 	// (GET /v1/users)
 	UsersV1Detail(ctx context.Context, request UsersV1DetailRequestObject) (UsersV1DetailResponseObject, error)
@@ -768,6 +1039,93 @@ func (sh *strictHandler) AnnouncementsV1List(ctx *gin.Context) {
 	}
 }
 
+// CourseRegistrationsV1List operation middleware
+func (sh *strictHandler) CourseRegistrationsV1List(ctx *gin.Context, params CourseRegistrationsV1ListParams) {
+	var request CourseRegistrationsV1ListRequestObject
+
+	request.Params = params
+
+	handler := func(ctx *gin.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.CourseRegistrationsV1List(ctx, request.(CourseRegistrationsV1ListRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "CourseRegistrationsV1List")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		ctx.Error(err)
+		ctx.Status(http.StatusInternalServerError)
+	} else if validResponse, ok := response.(CourseRegistrationsV1ListResponseObject); ok {
+		if err := validResponse.VisitCourseRegistrationsV1ListResponse(ctx.Writer); err != nil {
+			ctx.Error(err)
+		}
+	} else if response != nil {
+		ctx.Error(fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// CourseRegistrationsV1Create operation middleware
+func (sh *strictHandler) CourseRegistrationsV1Create(ctx *gin.Context) {
+	var request CourseRegistrationsV1CreateRequestObject
+
+	var body CourseRegistrationsV1CreateJSONRequestBody
+	if err := ctx.ShouldBindJSON(&body); err != nil {
+		ctx.Status(http.StatusBadRequest)
+		ctx.Error(err)
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx *gin.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.CourseRegistrationsV1Create(ctx, request.(CourseRegistrationsV1CreateRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "CourseRegistrationsV1Create")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		ctx.Error(err)
+		ctx.Status(http.StatusInternalServerError)
+	} else if validResponse, ok := response.(CourseRegistrationsV1CreateResponseObject); ok {
+		if err := validResponse.VisitCourseRegistrationsV1CreateResponse(ctx.Writer); err != nil {
+			ctx.Error(err)
+		}
+	} else if response != nil {
+		ctx.Error(fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// CourseRegistrationsV1Delete operation middleware
+func (sh *strictHandler) CourseRegistrationsV1Delete(ctx *gin.Context, id string) {
+	var request CourseRegistrationsV1DeleteRequestObject
+
+	request.Id = id
+
+	handler := func(ctx *gin.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.CourseRegistrationsV1Delete(ctx, request.(CourseRegistrationsV1DeleteRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "CourseRegistrationsV1Delete")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		ctx.Error(err)
+		ctx.Status(http.StatusInternalServerError)
+	} else if validResponse, ok := response.(CourseRegistrationsV1DeleteResponseObject); ok {
+		if err := validResponse.VisitCourseRegistrationsV1DeleteResponse(ctx.Writer); err != nil {
+			ctx.Error(err)
+		}
+	} else if response != nil {
+		ctx.Error(fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
 // SubjectsV1List operation middleware
 func (sh *strictHandler) SubjectsV1List(ctx *gin.Context, params SubjectsV1ListParams) {
 	var request SubjectsV1ListRequestObject
@@ -815,6 +1173,33 @@ func (sh *strictHandler) SubjectsV1Detail(ctx *gin.Context, id string) {
 		ctx.Status(http.StatusInternalServerError)
 	} else if validResponse, ok := response.(SubjectsV1DetailResponseObject); ok {
 		if err := validResponse.VisitSubjectsV1DetailResponse(ctx.Writer); err != nil {
+			ctx.Error(err)
+		}
+	} else if response != nil {
+		ctx.Error(fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// TimetableItemsV1List operation middleware
+func (sh *strictHandler) TimetableItemsV1List(ctx *gin.Context, params TimetableItemsV1ListParams) {
+	var request TimetableItemsV1ListRequestObject
+
+	request.Params = params
+
+	handler := func(ctx *gin.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.TimetableItemsV1List(ctx, request.(TimetableItemsV1ListRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "TimetableItemsV1List")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		ctx.Error(err)
+		ctx.Status(http.StatusInternalServerError)
+	} else if validResponse, ok := response.(TimetableItemsV1ListResponseObject); ok {
+		if err := validResponse.VisitTimetableItemsV1ListResponse(ctx.Writer); err != nil {
 			ctx.Error(err)
 		}
 	} else if response != nil {
