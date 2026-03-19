@@ -85,9 +85,12 @@ func TestUserService_UpsertUser(t *testing.T) {
 				require.NoError(t, err)
 				assert.Equal(t, "newuser", user.ID)
 				assert.Equal(t, "new@example.com", user.Email)
-				assert.Equal(t, &grade, user.Grade)
-				assert.Equal(t, &course, user.Course)
-				assert.Equal(t, &class, user.Class)
+				require.NotNil(t, user.Grade)
+				assert.Equal(t, grade, *user.Grade)
+				require.NotNil(t, user.Course)
+				assert.Equal(t, course, *user.Course)
+				require.NotNil(t, user.Class)
+				assert.Equal(t, class, *user.Class)
 			},
 		},
 		{
