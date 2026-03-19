@@ -15,7 +15,8 @@ type MockAcademicRepository struct {
 	deleteError         error
 	getSubjectsError    error
 	getSubjectError     error
-	getRegistrationsErr error
+	getRegistrationsErr    error
+	getFacultiesByIDsError error
 }
 
 func NewMockAcademicRepository() *MockAcademicRepository {
@@ -64,6 +65,8 @@ func NewMockAcademicRepositoryWithError(field string, err error) *MockAcademicRe
 		m.getSubjectError = err
 	case "getRegistrations":
 		m.getRegistrationsErr = err
+	case "getFacultiesByIDs":
+		m.getFacultiesByIDsError = err
 	}
 	return m
 }
@@ -82,6 +85,9 @@ func (m *MockAcademicRepository) GetFaculty(id string) (*domain.Faculty, error) 
 }
 
 func (m *MockAcademicRepository) GetFacultiesByIDs(ids []string) (map[string]domain.Faculty, error) {
+	if m.getFacultiesByIDsError != nil {
+		return nil, m.getFacultiesByIDsError
+	}
 	result := make(map[string]domain.Faculty)
 	for _, f := range m.faculties {
 		for _, id := range ids {

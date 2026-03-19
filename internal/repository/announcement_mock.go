@@ -9,7 +9,12 @@ import (
 
 // MockAnnouncementRepository はテスト用のモック
 type MockAnnouncementRepository struct {
-	announcements []domain.Announcement
+	announcements        []domain.Announcement
+	getAnnouncementsErr  error
+	getAnnouncementErr   error
+	createErr            error
+	updateErr            error
+	deleteErr            error
 }
 
 func NewMockAnnouncementRepository() *MockAnnouncementRepository {
@@ -26,11 +31,34 @@ func NewMockAnnouncementRepository() *MockAnnouncementRepository {
 	}
 }
 
+func NewMockAnnouncementRepositoryWithError(field string, err error) *MockAnnouncementRepository {
+	m := NewMockAnnouncementRepository()
+	switch field {
+	case "getAnnouncements":
+		m.getAnnouncementsErr = err
+	case "getAnnouncement":
+		m.getAnnouncementErr = err
+	case "create":
+		m.createErr = err
+	case "update":
+		m.updateErr = err
+	case "delete":
+		m.deleteErr = err
+	}
+	return m
+}
+
 func (m *MockAnnouncementRepository) GetAnnouncements(query domain.AnnouncementQuery) ([]domain.Announcement, error) {
+	if m.getAnnouncementsErr != nil {
+		return nil, m.getAnnouncementsErr
+	}
 	return m.announcements, nil
 }
 
 func (m *MockAnnouncementRepository) GetAnnouncement(id string) (*domain.Announcement, error) {
+	if m.getAnnouncementErr != nil {
+		return nil, m.getAnnouncementErr
+	}
 	for _, a := range m.announcements {
 		if a.ID == id {
 			return &a, nil
@@ -40,6 +68,9 @@ func (m *MockAnnouncementRepository) GetAnnouncement(id string) (*domain.Announc
 }
 
 func (m *MockAnnouncementRepository) CreateAnnouncement(req domain.AnnouncementRequest) (*domain.Announcement, error) {
+	if m.createErr != nil {
+		return nil, m.createErr
+	}
 	a := domain.Announcement{
 		ID:             fmt.Sprintf("%d", len(m.announcements)+1),
 		Title:          req.Title,
@@ -52,6 +83,9 @@ func (m *MockAnnouncementRepository) CreateAnnouncement(req domain.AnnouncementR
 }
 
 func (m *MockAnnouncementRepository) UpdateAnnouncement(id string, req domain.AnnouncementRequest) (*domain.Announcement, error) {
+	if m.updateErr != nil {
+		return nil, m.updateErr
+	}
 	for i, a := range m.announcements {
 		if a.ID == id {
 			m.announcements[i].Title = req.Title
@@ -65,6 +99,9 @@ func (m *MockAnnouncementRepository) UpdateAnnouncement(id string, req domain.An
 }
 
 func (m *MockAnnouncementRepository) DeleteAnnouncement(id string) error {
+	if m.deleteErr != nil {
+		return m.deleteErr
+	}
 	for i, a := range m.announcements {
 		if a.ID == id {
 			m.announcements = append(m.announcements[:i], m.announcements[i+1:]...)
