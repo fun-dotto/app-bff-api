@@ -15,6 +15,7 @@ type AcademicRepository interface {
 	GetCourseRegistrations(userID string, semester domain.CourseSemester, year *int) ([]domain.CourseRegistration, error)
 	CreateCourseRegistration(userID string, subjectID string) (*domain.CourseRegistration, error)
 	DeleteCourseRegistration(id string) error
+	GetTimetableItems(query domain.TimetableItemQuery) ([]domain.TimetableItem, error)
 }
 
 type AcademicService struct {
@@ -73,6 +74,10 @@ func (s *AcademicService) CreateCourseRegistration(userID string, subjectID stri
 
 func (s *AcademicService) DeleteCourseRegistration(id string) error {
 	return s.repository.DeleteCourseRegistration(id)
+}
+
+func (s *AcademicService) GetTimetableItems(query domain.TimetableItemQuery) ([]domain.TimetableItem, error) {
+	return s.repository.GetTimetableItems(query)
 }
 
 // enrichSubjectWithFaculties は単一の科目にFaculty情報を補完する
