@@ -48,7 +48,7 @@ func NewMockAnnouncementRepositoryWithError(field string, err error) *MockAnnoun
 	return m
 }
 
-func (m *MockAnnouncementRepository) GetAnnouncements(query domain.AnnouncementQuery) ([]domain.Announcement, error) {
+func (m *MockAnnouncementRepository) GetAnnouncements(_ domain.AnnouncementQuery) ([]domain.Announcement, error) {
 	if m.getAnnouncementsErr != nil {
 		return nil, m.getAnnouncementsErr
 	}
