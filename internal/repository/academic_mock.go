@@ -125,7 +125,7 @@ func (m *MockAcademicRepository) GetCourseRegistrations(_ string, _ domain.Cours
 	return m.courseRegistrations, nil
 }
 
-func (m *MockAcademicRepository) CreateCourseRegistration(_ string, subjectID string) (*domain.CourseRegistration, error) {
+func (m *MockAcademicRepository) CreateCourseRegistration(_ string, _ string) (*domain.CourseRegistration, error) {
 	if m.createError != nil {
 		return nil, m.createError
 	}
@@ -136,7 +136,7 @@ func (m *MockAcademicRepository) CreateCourseRegistration(_ string, subjectID st
 	return &reg, nil
 }
 
-func (m *MockAcademicRepository) DeleteCourseRegistration(id string) error {
+func (m *MockAcademicRepository) DeleteCourseRegistration(_ string) error {
 	if m.deleteError != nil {
 		return m.deleteError
 	}
