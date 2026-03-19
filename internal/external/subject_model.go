@@ -65,7 +65,9 @@ func toDomainSubjectFaculties(faculties []academic_api.SubjectFaculty) []domain.
 	for i, f := range faculties {
 		result[i] = domain.SubjectFaculty{
 			Faculty: domain.Faculty{
-				ID: f.FacultyId,
+				ID:    f.Faculty.Id,
+				Name:  f.Faculty.Name,
+				Email: f.Faculty.Email,
 			},
 			IsPrimary: f.IsPrimary,
 		}

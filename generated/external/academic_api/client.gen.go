@@ -125,9 +125,9 @@ const (
 
 // CourseRegistration defines model for CourseRegistration.
 type CourseRegistration struct {
-	Id        string `json:"id"`
-	SubjectId string `json:"subjectId"`
-	UserId    string `json:"userId"`
+	Id      string         `json:"id"`
+	Subject SubjectSummary `json:"subject"`
+	UserId  string         `json:"userId"`
 }
 
 // CourseRegistrationRequest defines model for CourseRegistrationRequest.
@@ -222,8 +222,9 @@ type Subject struct {
 
 // SubjectFaculty defines model for SubjectFaculty.
 type SubjectFaculty struct {
-	FacultyId string `json:"facultyId"`
-	IsPrimary bool   `json:"isPrimary"`
+	// Faculty 教員
+	Faculty   Faculty `json:"faculty"`
+	IsPrimary bool    `json:"isPrimary"`
 }
 
 // SubjectRequest defines model for SubjectRequest.
@@ -345,15 +346,13 @@ type TimetableItem struct {
 	DayOfWeek DottoFoundationV1DayOfWeek `json:"dayOfWeek"`
 	Id        string                     `json:"id"`
 	Period    DottoFoundationV1Period    `json:"period"`
-	RoomId    string                     `json:"roomId"`
-	SubjectId string                     `json:"subjectId"`
+	Subject   SubjectSummary             `json:"subject"`
 }
 
 // TimetableItemRequest defines model for TimetableItemRequest.
 type TimetableItemRequest struct {
 	DayOfWeek DottoFoundationV1DayOfWeek `json:"dayOfWeek"`
 	Period    DottoFoundationV1Period    `json:"period"`
-	RoomId    string                     `json:"roomId"`
 	SubjectId string                     `json:"subjectId"`
 }
 
