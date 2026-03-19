@@ -154,6 +154,28 @@ func (r *AcademicRepository) DeleteCourseRegistration(id string) error {
 	return nil
 }
 
+// GetTimetableItems は外部APIから時間割アイテム一覧を取得する
+func (r *AcademicRepository) GetTimetableItems(query domain.TimetableItemQuery) ([]domain.TimetableItem, error) {
+	params := external.ToExternalTimetableItemQuery(query)
+
+	response, err := r.client.TimetableItemsV1ListWithResponse(context.Background(), params)
+	if err != nil {
+		return nil, fmt.Errorf("failed to call academic API: %w", err)
+	}
+
+	if response.JSON200 == nil {
+		return nil, fmt.Errorf("failed to get timetable items: status %d", response.StatusCode())
+	}
+
+	items := response.JSON200.TimetableItems
+	result := make([]domain.TimetableItem, len(items))
+	for i, item := range items {
+		result[i] = external.ToDomainTimetableItem(item)
+	}
+
+	return result, nil
+}
+
 // GetSubject は外部APIから科目詳細を取得する
 func (r *AcademicRepository) GetSubject(id string) (*domain.Subject, error) {
 	ctx := context.Background()
