@@ -1,13 +1,1 @@
-.claude/
-.git/
-.github/
-.serena/
-
-.dockerignore
-.env*
-.gitignore
-.mcp.json
-CLAUDE.md
-Dockerfile
-mise.toml
-Taskfile.yaml
+./way/packaging/backend/.dockerignore

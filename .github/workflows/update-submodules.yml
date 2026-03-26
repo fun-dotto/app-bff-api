@@ -1,0 +1,11 @@
+name: Update Submodules
+on:
+  schedule:
+    - cron: "0 15 * * *"
+  workflow_dispatch:
+jobs:
+  update-submodules:
+    uses: fun-dotto/way/.github/workflows/update-submodules.yml@main
+    permissions:
+      contents: write
+      pull-requests: write
