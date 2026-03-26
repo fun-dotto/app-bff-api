@@ -77,6 +77,17 @@ const (
 	Wednesday DottoFoundationV1DayOfWeek = "Wednesday"
 )
 
+// Defines values for DottoFoundationV1Floor.
+const (
+	Floor1 DottoFoundationV1Floor = "Floor1"
+	Floor2 DottoFoundationV1Floor = "Floor2"
+	Floor3 DottoFoundationV1Floor = "Floor3"
+	Floor4 DottoFoundationV1Floor = "Floor4"
+	Floor5 DottoFoundationV1Floor = "Floor5"
+	Floor6 DottoFoundationV1Floor = "Floor6"
+	Floor7 DottoFoundationV1Floor = "Floor7"
+)
+
 // Defines values for DottoFoundationV1Grade.
 const (
 	B1 DottoFoundationV1Grade = "B1"
@@ -114,7 +125,7 @@ const (
 	Required         DottoFoundationV1SubjectRequirementType = "Required"
 )
 
-// AcademicServiceFaculty 教員
+// AcademicServiceFaculty defines model for AcademicService.Faculty.
 type AcademicServiceFaculty struct {
 	Email string `json:"email"`
 	Id    string `json:"id"`
@@ -257,6 +268,9 @@ type DottoFoundationV1CulturalSubjectCategory string
 // DottoFoundationV1DayOfWeek defines model for DottoFoundationV1.DayOfWeek.
 type DottoFoundationV1DayOfWeek string
 
+// DottoFoundationV1Floor defines model for DottoFoundationV1.Floor.
+type DottoFoundationV1Floor string
+
 // DottoFoundationV1Grade 学年
 type DottoFoundationV1Grade string
 
@@ -268,6 +282,26 @@ type DottoFoundationV1SubjectClassification string
 
 // DottoFoundationV1SubjectRequirementType 必修・選択
 type DottoFoundationV1SubjectRequirementType string
+
+// DottoFoundationV1TimetableSlot defines model for DottoFoundationV1.TimetableSlot.
+type DottoFoundationV1TimetableSlot struct {
+	DayOfWeek DottoFoundationV1DayOfWeek `json:"dayOfWeek"`
+	Period    DottoFoundationV1Period    `json:"period"`
+}
+
+// PersonalCalendarItem defines model for PersonalCalendarItem.
+type PersonalCalendarItem struct {
+	Date          time.Time                      `json:"date"`
+	Slot          DottoFoundationV1TimetableSlot `json:"slot"`
+	TimetableItem TimetableItem                  `json:"timetableItem"`
+}
+
+// Room defines model for Room.
+type Room struct {
+	Floor DottoFoundationV1Floor `json:"floor"`
+	Id    string                 `json:"id"`
+	Name  string                 `json:"name"`
+}
 
 // SubjectDetail defines model for SubjectDetail.
 type SubjectDetail struct {
@@ -293,35 +327,25 @@ type SubjectDetail struct {
 
 // SubjectFaculty defines model for SubjectFaculty.
 type SubjectFaculty struct {
-	// Faculty 教員
 	Faculty   AcademicServiceFaculty `json:"faculty"`
 	IsPrimary bool                   `json:"isPrimary"`
 }
 
 // SubjectSummary defines model for SubjectSummary.
 type SubjectSummary struct {
-	// DayOfWeek TODO: Timetable API から曜日を取得する
-	// 曜日
-	DayOfWeek DottoFoundationV1DayOfWeek `json:"dayOfWeek"`
-	Faculties []SubjectFaculty           `json:"faculties"`
-	Id        string                     `json:"id"`
-
-	// IsAddedToTimetable TODO: 時間割APIを作成したら、時間割に追加されているかを取得する
-	// 時間割に追加されているか
-	IsAddedToTimetable bool   `json:"isAddedToTimetable"`
-	Name               string `json:"name"`
-
-	// Period TODO: Timetable API から時限を取得する
-	// 時限
-	Period DottoFoundationV1Period `json:"period"`
+	Faculties []SubjectFaculty `json:"faculties"`
+	Id        string           `json:"id"`
+	Name      string           `json:"name"`
 }
 
 // TimetableItem defines model for TimetableItem.
 type TimetableItem struct {
-	DayOfWeek DottoFoundationV1DayOfWeek `json:"dayOfWeek"`
-	Id        string                     `json:"id"`
-	Period    DottoFoundationV1Period    `json:"period"`
-	Subject   SubjectSummary             `json:"subject"`
+	Id    string `json:"id"`
+	Rooms []Room `json:"rooms"`
+
+	// Slot 集中講義など、時間割に含まれていない場合はnull
+	Slot    *DottoFoundationV1TimetableSlot `json:"slot,omitempty"`
+	Subject SubjectSummary                  `json:"subject"`
 }
 
 // UserInfo defines model for UserInfo.
@@ -341,8 +365,14 @@ type CourseRegistrationsV1ListParams struct {
 	// Year 開講年度; 指定しない場合は今年度が選択される
 	Year *int `form:"year,omitempty" json:"year,omitempty"`
 
-	// Semester 開講時期
-	Semester DottoFoundationV1CourseSemester `form:"semester" json:"semester"`
+	// Semesters 開講時期
+	Semesters []DottoFoundationV1CourseSemester `form:"semesters" json:"semesters"`
+}
+
+// PersonalCalendarItemsV1ListParams defines parameters for PersonalCalendarItemsV1List.
+type PersonalCalendarItemsV1ListParams struct {
+	// Dates 日付のリスト; 指定した日付の個人カレンダーアイテムのみを取得する
+	Dates []time.Time `form:"dates" json:"dates"`
 }
 
 // SubjectsV1ListParams defines parameters for SubjectsV1List.
@@ -377,11 +407,8 @@ type TimetableItemsV1ListParams struct {
 	// Year 開講年度; 指定しない場合は今年度が選択される
 	Year *int `form:"year,omitempty" json:"year,omitempty"`
 
-	// Semester 開講時期
-	Semester DottoFoundationV1CourseSemester `form:"semester" json:"semester"`
-
-	// DayOfWeek 曜日; 複数指定時はORでフィルタリングされる; 指定しない場合は全ての曜日が選択される
-	DayOfWeek *[]DottoFoundationV1DayOfWeek `form:"dayOfWeek,omitempty" json:"dayOfWeek,omitempty"`
+	// Semesters 開講時期
+	Semesters []DottoFoundationV1CourseSemester `form:"semesters" json:"semesters"`
 }
 
 // CourseRegistrationsV1CreateJSONRequestBody defines body for CourseRegistrationsV1Create for application/json ContentType.
@@ -407,6 +434,9 @@ type ServerInterface interface {
 
 	// (DELETE /v1/courseRegistrations/{id})
 	CourseRegistrationsV1Delete(c *gin.Context, id string)
+
+	// (GET /v1/personalCalendarItems)
+	PersonalCalendarItemsV1List(c *gin.Context, params PersonalCalendarItemsV1ListParams)
 
 	// (GET /v1/subjects)
 	SubjectsV1List(c *gin.Context, params SubjectsV1ListParams)
@@ -481,18 +511,18 @@ func (siw *ServerInterfaceWrapper) CourseRegistrationsV1List(c *gin.Context) {
 		return
 	}
 
-	// ------------- Required query parameter "semester" -------------
+	// ------------- Required query parameter "semesters" -------------
 
-	if paramValue := c.Query("semester"); paramValue != "" {
+	if paramValue := c.Query("semesters"); paramValue != "" {
 
 	} else {
-		siw.ErrorHandler(c, fmt.Errorf("Query argument semester is required, but not found"), http.StatusBadRequest)
+		siw.ErrorHandler(c, fmt.Errorf("Query argument semesters is required, but not found"), http.StatusBadRequest)
 		return
 	}
 
-	err = runtime.BindQueryParameter("form", false, true, "semester", c.Request.URL.Query(), &params.Semester)
+	err = runtime.BindQueryParameter("form", false, true, "semesters", c.Request.URL.Query(), &params.Semesters)
 	if err != nil {
-		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter semester: %w", err), http.StatusBadRequest)
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter semesters: %w", err), http.StatusBadRequest)
 		return
 	}
 
@@ -545,6 +575,41 @@ func (siw *ServerInterfaceWrapper) CourseRegistrationsV1Delete(c *gin.Context) {
 	}
 
 	siw.Handler.CourseRegistrationsV1Delete(c, id)
+}
+
+// PersonalCalendarItemsV1List operation middleware
+func (siw *ServerInterfaceWrapper) PersonalCalendarItemsV1List(c *gin.Context) {
+
+	var err error
+
+	c.Set(BearerAuthScopes, []string{})
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params PersonalCalendarItemsV1ListParams
+
+	// ------------- Required query parameter "dates" -------------
+
+	if paramValue := c.Query("dates"); paramValue != "" {
+
+	} else {
+		siw.ErrorHandler(c, fmt.Errorf("Query argument dates is required, but not found"), http.StatusBadRequest)
+		return
+	}
+
+	err = runtime.BindQueryParameter("form", false, true, "dates", c.Request.URL.Query(), &params.Dates)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter dates: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.PersonalCalendarItemsV1List(c, params)
 }
 
 // SubjectsV1List operation middleware
@@ -675,26 +740,18 @@ func (siw *ServerInterfaceWrapper) TimetableItemsV1List(c *gin.Context) {
 		return
 	}
 
-	// ------------- Required query parameter "semester" -------------
+	// ------------- Required query parameter "semesters" -------------
 
-	if paramValue := c.Query("semester"); paramValue != "" {
+	if paramValue := c.Query("semesters"); paramValue != "" {
 
 	} else {
-		siw.ErrorHandler(c, fmt.Errorf("Query argument semester is required, but not found"), http.StatusBadRequest)
+		siw.ErrorHandler(c, fmt.Errorf("Query argument semesters is required, but not found"), http.StatusBadRequest)
 		return
 	}
 
-	err = runtime.BindQueryParameter("form", false, true, "semester", c.Request.URL.Query(), &params.Semester)
+	err = runtime.BindQueryParameter("form", false, true, "semesters", c.Request.URL.Query(), &params.Semesters)
 	if err != nil {
-		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter semester: %w", err), http.StatusBadRequest)
-		return
-	}
-
-	// ------------- Optional query parameter "dayOfWeek" -------------
-
-	err = runtime.BindQueryParameter("form", false, false, "dayOfWeek", c.Request.URL.Query(), &params.DayOfWeek)
-	if err != nil {
-		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter dayOfWeek: %w", err), http.StatusBadRequest)
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter semesters: %w", err), http.StatusBadRequest)
 		return
 	}
 
@@ -770,6 +827,7 @@ func RegisterHandlersWithOptions(router gin.IRouter, si ServerInterface, options
 	router.GET(options.BaseURL+"/v1/courseRegistrations", wrapper.CourseRegistrationsV1List)
 	router.POST(options.BaseURL+"/v1/courseRegistrations", wrapper.CourseRegistrationsV1Create)
 	router.DELETE(options.BaseURL+"/v1/courseRegistrations/:id", wrapper.CourseRegistrationsV1Delete)
+	router.GET(options.BaseURL+"/v1/personalCalendarItems", wrapper.PersonalCalendarItemsV1List)
 	router.GET(options.BaseURL+"/v1/subjects", wrapper.SubjectsV1List)
 	router.GET(options.BaseURL+"/v1/subjects/:id", wrapper.SubjectsV1Detail)
 	router.GET(options.BaseURL+"/v1/timetableItems", wrapper.TimetableItemsV1List)
@@ -902,6 +960,33 @@ type CourseRegistrationsV1Delete404Response struct {
 
 func (response CourseRegistrationsV1Delete404Response) VisitCourseRegistrationsV1DeleteResponse(w http.ResponseWriter) error {
 	w.WriteHeader(404)
+	return nil
+}
+
+type PersonalCalendarItemsV1ListRequestObject struct {
+	Params PersonalCalendarItemsV1ListParams
+}
+
+type PersonalCalendarItemsV1ListResponseObject interface {
+	VisitPersonalCalendarItemsV1ListResponse(w http.ResponseWriter) error
+}
+
+type PersonalCalendarItemsV1List200JSONResponse struct {
+	PersonalCalendarItems []PersonalCalendarItem `json:"personalCalendarItems"`
+}
+
+func (response PersonalCalendarItemsV1List200JSONResponse) VisitPersonalCalendarItemsV1ListResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type PersonalCalendarItemsV1List401Response struct {
+}
+
+func (response PersonalCalendarItemsV1List401Response) VisitPersonalCalendarItemsV1ListResponse(w http.ResponseWriter) error {
+	w.WriteHeader(401)
 	return nil
 }
 
@@ -1073,6 +1158,9 @@ type StrictServerInterface interface {
 	// (DELETE /v1/courseRegistrations/{id})
 	CourseRegistrationsV1Delete(ctx context.Context, request CourseRegistrationsV1DeleteRequestObject) (CourseRegistrationsV1DeleteResponseObject, error)
 
+	// (GET /v1/personalCalendarItems)
+	PersonalCalendarItemsV1List(ctx context.Context, request PersonalCalendarItemsV1ListRequestObject) (PersonalCalendarItemsV1ListResponseObject, error)
+
 	// (GET /v1/subjects)
 	SubjectsV1List(ctx context.Context, request SubjectsV1ListRequestObject) (SubjectsV1ListResponseObject, error)
 
@@ -1231,6 +1319,33 @@ func (sh *strictHandler) CourseRegistrationsV1Delete(ctx *gin.Context, id string
 		ctx.Status(http.StatusInternalServerError)
 	} else if validResponse, ok := response.(CourseRegistrationsV1DeleteResponseObject); ok {
 		if err := validResponse.VisitCourseRegistrationsV1DeleteResponse(ctx.Writer); err != nil {
+			ctx.Error(err)
+		}
+	} else if response != nil {
+		ctx.Error(fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// PersonalCalendarItemsV1List operation middleware
+func (sh *strictHandler) PersonalCalendarItemsV1List(ctx *gin.Context, params PersonalCalendarItemsV1ListParams) {
+	var request PersonalCalendarItemsV1ListRequestObject
+
+	request.Params = params
+
+	handler := func(ctx *gin.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.PersonalCalendarItemsV1List(ctx, request.(PersonalCalendarItemsV1ListRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "PersonalCalendarItemsV1List")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		ctx.Error(err)
+		ctx.Status(http.StatusInternalServerError)
+	} else if validResponse, ok := response.(PersonalCalendarItemsV1ListResponseObject); ok {
+		if err := validResponse.VisitPersonalCalendarItemsV1ListResponse(ctx.Writer); err != nil {
 			ctx.Error(err)
 		}
 	} else if response != nil {
