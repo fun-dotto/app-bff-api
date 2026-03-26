@@ -1,0 +1,20 @@
+name: Test
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+    types:
+      - opened
+      - ready_for_review
+      - reopened
+      - synchronize
+  workflow_dispatch:
+jobs:
+  test:
+    uses: fun-dotto/way/.github/workflows/backend-test.yml@main
+    permissions:
+      contents: read
+    secrets: inherit

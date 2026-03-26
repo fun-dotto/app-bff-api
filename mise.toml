@@ -1,3 +1,1 @@
-[tools]
-"aqua:go-task/task" = "latest"
-go = "1.25.6"
+./way/tooling/backend/mise.toml
