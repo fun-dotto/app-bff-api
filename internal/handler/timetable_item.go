@@ -33,27 +33,37 @@ func (h *Handler) TimetableItemsV1List(ctx context.Context, request api.Timetabl
 
 // toTimetableItemQuery は TimetableItemsV1List の API パラメータを domain.TimetableItemQuery に変換する
 func toTimetableItemQuery(params api.TimetableItemsV1ListParams) domain.TimetableItemQuery {
-	query := domain.TimetableItemQuery{
-		Semester: domain.CourseSemester(params.Semester),
-		Year:     params.Year,
+	query := domain.TimetableItemQuery{Year: params.Year}
+	query.Semesters = make([]domain.CourseSemester, len(params.Semesters))
+	for i, semester := range params.Semesters {
+		query.Semesters[i] = domain.CourseSemester(semester)
 	}
-
-	if params.DayOfWeek != nil {
-		query.DayOfWeek = make([]domain.DayOfWeek, len(*params.DayOfWeek))
-		for i, d := range *params.DayOfWeek {
-			query.DayOfWeek[i] = domain.DayOfWeek(d)
-		}
-	}
-
 	return query
 }
 
 // toApiTimetableItem はDomainの時間割アイテムをAPIの時間割アイテムに変換する
 func toApiTimetableItem(item domain.TimetableItem) api.TimetableItem {
+	var slot *api.DottoFoundationV1TimetableSlot
+	if item.Slot != nil {
+		slot = &api.DottoFoundationV1TimetableSlot{
+			DayOfWeek: api.DottoFoundationV1DayOfWeek(item.Slot.DayOfWeek),
+			Period:    api.DottoFoundationV1Period(item.Slot.Period),
+		}
+	}
+
+	rooms := make([]api.Room, len(item.Rooms))
+	for i, room := range item.Rooms {
+		rooms[i] = api.Room{
+			Id:    room.ID,
+			Name:  room.Name,
+			Floor: api.DottoFoundationV1Floor(room.Floor),
+		}
+	}
+
 	return api.TimetableItem{
-		Id:        item.ID,
-		DayOfWeek: api.DottoFoundationV1DayOfWeek(item.DayOfWeek),
-		Period:    api.DottoFoundationV1Period(item.Period),
-		Subject:   toApiSubjectSummary(item.Subject),
+		Id:      item.ID,
+		Slot:    slot,
+		Rooms:   rooms,
+		Subject: toApiSubjectSummary(item.Subject),
 	}
 }

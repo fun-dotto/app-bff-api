@@ -177,12 +177,9 @@ func toApiSubjectSummary(subject domain.Subject) api.SubjectSummary {
 	}
 
 	return api.SubjectSummary{
-		Id:                 subject.ID,
-		Name:               subject.Name,
-		Faculties:          faculties,
-		DayOfWeek:          api.Monday,  // TODO: 時間割APIを作成したら、曜日を取得する
-		Period:             api.Period1, // TODO: 時間割APIを作成したら、時限を取得する
-		IsAddedToTimetable: false,       // TODO: 時間割APIを作成したら、時間割に追加されているかを取得する
+		Id:        subject.ID,
+		Name:      subject.Name,
+		Faculties: faculties,
 	}
 }
 

@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/fun-dotto/app-bff-api/generated/external/academic_api"
 	"github.com/fun-dotto/app-bff-api/internal/domain"
@@ -95,11 +96,11 @@ func (r *AcademicRepository) GetSubjects(query domain.SubjectQuery) ([]domain.Su
 }
 
 // GetCourseRegistrations は外部APIから履修登録一覧を取得する
-func (r *AcademicRepository) GetCourseRegistrations(userID string, semester domain.CourseSemester, year *int) ([]domain.CourseRegistration, error) {
+func (r *AcademicRepository) GetCourseRegistrations(userID string, semesters []domain.CourseSemester, year *int) ([]domain.CourseRegistration, error) {
 	params := &academic_api.CourseRegistrationsV1ListParams{
-		UserId:   userID,
-		Semester: academic_api.DottoFoundationV1CourseSemester(semester),
-		Year:     year,
+		UserId:    userID,
+		Semesters: externalToCourseSemesters(semesters),
+		Year:      year,
 	}
 
 	response, err := r.client.CourseRegistrationsV1ListWithResponse(context.Background(), params)
@@ -176,6 +177,28 @@ func (r *AcademicRepository) GetTimetableItems(query domain.TimetableItemQuery) 
 	return result, nil
 }
 
+// GetPersonalCalendarItems は外部APIから個人カレンダーアイテム一覧を取得する
+func (r *AcademicRepository) GetPersonalCalendarItems(userID string, dates []time.Time) ([]domain.PersonalCalendarItem, error) {
+	params := external.ToExternalPersonalCalendarItemParams(userID, dates)
+
+	response, err := r.client.PersonalCalendarItemsV1ListWithResponse(context.Background(), params)
+	if err != nil {
+		return nil, fmt.Errorf("failed to call academic API: %w", err)
+	}
+
+	if response.JSON200 == nil {
+		return nil, fmt.Errorf("failed to get personal calendar items: status %d", response.StatusCode())
+	}
+
+	items := response.JSON200.PersonalCalendarItems
+	result := make([]domain.PersonalCalendarItem, len(items))
+	for i, item := range items {
+		result[i] = external.ToDomainPersonalCalendarItem(item)
+	}
+
+	return result, nil
+}
+
 // GetSubject は外部APIから科目詳細を取得する
 func (r *AcademicRepository) GetSubject(id string) (*domain.Subject, error) {
 	ctx := context.Background()
@@ -204,4 +227,12 @@ func (r *AcademicRepository) GetSubject(id string) (*domain.Subject, error) {
 	s.Syllabus = &syllabus
 
 	return &s, nil
+}
+
+func externalToCourseSemesters(semesters []domain.CourseSemester) []academic_api.DottoFoundationV1CourseSemester {
+	result := make([]academic_api.DottoFoundationV1CourseSemester, len(semesters))
+	for i, semester := range semesters {
+		result[i] = academic_api.DottoFoundationV1CourseSemester(semester)
+	}
+	return result
 }

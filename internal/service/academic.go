@@ -2,6 +2,7 @@ package service
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/fun-dotto/app-bff-api/internal/domain"
 )
@@ -12,10 +13,11 @@ type AcademicRepository interface {
 	GetFacultiesByIDs(ids []string) (map[string]domain.Faculty, error)
 	GetSubjects(query domain.SubjectQuery) ([]domain.Subject, error)
 	GetSubject(id string) (*domain.Subject, error)
-	GetCourseRegistrations(userID string, semester domain.CourseSemester, year *int) ([]domain.CourseRegistration, error)
+	GetCourseRegistrations(userID string, semesters []domain.CourseSemester, year *int) ([]domain.CourseRegistration, error)
 	CreateCourseRegistration(userID string, subjectID string) (*domain.CourseRegistration, error)
 	DeleteCourseRegistration(id string) error
 	GetTimetableItems(query domain.TimetableItemQuery) ([]domain.TimetableItem, error)
+	GetPersonalCalendarItems(userID string, dates []time.Time) ([]domain.PersonalCalendarItem, error)
 }
 
 type AcademicService struct {
@@ -64,8 +66,8 @@ func (s *AcademicService) GetSubject(id string) (*domain.Subject, error) {
 	return subject, nil
 }
 
-func (s *AcademicService) GetCourseRegistrations(userID string, semester domain.CourseSemester, year *int) ([]domain.CourseRegistration, error) {
-	return s.repository.GetCourseRegistrations(userID, semester, year)
+func (s *AcademicService) GetCourseRegistrations(userID string, semesters []domain.CourseSemester, year *int) ([]domain.CourseRegistration, error) {
+	return s.repository.GetCourseRegistrations(userID, semesters, year)
 }
 
 func (s *AcademicService) CreateCourseRegistration(userID string, subjectID string) (*domain.CourseRegistration, error) {
@@ -78,6 +80,10 @@ func (s *AcademicService) DeleteCourseRegistration(id string) error {
 
 func (s *AcademicService) GetTimetableItems(query domain.TimetableItemQuery) ([]domain.TimetableItem, error) {
 	return s.repository.GetTimetableItems(query)
+}
+
+func (s *AcademicService) GetPersonalCalendarItems(userID string, dates []time.Time) ([]domain.PersonalCalendarItem, error) {
+	return s.repository.GetPersonalCalendarItems(userID, dates)
 }
 
 // enrichSubjectWithFaculties は単一の科目にFaculty情報を補完する

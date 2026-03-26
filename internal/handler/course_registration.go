@@ -21,8 +21,12 @@ func (h *Handler) CourseRegistrationsV1List(ctx context.Context, request api.Cou
 		return nil, fmt.Errorf("user ID not found in context: %w", fmt.Errorf("%d", http.StatusUnauthorized))
 	}
 
-	semester := domain.CourseSemester(request.Params.Semester)
-	registrations, err := h.academicService.GetCourseRegistrations(userID, semester, request.Params.Year)
+	semesters := make([]domain.CourseSemester, len(request.Params.Semesters))
+	for i, semester := range request.Params.Semesters {
+		semesters[i] = domain.CourseSemester(semester)
+	}
+
+	registrations, err := h.academicService.GetCourseRegistrations(userID, semesters, request.Params.Year)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get course registrations: %w", err)
 	}

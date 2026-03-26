@@ -69,7 +69,7 @@ func TestCourseRegistrationsV1List(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			resp, err := tt.handler.CourseRegistrationsV1List(tt.ctx, api.CourseRegistrationsV1ListRequestObject{
 				Params: api.CourseRegistrationsV1ListParams{
-					Semester: api.DottoFoundationV1CourseSemester("Q1"),
+					Semesters: []api.DottoFoundationV1CourseSemester{api.DottoFoundationV1CourseSemester("Q1")},
 				},
 			})
 			tt.validate(t, resp, err)
