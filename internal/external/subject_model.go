@@ -111,7 +111,7 @@ func ToExternalSubjectQuery(q domain.SubjectQuery) *academic_api.SubjectsV1ListP
 	}
 	if len(q.Grade) > 0 {
 		grades := toExternalGrades(q.Grade)
-		params.Grade = &grades
+		params.Grades = &grades
 	}
 	if len(q.Courses) > 0 {
 		courses := toExternalCourses(q.Courses)
@@ -119,23 +119,23 @@ func ToExternalSubjectQuery(q domain.SubjectQuery) *academic_api.SubjectsV1ListP
 	}
 	if len(q.Class) > 0 {
 		classes := toExternalClasses(q.Class)
-		params.Class = &classes
+		params.Classes = &classes
 	}
 	if len(q.Classification) > 0 {
 		classifications := toExternalClassifications(q.Classification)
-		params.Classification = &classifications
+		params.Classifications = &classifications
 	}
 	if len(q.Semester) > 0 {
 		semesters := toExternalSemesters(q.Semester)
-		params.Semester = &semesters
+		params.Semesters = &semesters
 	}
 	if len(q.RequirementType) > 0 {
 		requirementTypes := toExternalRequirementTypes(q.RequirementType)
-		params.RequirementType = &requirementTypes
+		params.RequirementTypes = &requirementTypes
 	}
 	if len(q.CulturalSubjectCategory) > 0 {
 		culturalSubjectCategories := toExternalCulturalSubjectCategories(q.CulturalSubjectCategory)
-		params.CulturalSubjectCategory = &culturalSubjectCategories
+		params.CulturalSubjectCategories = &culturalSubjectCategories
 	}
 
 	return params

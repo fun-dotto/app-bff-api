@@ -34,14 +34,17 @@ func TestTimetableItemsV1List(t *testing.T) {
 			),
 			request: api.TimetableItemsV1ListRequestObject{
 				Params: api.TimetableItemsV1ListParams{
-					Semester: api.Q1,
+					Semesters: []api.DottoFoundationV1CourseSemester{api.Q1},
 				},
 			},
 			validate: func(t *testing.T, resp api.TimetableItemsV1ListResponseObject, err error) {
 				require.NoError(t, err)
 				result, ok := resp.(api.TimetableItemsV1List200JSONResponse)
 				require.True(t, ok)
-				assert.NotNil(t, result.TimetableItems)
+				assert.Len(t, result.TimetableItems, 1)
+				assert.Equal(t, "t1", result.TimetableItems[0].Id)
+				require.NotNil(t, result.TimetableItems[0].Slot)
+				assert.Len(t, result.TimetableItems[0].Rooms, 1)
 			},
 		},
 	}

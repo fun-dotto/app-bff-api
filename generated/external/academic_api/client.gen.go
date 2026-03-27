@@ -166,7 +166,13 @@ type DottoFoundationV1SubjectClassification string
 // DottoFoundationV1SubjectRequirementType 必修・選択
 type DottoFoundationV1SubjectRequirementType string
 
-// Faculty 教員
+// DottoFoundationV1TimetableSlot defines model for DottoFoundationV1.TimetableSlot.
+type DottoFoundationV1TimetableSlot struct {
+	DayOfWeek DottoFoundationV1DayOfWeek `json:"dayOfWeek"`
+	Period    DottoFoundationV1Period    `json:"period"`
+}
+
+// Faculty defines model for Faculty.
 type Faculty struct {
 	Email string `json:"email"`
 	Id    string `json:"id"`
@@ -177,6 +183,13 @@ type Faculty struct {
 type FacultyRequest struct {
 	Email string `json:"email"`
 	Name  string `json:"name"`
+}
+
+// PersonalCalendarItem defines model for PersonalCalendarItem.
+type PersonalCalendarItem struct {
+	Date          time.Time                      `json:"date"`
+	Slot          DottoFoundationV1TimetableSlot `json:"slot"`
+	TimetableItem TimetableItem                  `json:"timetableItem"`
 }
 
 // Reservation defines model for Reservation.
@@ -222,7 +235,6 @@ type Subject struct {
 
 // SubjectFaculty defines model for SubjectFaculty.
 type SubjectFaculty struct {
-	// Faculty 教員
 	Faculty   Faculty `json:"faculty"`
 	IsPrimary bool    `json:"isPrimary"`
 }
@@ -343,17 +355,18 @@ type Syllabus struct {
 
 // TimetableItem defines model for TimetableItem.
 type TimetableItem struct {
-	DayOfWeek DottoFoundationV1DayOfWeek `json:"dayOfWeek"`
-	Id        string                     `json:"id"`
-	Period    DottoFoundationV1Period    `json:"period"`
-	Subject   SubjectSummary             `json:"subject"`
+	Id    string `json:"id"`
+	Rooms []Room `json:"rooms"`
+
+	// Slot 集中講義など、時間割に含まれていない場合はnull
+	Slot    *DottoFoundationV1TimetableSlot `json:"slot,omitempty"`
+	Subject SubjectSummary                  `json:"subject"`
 }
 
 // TimetableItemRequest defines model for TimetableItemRequest.
 type TimetableItemRequest struct {
-	DayOfWeek DottoFoundationV1DayOfWeek `json:"dayOfWeek"`
-	Period    DottoFoundationV1Period    `json:"period"`
-	SubjectId string                     `json:"subjectId"`
+	Slot      *DottoFoundationV1TimetableSlot `json:"slot,omitempty"`
+	SubjectId string                          `json:"subjectId"`
 }
 
 // CourseRegistrationsV1ListParams defines parameters for CourseRegistrationsV1List.
@@ -364,14 +377,23 @@ type CourseRegistrationsV1ListParams struct {
 	// Year 開講年度; 指定しない場合は今年度が選択される
 	Year *int `form:"year,omitempty" json:"year,omitempty"`
 
-	// Semester 開講時期
-	Semester DottoFoundationV1CourseSemester `form:"semester" json:"semester"`
+	// Semesters 開講時期; 指定された時期に開講される全ての科目が取得される
+	Semesters []DottoFoundationV1CourseSemester `form:"semesters" json:"semesters"`
 }
 
 // FacultiesV1ListParams defines parameters for FacultiesV1List.
 type FacultiesV1ListParams struct {
 	// Ids 教員IDのリスト; 指定した場合は指定した教員IDのみを取得する
 	Ids *[]string `form:"ids,omitempty" json:"ids,omitempty"`
+}
+
+// PersonalCalendarItemsV1ListParams defines parameters for PersonalCalendarItemsV1List.
+type PersonalCalendarItemsV1ListParams struct {
+	// UserId ユーザーID
+	UserId string `form:"userId" json:"userId"`
+
+	// Dates 日付のリスト; 指定した日付の個人カレンダーアイテムのみを取得する
+	Dates []time.Time `form:"dates" json:"dates"`
 }
 
 // RoomsV1ListParams defines parameters for RoomsV1List.
@@ -400,29 +422,29 @@ type SubjectsV1ListParams struct {
 	// Q 検索ワード
 	Q *string `form:"q,omitempty" json:"q,omitempty"`
 
-	// Grade 学年
-	Grade *[]DottoFoundationV1Grade `form:"grade,omitempty" json:"grade,omitempty"`
+	// Grades 学年
+	Grades *[]DottoFoundationV1Grade `form:"grades,omitempty" json:"grades,omitempty"`
 
 	// Courses コース; 大学院の場合は大学院コースに読み替え
 	Courses *[]DottoFoundationV1Course `form:"courses,omitempty" json:"courses,omitempty"`
 
-	// Class クラス; 大学院の学年を選択した場合は選択できない
-	Class *[]DottoFoundationV1Class `form:"class,omitempty" json:"class,omitempty"`
+	// Classes クラス; 大学院の学年を選択した場合は選択できない
+	Classes *[]DottoFoundationV1Class `form:"classes,omitempty" json:"classes,omitempty"`
 
-	// Classification 学部: 専門・教養; 大学院: 専門・研究指導
-	Classification *[]DottoFoundationV1SubjectClassification `form:"classification,omitempty" json:"classification,omitempty"`
+	// Classifications 学部: 専門・教養; 大学院: 専門・研究指導
+	Classifications *[]DottoFoundationV1SubjectClassification `form:"classifications,omitempty" json:"classifications,omitempty"`
 
 	// Year 開講年度; 指定しない場合は今年度が選択される
 	Year *int `form:"year,omitempty" json:"year,omitempty"`
 
-	// Semester 開講時期
-	Semester *[]DottoFoundationV1CourseSemester `form:"semester,omitempty" json:"semester,omitempty"`
+	// Semesters 開講時期
+	Semesters *[]DottoFoundationV1CourseSemester `form:"semesters,omitempty" json:"semesters,omitempty"`
 
-	// RequirementType 必修・選択・選択必修
-	RequirementType *[]DottoFoundationV1SubjectRequirementType `form:"requirementType,omitempty" json:"requirementType,omitempty"`
+	// RequirementTypes 必修・選択・選択必修
+	RequirementTypes *[]DottoFoundationV1SubjectRequirementType `form:"requirementTypes,omitempty" json:"requirementTypes,omitempty"`
 
-	// CulturalSubjectCategory 教養科目カテゴリ
-	CulturalSubjectCategory *[]DottoFoundationV1CulturalSubjectCategory `form:"culturalSubjectCategory,omitempty" json:"culturalSubjectCategory,omitempty"`
+	// CulturalSubjectCategories 教養科目カテゴリ
+	CulturalSubjectCategories *[]DottoFoundationV1CulturalSubjectCategory `form:"culturalSubjectCategories,omitempty" json:"culturalSubjectCategories,omitempty"`
 }
 
 // TimetableItemsV1ListParams defines parameters for TimetableItemsV1List.
@@ -430,11 +452,8 @@ type TimetableItemsV1ListParams struct {
 	// Year 開講年度; 指定しない場合は今年度が選択される
 	Year *int `form:"year,omitempty" json:"year,omitempty"`
 
-	// Semester 開講時期
-	Semester DottoFoundationV1CourseSemester `form:"semester" json:"semester"`
-
-	// DayOfWeek 曜日; 複数指定時はORでフィルタリングされる; 指定しない場合は全ての曜日が選択される
-	DayOfWeek *[]DottoFoundationV1DayOfWeek `form:"dayOfWeek,omitempty" json:"dayOfWeek,omitempty"`
+	// Semesters 開講時期; 指定された時期に開講される全ての科目が取得される
+	Semesters []DottoFoundationV1CourseSemester `form:"semesters" json:"semesters"`
 }
 
 // CourseRegistrationsV1CreateJSONRequestBody defines body for CourseRegistrationsV1Create for application/json ContentType.
@@ -560,6 +579,9 @@ type ClientInterface interface {
 	FacultiesV1UpdateWithBody(ctx context.Context, id string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	FacultiesV1Update(ctx context.Context, id string, body FacultiesV1UpdateJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// PersonalCalendarItemsV1List request
+	PersonalCalendarItemsV1List(ctx context.Context, params *PersonalCalendarItemsV1ListParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// RoomsV1List request
 	RoomsV1List(ctx context.Context, params *RoomsV1ListParams, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -734,6 +756,18 @@ func (c *Client) FacultiesV1UpdateWithBody(ctx context.Context, id string, conte
 
 func (c *Client) FacultiesV1Update(ctx context.Context, id string, body FacultiesV1UpdateJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewFacultiesV1UpdateRequest(c.Server, id, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) PersonalCalendarItemsV1List(ctx context.Context, params *PersonalCalendarItemsV1ListParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPersonalCalendarItemsV1ListRequest(c.Server, params)
 	if err != nil {
 		return nil, err
 	}
@@ -1010,7 +1044,7 @@ func NewCourseRegistrationsV1ListRequest(server string, params *CourseRegistrati
 
 		}
 
-		if queryFrag, err := runtime.StyleParamWithLocation("form", false, "semester", runtime.ParamLocationQuery, params.Semester); err != nil {
+		if queryFrag, err := runtime.StyleParamWithLocation("form", false, "semesters", runtime.ParamLocationQuery, params.Semesters); err != nil {
 			return nil, err
 		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 			return nil, err
@@ -1307,6 +1341,63 @@ func NewFacultiesV1UpdateRequestWithBody(server string, id string, contentType s
 	}
 
 	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewPersonalCalendarItemsV1ListRequest generates requests for PersonalCalendarItemsV1List
+func NewPersonalCalendarItemsV1ListRequest(server string, params *PersonalCalendarItemsV1ListParams) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/v1/personalCalendarItems")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", false, "userId", runtime.ParamLocationQuery, params.UserId); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", false, "dates", runtime.ParamLocationQuery, params.Dates); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
 
 	return req, nil
 }
@@ -1657,9 +1748,9 @@ func NewSubjectsV1ListRequest(server string, params *SubjectsV1ListParams) (*htt
 
 		}
 
-		if params.Grade != nil {
+		if params.Grades != nil {
 
-			if queryFrag, err := runtime.StyleParamWithLocation("form", false, "grade", runtime.ParamLocationQuery, *params.Grade); err != nil {
+			if queryFrag, err := runtime.StyleParamWithLocation("form", false, "grades", runtime.ParamLocationQuery, *params.Grades); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
@@ -1689,9 +1780,9 @@ func NewSubjectsV1ListRequest(server string, params *SubjectsV1ListParams) (*htt
 
 		}
 
-		if params.Class != nil {
+		if params.Classes != nil {
 
-			if queryFrag, err := runtime.StyleParamWithLocation("form", false, "class", runtime.ParamLocationQuery, *params.Class); err != nil {
+			if queryFrag, err := runtime.StyleParamWithLocation("form", false, "classes", runtime.ParamLocationQuery, *params.Classes); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
@@ -1705,9 +1796,9 @@ func NewSubjectsV1ListRequest(server string, params *SubjectsV1ListParams) (*htt
 
 		}
 
-		if params.Classification != nil {
+		if params.Classifications != nil {
 
-			if queryFrag, err := runtime.StyleParamWithLocation("form", false, "classification", runtime.ParamLocationQuery, *params.Classification); err != nil {
+			if queryFrag, err := runtime.StyleParamWithLocation("form", false, "classifications", runtime.ParamLocationQuery, *params.Classifications); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
@@ -1737,9 +1828,9 @@ func NewSubjectsV1ListRequest(server string, params *SubjectsV1ListParams) (*htt
 
 		}
 
-		if params.Semester != nil {
+		if params.Semesters != nil {
 
-			if queryFrag, err := runtime.StyleParamWithLocation("form", false, "semester", runtime.ParamLocationQuery, *params.Semester); err != nil {
+			if queryFrag, err := runtime.StyleParamWithLocation("form", false, "semesters", runtime.ParamLocationQuery, *params.Semesters); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
@@ -1753,9 +1844,9 @@ func NewSubjectsV1ListRequest(server string, params *SubjectsV1ListParams) (*htt
 
 		}
 
-		if params.RequirementType != nil {
+		if params.RequirementTypes != nil {
 
-			if queryFrag, err := runtime.StyleParamWithLocation("form", false, "requirementType", runtime.ParamLocationQuery, *params.RequirementType); err != nil {
+			if queryFrag, err := runtime.StyleParamWithLocation("form", false, "requirementTypes", runtime.ParamLocationQuery, *params.RequirementTypes); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
@@ -1769,9 +1860,9 @@ func NewSubjectsV1ListRequest(server string, params *SubjectsV1ListParams) (*htt
 
 		}
 
-		if params.CulturalSubjectCategory != nil {
+		if params.CulturalSubjectCategories != nil {
 
-			if queryFrag, err := runtime.StyleParamWithLocation("form", false, "culturalSubjectCategory", runtime.ParamLocationQuery, *params.CulturalSubjectCategory); err != nil {
+			if queryFrag, err := runtime.StyleParamWithLocation("form", false, "culturalSubjectCategories", runtime.ParamLocationQuery, *params.CulturalSubjectCategories); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
@@ -1976,7 +2067,7 @@ func NewTimetableItemsV1ListRequest(server string, params *TimetableItemsV1ListP
 
 		}
 
-		if queryFrag, err := runtime.StyleParamWithLocation("form", false, "semester", runtime.ParamLocationQuery, params.Semester); err != nil {
+		if queryFrag, err := runtime.StyleParamWithLocation("form", false, "semesters", runtime.ParamLocationQuery, params.Semesters); err != nil {
 			return nil, err
 		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 			return nil, err
@@ -1986,22 +2077,6 @@ func NewTimetableItemsV1ListRequest(server string, params *TimetableItemsV1ListP
 					queryValues.Add(k, v2)
 				}
 			}
-		}
-
-		if params.DayOfWeek != nil {
-
-			if queryFrag, err := runtime.StyleParamWithLocation("form", false, "dayOfWeek", runtime.ParamLocationQuery, *params.DayOfWeek); err != nil {
-				return nil, err
-			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
-				return nil, err
-			} else {
-				for k, v := range parsed {
-					for _, v2 := range v {
-						queryValues.Add(k, v2)
-					}
-				}
-			}
-
 		}
 
 		queryURL.RawQuery = queryValues.Encode()
@@ -2162,6 +2237,9 @@ type ClientWithResponsesInterface interface {
 
 	FacultiesV1UpdateWithResponse(ctx context.Context, id string, body FacultiesV1UpdateJSONRequestBody, reqEditors ...RequestEditorFn) (*FacultiesV1UpdateResponse, error)
 
+	// PersonalCalendarItemsV1ListWithResponse request
+	PersonalCalendarItemsV1ListWithResponse(ctx context.Context, params *PersonalCalendarItemsV1ListParams, reqEditors ...RequestEditorFn) (*PersonalCalendarItemsV1ListResponse, error)
+
 	// RoomsV1ListWithResponse request
 	RoomsV1ListWithResponse(ctx context.Context, params *RoomsV1ListParams, reqEditors ...RequestEditorFn) (*RoomsV1ListResponse, error)
 
@@ -2310,7 +2388,6 @@ type FacultiesV1CreateResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON201      *struct {
-		// Faculty 教員
 		Faculty Faculty `json:"faculty"`
 	}
 }
@@ -2356,7 +2433,6 @@ type FacultiesV1DetailResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *struct {
-		// Faculty 教員
 		Faculty Faculty `json:"faculty"`
 	}
 }
@@ -2381,7 +2457,6 @@ type FacultiesV1UpdateResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *struct {
-		// Faculty 教員
 		Faculty Faculty `json:"faculty"`
 	}
 }
@@ -2396,6 +2471,30 @@ func (r FacultiesV1UpdateResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r FacultiesV1UpdateResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type PersonalCalendarItemsV1ListResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		PersonalCalendarItems []PersonalCalendarItem `json:"personalCalendarItems"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r PersonalCalendarItemsV1ListResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r PersonalCalendarItemsV1ListResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -2825,6 +2924,15 @@ func (c *ClientWithResponses) FacultiesV1UpdateWithResponse(ctx context.Context,
 	return ParseFacultiesV1UpdateResponse(rsp)
 }
 
+// PersonalCalendarItemsV1ListWithResponse request returning *PersonalCalendarItemsV1ListResponse
+func (c *ClientWithResponses) PersonalCalendarItemsV1ListWithResponse(ctx context.Context, params *PersonalCalendarItemsV1ListParams, reqEditors ...RequestEditorFn) (*PersonalCalendarItemsV1ListResponse, error) {
+	rsp, err := c.PersonalCalendarItemsV1List(ctx, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParsePersonalCalendarItemsV1ListResponse(rsp)
+}
+
 // RoomsV1ListWithResponse request returning *RoomsV1ListResponse
 func (c *ClientWithResponses) RoomsV1ListWithResponse(ctx context.Context, params *RoomsV1ListParams, reqEditors ...RequestEditorFn) (*RoomsV1ListResponse, error) {
 	rsp, err := c.RoomsV1List(ctx, params, reqEditors...)
@@ -3099,7 +3207,6 @@ func ParseFacultiesV1CreateResponse(rsp *http.Response) (*FacultiesV1CreateRespo
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 201:
 		var dest struct {
-			// Faculty 教員
 			Faculty Faculty `json:"faculty"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
@@ -3144,7 +3251,6 @@ func ParseFacultiesV1DetailResponse(rsp *http.Response) (*FacultiesV1DetailRespo
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest struct {
-			// Faculty 教員
 			Faculty Faculty `json:"faculty"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
@@ -3173,8 +3279,35 @@ func ParseFacultiesV1UpdateResponse(rsp *http.Response) (*FacultiesV1UpdateRespo
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest struct {
-			// Faculty 教員
 			Faculty Faculty `json:"faculty"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParsePersonalCalendarItemsV1ListResponse parses an HTTP response from a PersonalCalendarItemsV1ListWithResponse call
+func ParsePersonalCalendarItemsV1ListResponse(rsp *http.Response) (*PersonalCalendarItemsV1ListResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &PersonalCalendarItemsV1ListResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			PersonalCalendarItems []PersonalCalendarItem `json:"personalCalendarItems"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err

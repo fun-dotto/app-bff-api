@@ -2,21 +2,24 @@ package repository
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/fun-dotto/app-bff-api/internal/domain"
 )
 
 // MockAcademicRepository はテスト用のモック
 type MockAcademicRepository struct {
-	subjects            []domain.Subject
-	courseRegistrations  []domain.CourseRegistration
-	faculties           []domain.Faculty
-	createError         error
-	deleteError         error
-	getSubjectsError    error
-	getSubjectError     error
-	getRegistrationsErr    error
-	getFacultiesByIDsError error
+	subjects                    []domain.Subject
+	courseRegistrations         []domain.CourseRegistration
+	personalCalendarItems       []domain.PersonalCalendarItem
+	faculties                   []domain.Faculty
+	createError                 error
+	deleteError                 error
+	getSubjectsError            error
+	getSubjectError             error
+	getRegistrationsErr         error
+	getPersonalCalendarItemsErr error
+	getFacultiesByIDsError      error
 }
 
 func NewMockAcademicRepository() *MockAcademicRepository {
@@ -43,10 +46,35 @@ func NewMockAcademicRepository() *MockAcademicRepository {
 		},
 	}
 
+	slot := domain.TimetableSlot{
+		DayOfWeek: domain.DayOfWeekMonday,
+		Period:    domain.PeriodPeriod1,
+	}
+
+	room := domain.Room{
+		ID:    "r1",
+		Name:  "101講義室",
+		Floor: domain.Floor1,
+	}
+
+	timetableItem := domain.TimetableItem{
+		ID:      "t1",
+		Slot:    &slot,
+		Rooms:   []domain.Room{room},
+		Subject: subject,
+	}
+
 	return &MockAcademicRepository{
 		subjects: []domain.Subject{subject},
 		courseRegistrations: []domain.CourseRegistration{
 			{ID: "cr1", Subject: subject},
+		},
+		personalCalendarItems: []domain.PersonalCalendarItem{
+			{
+				Date:          time.Date(2026, 4, 1, 9, 0, 0, 0, time.UTC),
+				Slot:          slot,
+				TimetableItem: timetableItem,
+			},
 		},
 		faculties: []domain.Faculty{faculty},
 	}
@@ -65,6 +93,8 @@ func NewMockAcademicRepositoryWithError(field string, err error) *MockAcademicRe
 		m.getSubjectError = err
 	case "getRegistrations":
 		m.getRegistrationsErr = err
+	case "getPersonalCalendarItems":
+		m.getPersonalCalendarItemsErr = err
 	case "getFacultiesByIDs":
 		m.getFacultiesByIDsError = err
 	}
@@ -118,7 +148,7 @@ func (m *MockAcademicRepository) GetSubject(id string) (*domain.Subject, error) 
 	return nil, fmt.Errorf("subject not found: %s", id)
 }
 
-func (m *MockAcademicRepository) GetCourseRegistrations(_ string, _ domain.CourseSemester, _ *int) ([]domain.CourseRegistration, error) {
+func (m *MockAcademicRepository) GetCourseRegistrations(_ string, _ []domain.CourseSemester, _ *int) ([]domain.CourseRegistration, error) {
 	if m.getRegistrationsErr != nil {
 		return nil, m.getRegistrationsErr
 	}
@@ -144,5 +174,12 @@ func (m *MockAcademicRepository) DeleteCourseRegistration(_ string) error {
 }
 
 func (m *MockAcademicRepository) GetTimetableItems(_ domain.TimetableItemQuery) ([]domain.TimetableItem, error) {
-	return []domain.TimetableItem{}, nil
+	return []domain.TimetableItem{m.personalCalendarItems[0].TimetableItem}, nil
+}
+
+func (m *MockAcademicRepository) GetPersonalCalendarItems(_ string, _ []time.Time) ([]domain.PersonalCalendarItem, error) {
+	if m.getPersonalCalendarItemsErr != nil {
+		return nil, m.getPersonalCalendarItemsErr
+	}
+	return m.personalCalendarItems, nil
 }

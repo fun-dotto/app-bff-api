@@ -2,10 +2,10 @@ package domain
 
 // TimetableItem 時間割アイテム
 type TimetableItem struct {
-	ID        string
-	DayOfWeek DayOfWeek
-	Period    Period
-	Subject   Subject
+	ID      string
+	Slot    *TimetableSlot
+	Rooms   []Room
+	Subject Subject
 }
 
 // DayOfWeek 曜日
@@ -33,9 +33,34 @@ const (
 	PeriodPeriod6 Period = "Period6"
 )
 
+// Floor 教室の階数
+type Floor string
+
+const (
+	Floor1 Floor = "Floor1"
+	Floor2 Floor = "Floor2"
+	Floor3 Floor = "Floor3"
+	Floor4 Floor = "Floor4"
+	Floor5 Floor = "Floor5"
+	Floor6 Floor = "Floor6"
+	Floor7 Floor = "Floor7"
+)
+
+// TimetableSlot 時間割の曜日・時限
+type TimetableSlot struct {
+	DayOfWeek DayOfWeek
+	Period    Period
+}
+
+// Room 教室
+type Room struct {
+	ID    string
+	Name  string
+	Floor Floor
+}
+
 // TimetableItemQuery 時間割アイテム検索クエリ
 type TimetableItemQuery struct {
-	Semester  CourseSemester
+	Semesters []CourseSemester
 	Year      *int
-	DayOfWeek []DayOfWeek
 }

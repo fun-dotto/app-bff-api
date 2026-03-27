@@ -224,19 +224,19 @@ func TestAcademicService_GetCourseRegistrations(t *testing.T) {
 	year := 2026
 
 	tests := []struct {
-		name     string
-		repo     AcademicRepository
-		userID   string
-		semester domain.CourseSemester
-		year     *int
-		validate func(t *testing.T, registrations []domain.CourseRegistration, err error)
+		name      string
+		repo      AcademicRepository
+		userID    string
+		semesters []domain.CourseSemester
+		year      *int
+		validate  func(t *testing.T, registrations []domain.CourseRegistration, err error)
 	}{
 		{
-			name:     "正常系: 履修登録一覧を取得できる",
-			repo:     repository.NewMockAcademicRepository(),
-			userID:   "user1",
-			semester: domain.CourseSemesterQ1,
-			year:     &year,
+			name:      "正常系: 履修登録一覧を取得できる",
+			repo:      repository.NewMockAcademicRepository(),
+			userID:    "user1",
+			semesters: []domain.CourseSemester{domain.CourseSemesterQ1},
+			year:      &year,
 			validate: func(t *testing.T, registrations []domain.CourseRegistration, err error) {
 				require.NoError(t, err)
 				assert.Len(t, registrations, 1)
@@ -244,11 +244,11 @@ func TestAcademicService_GetCourseRegistrations(t *testing.T) {
 			},
 		},
 		{
-			name:     "異常系: リポジトリがエラーを返す場合エラーを返す",
-			repo:     repository.NewMockAcademicRepositoryWithError("getRegistrations", assert.AnError),
-			userID:   "user1",
-			semester: domain.CourseSemesterQ1,
-			year:     &year,
+			name:      "異常系: リポジトリがエラーを返す場合エラーを返す",
+			repo:      repository.NewMockAcademicRepositoryWithError("getRegistrations", assert.AnError),
+			userID:    "user1",
+			semesters: []domain.CourseSemester{domain.CourseSemesterQ1},
+			year:      &year,
 			validate: func(t *testing.T, registrations []domain.CourseRegistration, err error) {
 				require.Error(t, err)
 				assert.Nil(t, registrations)
@@ -259,7 +259,7 @@ func TestAcademicService_GetCourseRegistrations(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			svc := NewAcademicService(tt.repo)
-			registrations, err := svc.GetCourseRegistrations(tt.userID, tt.semester, tt.year)
+			registrations, err := svc.GetCourseRegistrations(tt.userID, tt.semesters, tt.year)
 			tt.validate(t, registrations, err)
 		})
 	}
