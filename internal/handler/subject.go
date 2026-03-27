@@ -53,8 +53,8 @@ func toSubjectQuery(params api.SubjectsV1ListParams) domain.SubjectQuery {
 	}
 
 	var grade []api.DottoFoundationV1Grade
-	if params.Grade != nil {
-		grade = *params.Grade
+	if params.Grades != nil {
+		grade = *params.Grades
 	}
 
 	var courses []api.DottoFoundationV1Course
@@ -63,28 +63,28 @@ func toSubjectQuery(params api.SubjectsV1ListParams) domain.SubjectQuery {
 	}
 
 	var class []api.DottoFoundationV1Class
-	if params.Class != nil {
-		class = *params.Class
+	if params.Classes != nil {
+		class = *params.Classes
 	}
 
 	var classification []api.DottoFoundationV1SubjectClassification
-	if params.Classification != nil {
-		classification = *params.Classification
+	if params.Classifications != nil {
+		classification = *params.Classifications
 	}
 
 	var semester []api.DottoFoundationV1CourseSemester
-	if params.Semester != nil {
-		semester = *params.Semester
+	if params.Semesters != nil {
+		semester = *params.Semesters
 	}
 
 	var requirementType []api.DottoFoundationV1SubjectRequirementType
-	if params.RequirementType != nil {
-		requirementType = *params.RequirementType
+	if params.RequirementTypes != nil {
+		requirementType = *params.RequirementTypes
 	}
 
 	var culturalSubjectCategory []api.DottoFoundationV1CulturalSubjectCategory
-	if params.CulturalSubjectCategory != nil {
-		culturalSubjectCategory = *params.CulturalSubjectCategory
+	if params.CulturalSubjectCategories != nil {
+		culturalSubjectCategory = *params.CulturalSubjectCategories
 	}
 
 	return domain.SubjectQuery{
