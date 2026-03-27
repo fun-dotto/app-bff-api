@@ -380,26 +380,26 @@ type SubjectsV1ListParams struct {
 	// Q 検索ワード
 	Q *string `form:"q,omitempty" json:"q,omitempty"`
 
-	// Grade 学年
-	Grade *[]DottoFoundationV1Grade `form:"grade,omitempty" json:"grade,omitempty"`
+	// Grades 学年
+	Grades *[]DottoFoundationV1Grade `form:"grades,omitempty" json:"grades,omitempty"`
 
 	// Courses コース; 大学院の場合は大学院コースに読み替え
 	Courses *[]DottoFoundationV1Course `form:"courses,omitempty" json:"courses,omitempty"`
 
-	// Class クラス; 大学院の学年を選択した場合は選択できない
-	Class *[]DottoFoundationV1Class `form:"class,omitempty" json:"class,omitempty"`
+	// Classes クラス; 大学院の学年を選択した場合は選択できない
+	Classes *[]DottoFoundationV1Class `form:"classes,omitempty" json:"classes,omitempty"`
 
-	// Classification 学部: 専門・教養; 大学院: 専門・研究指導
-	Classification *[]DottoFoundationV1SubjectClassification `form:"classification,omitempty" json:"classification,omitempty"`
+	// Classifications 学部: 専門・教養; 大学院: 専門・研究指導
+	Classifications *[]DottoFoundationV1SubjectClassification `form:"classifications,omitempty" json:"classifications,omitempty"`
 
-	// Semester 開講時期
-	Semester *[]DottoFoundationV1CourseSemester `form:"semester,omitempty" json:"semester,omitempty"`
+	// Semesters 開講時期
+	Semesters *[]DottoFoundationV1CourseSemester `form:"semesters,omitempty" json:"semesters,omitempty"`
 
-	// RequirementType 必修・選択・選択必修
-	RequirementType *[]DottoFoundationV1SubjectRequirementType `form:"requirementType,omitempty" json:"requirementType,omitempty"`
+	// RequirementTypes 必修・選択・選択必修
+	RequirementTypes *[]DottoFoundationV1SubjectRequirementType `form:"requirementTypes,omitempty" json:"requirementTypes,omitempty"`
 
-	// CulturalSubjectCategory 教養科目カテゴリ
-	CulturalSubjectCategory *[]DottoFoundationV1CulturalSubjectCategory `form:"culturalSubjectCategory,omitempty" json:"culturalSubjectCategory,omitempty"`
+	// CulturalSubjectCategories 教養科目カテゴリ
+	CulturalSubjectCategories *[]DottoFoundationV1CulturalSubjectCategory `form:"culturalSubjectCategories,omitempty" json:"culturalSubjectCategories,omitempty"`
 }
 
 // TimetableItemsV1ListParams defines parameters for TimetableItemsV1List.
@@ -630,11 +630,11 @@ func (siw *ServerInterfaceWrapper) SubjectsV1List(c *gin.Context) {
 		return
 	}
 
-	// ------------- Optional query parameter "grade" -------------
+	// ------------- Optional query parameter "grades" -------------
 
-	err = runtime.BindQueryParameter("form", false, false, "grade", c.Request.URL.Query(), &params.Grade)
+	err = runtime.BindQueryParameter("form", false, false, "grades", c.Request.URL.Query(), &params.Grades)
 	if err != nil {
-		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter grade: %w", err), http.StatusBadRequest)
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter grades: %w", err), http.StatusBadRequest)
 		return
 	}
 
@@ -646,43 +646,43 @@ func (siw *ServerInterfaceWrapper) SubjectsV1List(c *gin.Context) {
 		return
 	}
 
-	// ------------- Optional query parameter "class" -------------
+	// ------------- Optional query parameter "classes" -------------
 
-	err = runtime.BindQueryParameter("form", false, false, "class", c.Request.URL.Query(), &params.Class)
+	err = runtime.BindQueryParameter("form", false, false, "classes", c.Request.URL.Query(), &params.Classes)
 	if err != nil {
-		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter class: %w", err), http.StatusBadRequest)
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter classes: %w", err), http.StatusBadRequest)
 		return
 	}
 
-	// ------------- Optional query parameter "classification" -------------
+	// ------------- Optional query parameter "classifications" -------------
 
-	err = runtime.BindQueryParameter("form", false, false, "classification", c.Request.URL.Query(), &params.Classification)
+	err = runtime.BindQueryParameter("form", false, false, "classifications", c.Request.URL.Query(), &params.Classifications)
 	if err != nil {
-		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter classification: %w", err), http.StatusBadRequest)
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter classifications: %w", err), http.StatusBadRequest)
 		return
 	}
 
-	// ------------- Optional query parameter "semester" -------------
+	// ------------- Optional query parameter "semesters" -------------
 
-	err = runtime.BindQueryParameter("form", false, false, "semester", c.Request.URL.Query(), &params.Semester)
+	err = runtime.BindQueryParameter("form", false, false, "semesters", c.Request.URL.Query(), &params.Semesters)
 	if err != nil {
-		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter semester: %w", err), http.StatusBadRequest)
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter semesters: %w", err), http.StatusBadRequest)
 		return
 	}
 
-	// ------------- Optional query parameter "requirementType" -------------
+	// ------------- Optional query parameter "requirementTypes" -------------
 
-	err = runtime.BindQueryParameter("form", false, false, "requirementType", c.Request.URL.Query(), &params.RequirementType)
+	err = runtime.BindQueryParameter("form", false, false, "requirementTypes", c.Request.URL.Query(), &params.RequirementTypes)
 	if err != nil {
-		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter requirementType: %w", err), http.StatusBadRequest)
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter requirementTypes: %w", err), http.StatusBadRequest)
 		return
 	}
 
-	// ------------- Optional query parameter "culturalSubjectCategory" -------------
+	// ------------- Optional query parameter "culturalSubjectCategories" -------------
 
-	err = runtime.BindQueryParameter("form", false, false, "culturalSubjectCategory", c.Request.URL.Query(), &params.CulturalSubjectCategory)
+	err = runtime.BindQueryParameter("form", false, false, "culturalSubjectCategories", c.Request.URL.Query(), &params.CulturalSubjectCategories)
 	if err != nil {
-		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter culturalSubjectCategory: %w", err), http.StatusBadRequest)
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter culturalSubjectCategories: %w", err), http.StatusBadRequest)
 		return
 	}
 

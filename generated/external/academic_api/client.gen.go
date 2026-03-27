@@ -365,6 +365,7 @@ type TimetableItem struct {
 
 // TimetableItemRequest defines model for TimetableItemRequest.
 type TimetableItemRequest struct {
+	RoomIds   []string                        `json:"roomIds"`
 	Slot      *DottoFoundationV1TimetableSlot `json:"slot,omitempty"`
 	SubjectId string                          `json:"subjectId"`
 }
