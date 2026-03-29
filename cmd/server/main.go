@@ -40,12 +40,6 @@ func main() {
 
 	router := gin.Default()
 
-	// App Check ミドルウェアを適用
-	router.Use(middleware.AppCheckMiddleware(appCheckClient))
-
-	// Auth ミドルウェアを適用
-	router.Use(middleware.AuthMiddleware(authClient))
-
 	// 外部APIクライアントを初期化
 	clients, err := infrastructure.NewExternalClients(ctx)
 	if err != nil {
@@ -68,8 +62,12 @@ func main() {
 	)
 
 	strictHandler := api.NewStrictHandler(h, nil)
-
-	api.RegisterHandlers(router, strictHandler)
+	api.RegisterHandlersWithOptions(router, strictHandler, api.GinServerOptions{
+		Middlewares: []api.MiddlewareFunc{
+			api.MiddlewareFunc(middleware.AppCheckMiddleware(appCheckClient)),
+			api.MiddlewareFunc(middleware.AuthMiddleware(authClient)),
+		},
+	})
 
 	log.Println("Server starting on :8080")
 	if err := router.Run(":8080"); err != nil {
