@@ -16,7 +16,8 @@ import (
 )
 
 const (
-	BearerAuthScopes = "BearerAuth.Scopes"
+	BearerAuthScopes           = "BearerAuth.Scopes"
+	FirebaseAppCheckAuthScopes = "FirebaseAppCheckAuth.Scopes"
 )
 
 // Defines values for DottoFoundationV1Class.
@@ -466,7 +467,7 @@ type MiddlewareFunc func(c *gin.Context)
 // AnnouncementsV0List operation middleware
 func (siw *ServerInterfaceWrapper) AnnouncementsV0List(c *gin.Context) {
 
-	c.Set(BearerAuthScopes, []string{})
+	c.Set(FirebaseAppCheckAuthScopes, []string{})
 
 	for _, middleware := range siw.HandlerMiddlewares {
 		middleware(c)
@@ -481,7 +482,7 @@ func (siw *ServerInterfaceWrapper) AnnouncementsV0List(c *gin.Context) {
 // AnnouncementsV1List operation middleware
 func (siw *ServerInterfaceWrapper) AnnouncementsV1List(c *gin.Context) {
 
-	c.Set(BearerAuthScopes, []string{})
+	c.Set(FirebaseAppCheckAuthScopes, []string{})
 
 	for _, middleware := range siw.HandlerMiddlewares {
 		middleware(c)
@@ -499,6 +500,8 @@ func (siw *ServerInterfaceWrapper) CourseRegistrationsV1List(c *gin.Context) {
 	var err error
 
 	c.Set(BearerAuthScopes, []string{})
+
+	c.Set(FirebaseAppCheckAuthScopes, []string{})
 
 	// Parameter object where we will unmarshal all parameters from the context
 	var params CourseRegistrationsV1ListParams
@@ -541,6 +544,8 @@ func (siw *ServerInterfaceWrapper) CourseRegistrationsV1Create(c *gin.Context) {
 
 	c.Set(BearerAuthScopes, []string{})
 
+	c.Set(FirebaseAppCheckAuthScopes, []string{})
+
 	for _, middleware := range siw.HandlerMiddlewares {
 		middleware(c)
 		if c.IsAborted() {
@@ -567,6 +572,8 @@ func (siw *ServerInterfaceWrapper) CourseRegistrationsV1Delete(c *gin.Context) {
 
 	c.Set(BearerAuthScopes, []string{})
 
+	c.Set(FirebaseAppCheckAuthScopes, []string{})
+
 	for _, middleware := range siw.HandlerMiddlewares {
 		middleware(c)
 		if c.IsAborted() {
@@ -583,6 +590,8 @@ func (siw *ServerInterfaceWrapper) PersonalCalendarItemsV1List(c *gin.Context) {
 	var err error
 
 	c.Set(BearerAuthScopes, []string{})
+
+	c.Set(FirebaseAppCheckAuthScopes, []string{})
 
 	// Parameter object where we will unmarshal all parameters from the context
 	var params PersonalCalendarItemsV1ListParams
@@ -617,7 +626,7 @@ func (siw *ServerInterfaceWrapper) SubjectsV1List(c *gin.Context) {
 
 	var err error
 
-	c.Set(BearerAuthScopes, []string{})
+	c.Set(FirebaseAppCheckAuthScopes, []string{})
 
 	// Parameter object where we will unmarshal all parameters from the context
 	var params SubjectsV1ListParams
@@ -710,7 +719,7 @@ func (siw *ServerInterfaceWrapper) SubjectsV1Detail(c *gin.Context) {
 		return
 	}
 
-	c.Set(BearerAuthScopes, []string{})
+	c.Set(FirebaseAppCheckAuthScopes, []string{})
 
 	for _, middleware := range siw.HandlerMiddlewares {
 		middleware(c)
@@ -727,7 +736,7 @@ func (siw *ServerInterfaceWrapper) TimetableItemsV1List(c *gin.Context) {
 
 	var err error
 
-	c.Set(BearerAuthScopes, []string{})
+	c.Set(FirebaseAppCheckAuthScopes, []string{})
 
 	// Parameter object where we will unmarshal all parameters from the context
 	var params TimetableItemsV1ListParams
@@ -770,6 +779,8 @@ func (siw *ServerInterfaceWrapper) UsersV1Detail(c *gin.Context) {
 
 	c.Set(BearerAuthScopes, []string{})
 
+	c.Set(FirebaseAppCheckAuthScopes, []string{})
+
 	for _, middleware := range siw.HandlerMiddlewares {
 		middleware(c)
 		if c.IsAborted() {
@@ -784,6 +795,8 @@ func (siw *ServerInterfaceWrapper) UsersV1Detail(c *gin.Context) {
 func (siw *ServerInterfaceWrapper) UsersV1Upsert(c *gin.Context) {
 
 	c.Set(BearerAuthScopes, []string{})
+
+	c.Set(FirebaseAppCheckAuthScopes, []string{})
 
 	for _, middleware := range siw.HandlerMiddlewares {
 		middleware(c)

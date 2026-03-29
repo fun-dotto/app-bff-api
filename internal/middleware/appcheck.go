@@ -5,12 +5,18 @@ import (
 	"strings"
 
 	"firebase.google.com/go/v4/appcheck"
+	api "github.com/fun-dotto/app-bff-api/generated"
 	"github.com/gin-gonic/gin"
 )
 
 // AppCheckMiddleware returns a Gin middleware that verifies Firebase App Check tokens.
 func AppCheckMiddleware(appCheckClient *appcheck.Client) gin.HandlerFunc {
 	return func(c *gin.Context) {
+		if !requiresFirebaseAppCheck(c) {
+			c.Next()
+			return
+		}
+
 		token := c.GetHeader("X-Firebase-AppCheck")
 		if token == "" {
 			message := "X-Firebase-AppCheck header is required"
@@ -27,4 +33,9 @@ func AppCheckMiddleware(appCheckClient *appcheck.Client) gin.HandlerFunc {
 
 		c.Next()
 	}
+}
+
+func requiresFirebaseAppCheck(c *gin.Context) bool {
+	_, ok := c.Get(api.FirebaseAppCheckAuthScopes)
+	return ok
 }
