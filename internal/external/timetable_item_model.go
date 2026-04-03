@@ -38,12 +38,11 @@ func ToExternalTimetableItemQuery(q domain.TimetableItemQuery) *academic_api.Tim
 // ToDomainPersonalCalendarItem は外部APIのPersonalCalendarItemをDomainに変換する
 func ToDomainPersonalCalendarItem(m academic_api.PersonalCalendarItem) domain.PersonalCalendarItem {
 	return domain.PersonalCalendarItem{
-		Date: m.Date,
-		Slot: domain.TimetableSlot{
-			DayOfWeek: domain.DayOfWeek(m.Slot.DayOfWeek),
-			Period:    domain.Period(m.Slot.Period),
-		},
-		TimetableItem: ToDomainTimetableItem(m.TimetableItem),
+		Date:    m.Date,
+		Period:  domain.Period(m.Period),
+		Rooms:   toDomainRooms(m.Rooms),
+		Status:  domain.PersonalCalendarItemStatus(m.Status),
+		Subject: ToDomainSubjectSummary(m.Subject),
 	}
 }
 

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"testing"
+	"time"
 
 	api "github.com/fun-dotto/app-bff-api/generated"
 	"github.com/fun-dotto/app-bff-api/internal/repository"
@@ -146,6 +147,80 @@ func TestUsersV1Upsert(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			resp, err := tt.handler.UsersV1Upsert(tt.ctx, api.UsersV1UpsertRequestObject{
+				Body: tt.body,
+			})
+			tt.validate(t, resp, err)
+		})
+	}
+}
+
+func TestFCMTokenV1Upsert(t *testing.T) {
+	tests := []struct {
+		name     string
+		ctx      context.Context
+		handler  *Handler
+		body     *api.FCMTokenV1UpsertJSONRequestBody
+		validate func(t *testing.T, resp api.FCMTokenV1UpsertResponseObject, err error)
+	}{
+		{
+			name:    "正常にFCMトークンを作成・更新できる",
+			ctx:     ctxWithUserID("user1"),
+			handler: NewHandler(WithUserService(service.NewUserService(repository.NewMockUserRepository()))),
+			body:    &api.FCMTokenV1UpsertJSONRequestBody{Token: "fcm-token-1"},
+			validate: func(t *testing.T, resp api.FCMTokenV1UpsertResponseObject, err error) {
+				require.NoError(t, err)
+				result, ok := resp.(api.FCMTokenV1Upsert200JSONResponse)
+				require.True(t, ok, "レスポンスが200 JSONレスポンスではありません")
+				assert.Equal(t, "fcm-token-1", result.FcmToken.Token)
+				assert.WithinDuration(t, time.Now(), result.FcmToken.CreatedAt, time.Minute)
+				assert.WithinDuration(t, time.Now(), result.FcmToken.UpdatedAt, time.Minute)
+			},
+		},
+		{
+			name:    "userServiceが未設定の場合エラーを返す",
+			ctx:     ctxWithUserID("user1"),
+			handler: NewHandler(),
+			body:    &api.FCMTokenV1UpsertJSONRequestBody{Token: "fcm-token-1"},
+			validate: func(t *testing.T, resp api.FCMTokenV1UpsertResponseObject, err error) {
+				require.Error(t, err)
+				assert.ErrorIs(t, err, errUserServiceNotConfigured)
+			},
+		},
+		{
+			name:    "コンテキストにユーザーIDがない場合エラーを返す",
+			ctx:     context.Background(),
+			handler: NewHandler(WithUserService(service.NewUserService(repository.NewMockUserRepository()))),
+			body:    &api.FCMTokenV1UpsertJSONRequestBody{Token: "fcm-token-1"},
+			validate: func(t *testing.T, resp api.FCMTokenV1UpsertResponseObject, err error) {
+				require.Error(t, err)
+				assert.Contains(t, err.Error(), "user ID not found in context")
+			},
+		},
+		{
+			name:    "リクエストボディがnilの場合エラーを返す",
+			ctx:     ctxWithUserID("user1"),
+			handler: NewHandler(WithUserService(service.NewUserService(repository.NewMockUserRepository()))),
+			body:    nil,
+			validate: func(t *testing.T, resp api.FCMTokenV1UpsertResponseObject, err error) {
+				require.Error(t, err)
+				assert.Contains(t, err.Error(), "request body is required")
+			},
+		},
+		{
+			name:    "serviceがエラーを返す場合エラーを返す",
+			ctx:     ctxWithUserID("user1"),
+			handler: NewHandler(WithUserService(service.NewUserService(repository.NewMockUserRepositoryWithError("upsertFCMToken", fmt.Errorf("db error"))))),
+			body:    &api.FCMTokenV1UpsertJSONRequestBody{Token: "fcm-token-1"},
+			validate: func(t *testing.T, resp api.FCMTokenV1UpsertResponseObject, err error) {
+				require.Error(t, err)
+				assert.Contains(t, err.Error(), "failed to upsert fcm token")
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			resp, err := tt.handler.FCMTokenV1Upsert(tt.ctx, api.FCMTokenV1UpsertRequestObject{
 				Body: tt.body,
 			})
 			tt.validate(t, resp, err)

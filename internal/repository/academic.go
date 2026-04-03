@@ -53,10 +53,7 @@ func (r *AcademicRepository) GetFacultiesByIDs(ids []string) (map[string]domain.
 		return make(map[string]domain.Faculty), nil
 	}
 
-	params := &academic_api.FacultiesV1ListParams{
-		Ids: &ids,
-	}
-	response, err := r.client.FacultiesV1ListWithResponse(context.Background(), params)
+	response, err := r.client.FacultiesV1ListWithResponse(context.Background(), nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to call academic API: %w", err)
 	}
@@ -65,9 +62,16 @@ func (r *AcademicRepository) GetFacultiesByIDs(ids []string) (map[string]domain.
 		return nil, fmt.Errorf("failed to get faculties by IDs: status %d", response.StatusCode())
 	}
 
-	result := make(map[string]domain.Faculty, len(response.JSON200.Faculties))
+	idSet := make(map[string]struct{}, len(ids))
+	for _, id := range ids {
+		idSet[id] = struct{}{}
+	}
+
+	result := make(map[string]domain.Faculty, len(ids))
 	for _, f := range response.JSON200.Faculties {
-		result[f.Id] = external.ToDomainFaculty(f)
+		if _, ok := idSet[f.Id]; ok {
+			result[f.Id] = external.ToDomainFaculty(f)
+		}
 	}
 
 	return result, nil

@@ -38,11 +38,10 @@ func (h *Handler) PersonalCalendarItemsV1List(ctx context.Context, request api.P
 
 func toAPIPersonalCalendarItem(item domain.PersonalCalendarItem) api.PersonalCalendarItem {
 	return api.PersonalCalendarItem{
-		Date: item.Date,
-		Slot: api.DottoFoundationV1TimetableSlot{
-			DayOfWeek: api.DottoFoundationV1DayOfWeek(item.Slot.DayOfWeek),
-			Period:    api.DottoFoundationV1Period(item.Slot.Period),
-		},
-		TimetableItem: toApiTimetableItem(item.TimetableItem),
+		Date:    item.Date,
+		Period:  api.DottoFoundationV1Period(item.Period),
+		Rooms:   toApiRooms(item.Rooms),
+		Status:  api.DottoFoundationV1PersonalCalendarItemStatus(item.Status),
+		Subject: toApiSubjectSummary(item.Subject),
 	}
 }

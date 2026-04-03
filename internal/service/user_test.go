@@ -2,6 +2,7 @@ package service
 
 import (
 	"testing"
+	"time"
 
 	"github.com/fun-dotto/app-bff-api/internal/domain"
 	"github.com/fun-dotto/app-bff-api/internal/repository"
@@ -128,6 +129,47 @@ func TestUserService_UpsertUser(t *testing.T) {
 			svc := NewUserService(tt.repo)
 			user, err := svc.UpsertUser(tt.userID, tt.req)
 			tt.validate(t, user, err)
+		})
+	}
+}
+
+func TestUserService_UpsertFCMToken(t *testing.T) {
+	tests := []struct {
+		name     string
+		repo     UserRepository
+		userID   string
+		req      domain.FCMTokenRequest
+		validate func(t *testing.T, token *domain.FCMToken, err error)
+	}{
+		{
+			name:   "正常系: FCMトークンを作成・更新できる",
+			repo:   repository.NewMockUserRepository(),
+			userID: "user1",
+			req:    domain.FCMTokenRequest{Token: "fcm-token-1"},
+			validate: func(t *testing.T, token *domain.FCMToken, err error) {
+				require.NoError(t, err)
+				assert.Equal(t, "fcm-token-1", token.Token)
+				assert.WithinDuration(t, time.Now(), token.CreatedAt, time.Minute)
+				assert.WithinDuration(t, time.Now(), token.UpdatedAt, time.Minute)
+			},
+		},
+		{
+			name:   "異常系: リポジトリがエラーを返す場合エラーを返す",
+			repo:   repository.NewMockUserRepositoryWithError("upsertFCMToken", assert.AnError),
+			userID: "user1",
+			req:    domain.FCMTokenRequest{Token: "fcm-token-1"},
+			validate: func(t *testing.T, token *domain.FCMToken, err error) {
+				require.Error(t, err)
+				assert.Nil(t, token)
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			svc := NewUserService(tt.repo)
+			token, err := svc.UpsertFCMToken(tt.userID, tt.req)
+			tt.validate(t, token, err)
 		})
 	}
 }

@@ -31,7 +31,8 @@ func TestPersonalCalendarItemsV1List(t *testing.T) {
 				result, ok := resp.(api.PersonalCalendarItemsV1List200JSONResponse)
 				require.True(t, ok)
 				assert.Len(t, result.PersonalCalendarItems, 1)
-				assert.Equal(t, "t1", result.PersonalCalendarItems[0].TimetableItem.Id)
+				assert.Equal(t, api.DottoFoundationV1Period("Period1"), result.PersonalCalendarItems[0].Period)
+				assert.Equal(t, "s1", result.PersonalCalendarItems[0].Subject.Id)
 			},
 		},
 		{

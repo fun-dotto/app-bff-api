@@ -37,13 +37,14 @@ const (
 type Floor string
 
 const (
-	Floor1 Floor = "Floor1"
-	Floor2 Floor = "Floor2"
-	Floor3 Floor = "Floor3"
-	Floor4 Floor = "Floor4"
-	Floor5 Floor = "Floor5"
-	Floor6 Floor = "Floor6"
-	Floor7 Floor = "Floor7"
+	Floor1       Floor = "Floor1"
+	Floor2       Floor = "Floor2"
+	Floor3       Floor = "Floor3"
+	Floor4       Floor = "Floor4"
+	Floor5       Floor = "Floor5"
+	Floor6       Floor = "Floor6"
+	Floor7       Floor = "Floor7"
+	FloorVirtual Floor = "Virtual"
 )
 
 // TimetableSlot 時間割の曜日・時限

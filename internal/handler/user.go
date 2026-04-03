@@ -60,6 +60,30 @@ func (h *Handler) UsersV1Upsert(ctx context.Context, request api.UsersV1UpsertRe
 	}, nil
 }
 
+// FCMTokenV1Upsert FCMトークンを作成または更新する
+func (h *Handler) FCMTokenV1Upsert(ctx context.Context, request api.FCMTokenV1UpsertRequestObject) (api.FCMTokenV1UpsertResponseObject, error) {
+	if h.userService == nil {
+		return nil, errUserServiceNotConfigured
+	}
+	if request.Body == nil {
+		return nil, fmt.Errorf("request body is required")
+	}
+
+	userID, ok := middleware.UserIDFromContext(ctx)
+	if !ok {
+		return nil, fmt.Errorf("user ID not found in context: %w", fmt.Errorf("%d", http.StatusUnauthorized))
+	}
+
+	token, err := h.userService.UpsertFCMToken(userID, domain.FCMTokenRequest{Token: request.Body.Token})
+	if err != nil {
+		return nil, fmt.Errorf("failed to upsert fcm token: %w", err)
+	}
+
+	return api.FCMTokenV1Upsert200JSONResponse{
+		FcmToken: toApiFCMToken(*token),
+	}, nil
+}
+
 func toApiUserInfo(user domain.User) api.UserInfo {
 	info := api.UserInfo{}
 	if user.Grade != nil {
@@ -92,4 +116,12 @@ func toDomainUserRequest(body api.UsersV1UpsertJSONRequestBody) domain.UserReque
 		req.Class = &cl
 	}
 	return req
+}
+
+func toApiFCMToken(token domain.FCMToken) api.FCMToken {
+	return api.FCMToken{
+		Token:     token.Token,
+		CreatedAt: token.CreatedAt,
+		UpdatedAt: token.UpdatedAt,
+	}
 }

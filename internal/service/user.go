@@ -5,6 +5,7 @@ import "github.com/fun-dotto/app-bff-api/internal/domain"
 type UserRepository interface {
 	GetUser(id string) (*domain.User, error)
 	UpsertUser(id string, req domain.UserRequest) (*domain.User, error)
+	UpsertFCMToken(userID string, req domain.FCMTokenRequest) (*domain.FCMToken, error)
 }
 
 type UserService struct {
@@ -21,4 +22,8 @@ func (s *UserService) GetUser(id string) (*domain.User, error) {
 
 func (s *UserService) UpsertUser(id string, req domain.UserRequest) (*domain.User, error) {
 	return s.repository.UpsertUser(id, req)
+}
+
+func (s *UserService) UpsertFCMToken(userID string, req domain.FCMTokenRequest) (*domain.FCMToken, error) {
+	return s.repository.UpsertFCMToken(userID, req)
 }

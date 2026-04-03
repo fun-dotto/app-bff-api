@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	api "github.com/fun-dotto/app-bff-api/generated"
+	"github.com/fun-dotto/app-bff-api/internal/domain"
 )
 
 func (h *Handler) AnnouncementsV1List(ctx context.Context, request api.AnnouncementsV1ListRequestObject) (api.AnnouncementsV1ListResponseObject, error) {
@@ -25,4 +26,14 @@ func (h *Handler) AnnouncementsV1List(ctx context.Context, request api.Announcem
 	return api.AnnouncementsV1List200JSONResponse{
 		Announcements: apiAnnouncements,
 	}, nil
+}
+
+// toApiAnnouncement はDomainのお知らせをAPIのお知らせに変換する
+func toApiAnnouncement(announcement domain.Announcement) api.Announcement {
+	return api.Announcement{
+		Id:    announcement.ID,
+		Title: announcement.Title,
+		Date:  announcement.AvailableFrom,
+		Url:   announcement.URL,
+	}
 }

@@ -57,13 +57,6 @@ func NewMockAcademicRepository() *MockAcademicRepository {
 		Floor: domain.Floor1,
 	}
 
-	timetableItem := domain.TimetableItem{
-		ID:      "t1",
-		Slot:    &slot,
-		Rooms:   []domain.Room{room},
-		Subject: subject,
-	}
-
 	return &MockAcademicRepository{
 		subjects: []domain.Subject{subject},
 		courseRegistrations: []domain.CourseRegistration{
@@ -71,9 +64,11 @@ func NewMockAcademicRepository() *MockAcademicRepository {
 		},
 		personalCalendarItems: []domain.PersonalCalendarItem{
 			{
-				Date:          time.Date(2026, 4, 1, 9, 0, 0, 0, time.UTC),
-				Slot:          slot,
-				TimetableItem: timetableItem,
+				Date:    time.Date(2026, 4, 1, 9, 0, 0, 0, time.UTC),
+				Period:  slot.Period,
+				Rooms:   []domain.Room{room},
+				Status:  domain.PersonalCalendarItemStatusNormal,
+				Subject: subject,
 			},
 		},
 		faculties: []domain.Faculty{faculty},
@@ -174,7 +169,14 @@ func (m *MockAcademicRepository) DeleteCourseRegistration(_ string) error {
 }
 
 func (m *MockAcademicRepository) GetTimetableItems(_ domain.TimetableItemQuery) ([]domain.TimetableItem, error) {
-	return []domain.TimetableItem{m.personalCalendarItems[0].TimetableItem}, nil
+	return []domain.TimetableItem{
+		{
+			ID:      "t1",
+			Slot:    &domain.TimetableSlot{DayOfWeek: domain.DayOfWeekMonday, Period: m.personalCalendarItems[0].Period},
+			Rooms:   m.personalCalendarItems[0].Rooms,
+			Subject: m.personalCalendarItems[0].Subject,
+		},
+	}, nil
 }
 
 func (m *MockAcademicRepository) GetPersonalCalendarItems(_ string, _ []time.Time) ([]domain.PersonalCalendarItem, error) {
