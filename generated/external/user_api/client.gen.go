@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"time"
 
 	"github.com/oapi-codegen/runtime"
 )
@@ -63,6 +64,27 @@ type DottoFoundationV1Course string
 // DottoFoundationV1Grade 学年
 type DottoFoundationV1Grade string
 
+// FCMToken defines model for FCMToken.
+type FCMToken struct {
+	// CreatedAt 作成日時
+	CreatedAt time.Time `json:"createdAt"`
+
+	// Token FCMトークン
+	Token string `json:"token"`
+
+	// UpdatedAt 更新日時
+	UpdatedAt time.Time `json:"updatedAt"`
+
+	// UserId ユーザーID
+	UserId string `json:"userId"`
+}
+
+// FCMTokenRequest defines model for FCMTokenRequest.
+type FCMTokenRequest struct {
+	Token  string `json:"token"`
+	UserId string `json:"userId"`
+}
+
 // User defines model for User.
 type User struct {
 	// Class クラス
@@ -70,7 +92,11 @@ type User struct {
 
 	// Course コース
 	Course *DottoFoundationV1Course `json:"course,omitempty"`
-	Email  string                   `json:"email"`
+
+	// Email メールアドレス
+	//
+	// Firebase Authentication のメールアドレス
+	Email string `json:"email"`
 
 	// Grade 学年
 	Grade *DottoFoundationV1Grade `json:"grade,omitempty"`
@@ -93,6 +119,24 @@ type UserRequest struct {
 	// Grade 学年
 	Grade *DottoFoundationV1Grade `json:"grade,omitempty"`
 }
+
+// FCMTokenV1ListParams defines parameters for FCMTokenV1List.
+type FCMTokenV1ListParams struct {
+	// UserIds ユーザーIDの一覧
+	UserIds *[]string `form:"userIds,omitempty" json:"userIds,omitempty"`
+
+	// Tokens FCMトークンの一覧
+	Tokens *[]string `form:"tokens,omitempty" json:"tokens,omitempty"`
+
+	// UpdatedAtFrom 更新日時の開始日時 (updatedAt >= updatedAtFrom)
+	UpdatedAtFrom *time.Time `form:"updatedAtFrom,omitempty" json:"updatedAtFrom,omitempty"`
+
+	// UpdatedAtTo 更新日時の終了日時 (updatedAt <= updatedAtTo)
+	UpdatedAtTo *time.Time `form:"updatedAtTo,omitempty" json:"updatedAtTo,omitempty"`
+}
+
+// FCMTokenV1UpsertJSONRequestBody defines body for FCMTokenV1Upsert for application/json ContentType.
+type FCMTokenV1UpsertJSONRequestBody = FCMTokenRequest
 
 // UsersV1UpsertJSONRequestBody defines body for UsersV1Upsert for application/json ContentType.
 type UsersV1UpsertJSONRequestBody = UserRequest
@@ -170,6 +214,17 @@ func WithRequestEditorFn(fn RequestEditorFn) ClientOption {
 
 // The interface specification for the client above.
 type ClientInterface interface {
+	// FCMTokenV1List request
+	FCMTokenV1List(ctx context.Context, params *FCMTokenV1ListParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// FCMTokenV1UpsertWithBody request with any body
+	FCMTokenV1UpsertWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	FCMTokenV1Upsert(ctx context.Context, body FCMTokenV1UpsertJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// UsersV1List request
+	UsersV1List(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// UsersV1Detail request
 	UsersV1Detail(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -177,6 +232,54 @@ type ClientInterface interface {
 	UsersV1UpsertWithBody(ctx context.Context, id string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	UsersV1Upsert(ctx context.Context, id string, body UsersV1UpsertJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+}
+
+func (c *Client) FCMTokenV1List(ctx context.Context, params *FCMTokenV1ListParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewFCMTokenV1ListRequest(c.Server, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) FCMTokenV1UpsertWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewFCMTokenV1UpsertRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) FCMTokenV1Upsert(ctx context.Context, body FCMTokenV1UpsertJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewFCMTokenV1UpsertRequest(c.Server, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UsersV1List(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUsersV1ListRequest(c.Server)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
 }
 
 func (c *Client) UsersV1Detail(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error) {
@@ -213,6 +316,170 @@ func (c *Client) UsersV1Upsert(ctx context.Context, id string, body UsersV1Upser
 		return nil, err
 	}
 	return c.Client.Do(req)
+}
+
+// NewFCMTokenV1ListRequest generates requests for FCMTokenV1List
+func NewFCMTokenV1ListRequest(server string, params *FCMTokenV1ListParams) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/v1/fcmTokens")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.UserIds != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", false, "userIds", runtime.ParamLocationQuery, *params.UserIds); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Tokens != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", false, "tokens", runtime.ParamLocationQuery, *params.Tokens); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.UpdatedAtFrom != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", false, "updatedAtFrom", runtime.ParamLocationQuery, *params.UpdatedAtFrom); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.UpdatedAtTo != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", false, "updatedAtTo", runtime.ParamLocationQuery, *params.UpdatedAtTo); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewFCMTokenV1UpsertRequest calls the generic FCMTokenV1Upsert builder with application/json body
+func NewFCMTokenV1UpsertRequest(server string, body FCMTokenV1UpsertJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewFCMTokenV1UpsertRequestWithBody(server, "application/json", bodyReader)
+}
+
+// NewFCMTokenV1UpsertRequestWithBody generates requests for FCMTokenV1Upsert with any type of body
+func NewFCMTokenV1UpsertRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/v1/fcmTokens")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewUsersV1ListRequest generates requests for UsersV1List
+func NewUsersV1ListRequest(server string) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/v1/users")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
 }
 
 // NewUsersV1DetailRequest generates requests for UsersV1Detail
@@ -339,6 +606,17 @@ func WithBaseURL(baseURL string) ClientOption {
 
 // ClientWithResponsesInterface is the interface specification for the client with responses above.
 type ClientWithResponsesInterface interface {
+	// FCMTokenV1ListWithResponse request
+	FCMTokenV1ListWithResponse(ctx context.Context, params *FCMTokenV1ListParams, reqEditors ...RequestEditorFn) (*FCMTokenV1ListResponse, error)
+
+	// FCMTokenV1UpsertWithBodyWithResponse request with any body
+	FCMTokenV1UpsertWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*FCMTokenV1UpsertResponse, error)
+
+	FCMTokenV1UpsertWithResponse(ctx context.Context, body FCMTokenV1UpsertJSONRequestBody, reqEditors ...RequestEditorFn) (*FCMTokenV1UpsertResponse, error)
+
+	// UsersV1ListWithResponse request
+	UsersV1ListWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*UsersV1ListResponse, error)
+
 	// UsersV1DetailWithResponse request
 	UsersV1DetailWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*UsersV1DetailResponse, error)
 
@@ -346,6 +624,78 @@ type ClientWithResponsesInterface interface {
 	UsersV1UpsertWithBodyWithResponse(ctx context.Context, id string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UsersV1UpsertResponse, error)
 
 	UsersV1UpsertWithResponse(ctx context.Context, id string, body UsersV1UpsertJSONRequestBody, reqEditors ...RequestEditorFn) (*UsersV1UpsertResponse, error)
+}
+
+type FCMTokenV1ListResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		FcmTokens []FCMToken `json:"fcmTokens"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r FCMTokenV1ListResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r FCMTokenV1ListResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type FCMTokenV1UpsertResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		FcmToken FCMToken `json:"fcmToken"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r FCMTokenV1UpsertResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r FCMTokenV1UpsertResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type UsersV1ListResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		Users []User `json:"users"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r UsersV1ListResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r UsersV1ListResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
 }
 
 type UsersV1DetailResponse struct {
@@ -396,6 +746,41 @@ func (r UsersV1UpsertResponse) StatusCode() int {
 	return 0
 }
 
+// FCMTokenV1ListWithResponse request returning *FCMTokenV1ListResponse
+func (c *ClientWithResponses) FCMTokenV1ListWithResponse(ctx context.Context, params *FCMTokenV1ListParams, reqEditors ...RequestEditorFn) (*FCMTokenV1ListResponse, error) {
+	rsp, err := c.FCMTokenV1List(ctx, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseFCMTokenV1ListResponse(rsp)
+}
+
+// FCMTokenV1UpsertWithBodyWithResponse request with arbitrary body returning *FCMTokenV1UpsertResponse
+func (c *ClientWithResponses) FCMTokenV1UpsertWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*FCMTokenV1UpsertResponse, error) {
+	rsp, err := c.FCMTokenV1UpsertWithBody(ctx, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseFCMTokenV1UpsertResponse(rsp)
+}
+
+func (c *ClientWithResponses) FCMTokenV1UpsertWithResponse(ctx context.Context, body FCMTokenV1UpsertJSONRequestBody, reqEditors ...RequestEditorFn) (*FCMTokenV1UpsertResponse, error) {
+	rsp, err := c.FCMTokenV1Upsert(ctx, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseFCMTokenV1UpsertResponse(rsp)
+}
+
+// UsersV1ListWithResponse request returning *UsersV1ListResponse
+func (c *ClientWithResponses) UsersV1ListWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*UsersV1ListResponse, error) {
+	rsp, err := c.UsersV1List(ctx, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUsersV1ListResponse(rsp)
+}
+
 // UsersV1DetailWithResponse request returning *UsersV1DetailResponse
 func (c *ClientWithResponses) UsersV1DetailWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*UsersV1DetailResponse, error) {
 	rsp, err := c.UsersV1Detail(ctx, id, reqEditors...)
@@ -420,6 +805,90 @@ func (c *ClientWithResponses) UsersV1UpsertWithResponse(ctx context.Context, id 
 		return nil, err
 	}
 	return ParseUsersV1UpsertResponse(rsp)
+}
+
+// ParseFCMTokenV1ListResponse parses an HTTP response from a FCMTokenV1ListWithResponse call
+func ParseFCMTokenV1ListResponse(rsp *http.Response) (*FCMTokenV1ListResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &FCMTokenV1ListResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			FcmTokens []FCMToken `json:"fcmTokens"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseFCMTokenV1UpsertResponse parses an HTTP response from a FCMTokenV1UpsertWithResponse call
+func ParseFCMTokenV1UpsertResponse(rsp *http.Response) (*FCMTokenV1UpsertResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &FCMTokenV1UpsertResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			FcmToken FCMToken `json:"fcmToken"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseUsersV1ListResponse parses an HTTP response from a UsersV1ListWithResponse call
+func ParseUsersV1ListResponse(rsp *http.Response) (*UsersV1ListResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &UsersV1ListResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			Users []User `json:"users"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
 }
 
 // ParseUsersV1DetailResponse parses an HTTP response from a UsersV1DetailWithResponse call

@@ -80,13 +80,14 @@ const (
 
 // Defines values for DottoFoundationV1Floor.
 const (
-	Floor1 DottoFoundationV1Floor = "Floor1"
-	Floor2 DottoFoundationV1Floor = "Floor2"
-	Floor3 DottoFoundationV1Floor = "Floor3"
-	Floor4 DottoFoundationV1Floor = "Floor4"
-	Floor5 DottoFoundationV1Floor = "Floor5"
-	Floor6 DottoFoundationV1Floor = "Floor6"
-	Floor7 DottoFoundationV1Floor = "Floor7"
+	Floor1  DottoFoundationV1Floor = "Floor1"
+	Floor2  DottoFoundationV1Floor = "Floor2"
+	Floor3  DottoFoundationV1Floor = "Floor3"
+	Floor4  DottoFoundationV1Floor = "Floor4"
+	Floor5  DottoFoundationV1Floor = "Floor5"
+	Floor6  DottoFoundationV1Floor = "Floor6"
+	Floor7  DottoFoundationV1Floor = "Floor7"
+	Virtual DottoFoundationV1Floor = "Virtual"
 )
 
 // Defines values for DottoFoundationV1Grade.
@@ -110,6 +111,14 @@ const (
 	Period4 DottoFoundationV1Period = "Period4"
 	Period5 DottoFoundationV1Period = "Period5"
 	Period6 DottoFoundationV1Period = "Period6"
+)
+
+// Defines values for DottoFoundationV1PersonalCalendarItemStatus.
+const (
+	Cancelled   DottoFoundationV1PersonalCalendarItemStatus = "Cancelled"
+	Makeup      DottoFoundationV1PersonalCalendarItemStatus = "Makeup"
+	Normal      DottoFoundationV1PersonalCalendarItemStatus = "Normal"
+	RoomChanged DottoFoundationV1PersonalCalendarItemStatus = "RoomChanged"
 )
 
 // Defines values for DottoFoundationV1SubjectClassification.
@@ -278,6 +287,9 @@ type DottoFoundationV1Grade string
 // DottoFoundationV1Period defines model for DottoFoundationV1.Period.
 type DottoFoundationV1Period string
 
+// DottoFoundationV1PersonalCalendarItemStatus 教室変更よりも休講・補講が優先される
+type DottoFoundationV1PersonalCalendarItemStatus string
+
 // DottoFoundationV1SubjectClassification 科目カテゴリ
 type DottoFoundationV1SubjectClassification string
 
@@ -290,11 +302,32 @@ type DottoFoundationV1TimetableSlot struct {
 	Period    DottoFoundationV1Period    `json:"period"`
 }
 
+// FCMToken defines model for FCMToken.
+type FCMToken struct {
+	// CreatedAt 作成日時
+	CreatedAt time.Time `json:"createdAt"`
+
+	// Token FCMトークン
+	Token string `json:"token"`
+
+	// UpdatedAt 更新日時
+	UpdatedAt time.Time `json:"updatedAt"`
+}
+
+// FCMTokenRequest defines model for FCMTokenRequest.
+type FCMTokenRequest struct {
+	Token string `json:"token"`
+}
+
 // PersonalCalendarItem defines model for PersonalCalendarItem.
 type PersonalCalendarItem struct {
-	Date          time.Time                      `json:"date"`
-	Slot          DottoFoundationV1TimetableSlot `json:"slot"`
-	TimetableItem TimetableItem                  `json:"timetableItem"`
+	Date   time.Time               `json:"date"`
+	Period DottoFoundationV1Period `json:"period"`
+	Rooms  []Room                  `json:"rooms"`
+
+	// Status 教室変更よりも休講・補講が優先される
+	Status  DottoFoundationV1PersonalCalendarItemStatus `json:"status"`
+	Subject SubjectSummary                              `json:"subject"`
 }
 
 // Room defines model for Room.
@@ -334,9 +367,17 @@ type SubjectFaculty struct {
 
 // SubjectSummary defines model for SubjectSummary.
 type SubjectSummary struct {
+	// Credit 単位数
+	Credit    int              `json:"credit"`
 	Faculties []SubjectFaculty `json:"faculties"`
 	Id        string           `json:"id"`
 	Name      string           `json:"name"`
+
+	// Semester 開講時期
+	Semester DottoFoundationV1CourseSemester `json:"semester"`
+
+	// Year 開講年度
+	Year int `json:"year"`
 }
 
 // TimetableItem defines model for TimetableItem.
@@ -415,14 +456,14 @@ type TimetableItemsV1ListParams struct {
 // CourseRegistrationsV1CreateJSONRequestBody defines body for CourseRegistrationsV1Create for application/json ContentType.
 type CourseRegistrationsV1CreateJSONRequestBody = CourseRegistrationRequest
 
+// FCMTokenV1UpsertJSONRequestBody defines body for FCMTokenV1Upsert for application/json ContentType.
+type FCMTokenV1UpsertJSONRequestBody = FCMTokenRequest
+
 // UsersV1UpsertJSONRequestBody defines body for UsersV1Upsert for application/json ContentType.
 type UsersV1UpsertJSONRequestBody = UserInfo
 
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
-
-	// (GET /announcements)
-	AnnouncementsV0List(c *gin.Context)
 
 	// (GET /v1/announcements)
 	AnnouncementsV1List(c *gin.Context)
@@ -435,6 +476,9 @@ type ServerInterface interface {
 
 	// (DELETE /v1/courseRegistrations/{id})
 	CourseRegistrationsV1Delete(c *gin.Context, id string)
+
+	// (POST /v1/fcmTokens)
+	FCMTokenV1Upsert(c *gin.Context)
 
 	// (GET /v1/personalCalendarItems)
 	PersonalCalendarItemsV1List(c *gin.Context, params PersonalCalendarItemsV1ListParams)
@@ -463,21 +507,6 @@ type ServerInterfaceWrapper struct {
 }
 
 type MiddlewareFunc func(c *gin.Context)
-
-// AnnouncementsV0List operation middleware
-func (siw *ServerInterfaceWrapper) AnnouncementsV0List(c *gin.Context) {
-
-	c.Set(FirebaseAppCheckAuthScopes, []string{})
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		middleware(c)
-		if c.IsAborted() {
-			return
-		}
-	}
-
-	siw.Handler.AnnouncementsV0List(c)
-}
 
 // AnnouncementsV1List operation middleware
 func (siw *ServerInterfaceWrapper) AnnouncementsV1List(c *gin.Context) {
@@ -582,6 +611,23 @@ func (siw *ServerInterfaceWrapper) CourseRegistrationsV1Delete(c *gin.Context) {
 	}
 
 	siw.Handler.CourseRegistrationsV1Delete(c, id)
+}
+
+// FCMTokenV1Upsert operation middleware
+func (siw *ServerInterfaceWrapper) FCMTokenV1Upsert(c *gin.Context) {
+
+	c.Set(BearerAuthScopes, []string{})
+
+	c.Set(FirebaseAppCheckAuthScopes, []string{})
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.FCMTokenV1Upsert(c)
 }
 
 // PersonalCalendarItemsV1List operation middleware
@@ -835,33 +881,17 @@ func RegisterHandlersWithOptions(router gin.IRouter, si ServerInterface, options
 		ErrorHandler:       errorHandler,
 	}
 
-	router.GET(options.BaseURL+"/announcements", wrapper.AnnouncementsV0List)
 	router.GET(options.BaseURL+"/v1/announcements", wrapper.AnnouncementsV1List)
 	router.GET(options.BaseURL+"/v1/courseRegistrations", wrapper.CourseRegistrationsV1List)
 	router.POST(options.BaseURL+"/v1/courseRegistrations", wrapper.CourseRegistrationsV1Create)
 	router.DELETE(options.BaseURL+"/v1/courseRegistrations/:id", wrapper.CourseRegistrationsV1Delete)
+	router.POST(options.BaseURL+"/v1/fcmTokens", wrapper.FCMTokenV1Upsert)
 	router.GET(options.BaseURL+"/v1/personalCalendarItems", wrapper.PersonalCalendarItemsV1List)
 	router.GET(options.BaseURL+"/v1/subjects", wrapper.SubjectsV1List)
 	router.GET(options.BaseURL+"/v1/subjects/:id", wrapper.SubjectsV1Detail)
 	router.GET(options.BaseURL+"/v1/timetableItems", wrapper.TimetableItemsV1List)
 	router.GET(options.BaseURL+"/v1/users", wrapper.UsersV1Detail)
 	router.POST(options.BaseURL+"/v1/users", wrapper.UsersV1Upsert)
-}
-
-type AnnouncementsV0ListRequestObject struct {
-}
-
-type AnnouncementsV0ListResponseObject interface {
-	VisitAnnouncementsV0ListResponse(w http.ResponseWriter) error
-}
-
-type AnnouncementsV0List200JSONResponse []Announcement
-
-func (response AnnouncementsV0List200JSONResponse) VisitAnnouncementsV0ListResponse(w http.ResponseWriter) error {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(200)
-
-	return json.NewEncoder(w).Encode(response)
 }
 
 type AnnouncementsV1ListRequestObject struct {
@@ -973,6 +1003,33 @@ type CourseRegistrationsV1Delete404Response struct {
 
 func (response CourseRegistrationsV1Delete404Response) VisitCourseRegistrationsV1DeleteResponse(w http.ResponseWriter) error {
 	w.WriteHeader(404)
+	return nil
+}
+
+type FCMTokenV1UpsertRequestObject struct {
+	Body *FCMTokenV1UpsertJSONRequestBody
+}
+
+type FCMTokenV1UpsertResponseObject interface {
+	VisitFCMTokenV1UpsertResponse(w http.ResponseWriter) error
+}
+
+type FCMTokenV1Upsert200JSONResponse struct {
+	FcmToken FCMToken `json:"fcmToken"`
+}
+
+func (response FCMTokenV1Upsert200JSONResponse) VisitFCMTokenV1UpsertResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type FCMTokenV1Upsert401Response struct {
+}
+
+func (response FCMTokenV1Upsert401Response) VisitFCMTokenV1UpsertResponse(w http.ResponseWriter) error {
+	w.WriteHeader(401)
 	return nil
 }
 
@@ -1156,9 +1213,6 @@ func (response UsersV1Upsert401Response) VisitUsersV1UpsertResponse(w http.Respo
 // StrictServerInterface represents all server handlers.
 type StrictServerInterface interface {
 
-	// (GET /announcements)
-	AnnouncementsV0List(ctx context.Context, request AnnouncementsV0ListRequestObject) (AnnouncementsV0ListResponseObject, error)
-
 	// (GET /v1/announcements)
 	AnnouncementsV1List(ctx context.Context, request AnnouncementsV1ListRequestObject) (AnnouncementsV1ListResponseObject, error)
 
@@ -1170,6 +1224,9 @@ type StrictServerInterface interface {
 
 	// (DELETE /v1/courseRegistrations/{id})
 	CourseRegistrationsV1Delete(ctx context.Context, request CourseRegistrationsV1DeleteRequestObject) (CourseRegistrationsV1DeleteResponseObject, error)
+
+	// (POST /v1/fcmTokens)
+	FCMTokenV1Upsert(ctx context.Context, request FCMTokenV1UpsertRequestObject) (FCMTokenV1UpsertResponseObject, error)
 
 	// (GET /v1/personalCalendarItems)
 	PersonalCalendarItemsV1List(ctx context.Context, request PersonalCalendarItemsV1ListRequestObject) (PersonalCalendarItemsV1ListResponseObject, error)
@@ -1200,31 +1257,6 @@ func NewStrictHandler(ssi StrictServerInterface, middlewares []StrictMiddlewareF
 type strictHandler struct {
 	ssi         StrictServerInterface
 	middlewares []StrictMiddlewareFunc
-}
-
-// AnnouncementsV0List operation middleware
-func (sh *strictHandler) AnnouncementsV0List(ctx *gin.Context) {
-	var request AnnouncementsV0ListRequestObject
-
-	handler := func(ctx *gin.Context, request interface{}) (interface{}, error) {
-		return sh.ssi.AnnouncementsV0List(ctx, request.(AnnouncementsV0ListRequestObject))
-	}
-	for _, middleware := range sh.middlewares {
-		handler = middleware(handler, "AnnouncementsV0List")
-	}
-
-	response, err := handler(ctx, request)
-
-	if err != nil {
-		ctx.Error(err)
-		ctx.Status(http.StatusInternalServerError)
-	} else if validResponse, ok := response.(AnnouncementsV0ListResponseObject); ok {
-		if err := validResponse.VisitAnnouncementsV0ListResponse(ctx.Writer); err != nil {
-			ctx.Error(err)
-		}
-	} else if response != nil {
-		ctx.Error(fmt.Errorf("unexpected response type: %T", response))
-	}
 }
 
 // AnnouncementsV1List operation middleware
@@ -1332,6 +1364,39 @@ func (sh *strictHandler) CourseRegistrationsV1Delete(ctx *gin.Context, id string
 		ctx.Status(http.StatusInternalServerError)
 	} else if validResponse, ok := response.(CourseRegistrationsV1DeleteResponseObject); ok {
 		if err := validResponse.VisitCourseRegistrationsV1DeleteResponse(ctx.Writer); err != nil {
+			ctx.Error(err)
+		}
+	} else if response != nil {
+		ctx.Error(fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// FCMTokenV1Upsert operation middleware
+func (sh *strictHandler) FCMTokenV1Upsert(ctx *gin.Context) {
+	var request FCMTokenV1UpsertRequestObject
+
+	var body FCMTokenV1UpsertJSONRequestBody
+	if err := ctx.ShouldBindJSON(&body); err != nil {
+		ctx.Status(http.StatusBadRequest)
+		ctx.Error(err)
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx *gin.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.FCMTokenV1Upsert(ctx, request.(FCMTokenV1UpsertRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "FCMTokenV1Upsert")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		ctx.Error(err)
+		ctx.Status(http.StatusInternalServerError)
+	} else if validResponse, ok := response.(FCMTokenV1UpsertResponseObject); ok {
+		if err := validResponse.VisitFCMTokenV1UpsertResponse(ctx.Writer); err != nil {
 			ctx.Error(err)
 		}
 	} else if response != nil {
