@@ -7,6 +7,7 @@ import (
 	"time"
 
 	api "github.com/fun-dotto/app-bff-api/generated"
+	openapi_types "github.com/oapi-codegen/runtime/types"
 	"github.com/fun-dotto/app-bff-api/internal/repository"
 	"github.com/fun-dotto/app-bff-api/internal/service"
 	"github.com/stretchr/testify/assert"
@@ -14,7 +15,7 @@ import (
 )
 
 func TestPersonalCalendarItemsV1List(t *testing.T) {
-	dates := []time.Time{time.Date(2026, 4, 1, 0, 0, 0, 0, time.UTC)}
+	dates := []openapi_types.Date{{Time: time.Date(2026, 4, 1, 0, 0, 0, 0, time.UTC)}}
 
 	tests := []struct {
 		name     string
