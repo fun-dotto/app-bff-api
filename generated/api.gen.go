@@ -13,6 +13,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/oapi-codegen/runtime"
 	strictgin "github.com/oapi-codegen/runtime/strictmiddleware/gin"
+	openapi_types "github.com/oapi-codegen/runtime/types"
 )
 
 const (
@@ -246,6 +247,7 @@ type AcademicServiceSyllabus struct {
 
 // Announcement defines model for Announcement.
 type Announcement struct {
+	// Date 日時
 	Date  time.Time `json:"date"`
 	Id    string    `json:"id"`
 	Title string    `json:"title"`
@@ -321,7 +323,7 @@ type FCMTokenRequest struct {
 
 // PersonalCalendarItem defines model for PersonalCalendarItem.
 type PersonalCalendarItem struct {
-	Date   time.Time               `json:"date"`
+	Date   openapi_types.Date      `json:"date"`
 	Period DottoFoundationV1Period `json:"period"`
 	Rooms  []Room                  `json:"rooms"`
 
@@ -414,7 +416,7 @@ type CourseRegistrationsV1ListParams struct {
 // PersonalCalendarItemsV1ListParams defines parameters for PersonalCalendarItemsV1List.
 type PersonalCalendarItemsV1ListParams struct {
 	// Dates 日付のリスト; 指定した日付の個人カレンダーアイテムのみを取得する
-	Dates []time.Time `form:"dates" json:"dates"`
+	Dates []openapi_types.Date `form:"dates" json:"dates"`
 }
 
 // SubjectsV1ListParams defines parameters for SubjectsV1List.
