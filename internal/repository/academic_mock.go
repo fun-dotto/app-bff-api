@@ -167,3 +167,15 @@ func (m *MockAcademicRepository) GetPersonalCalendarItems(_ string, _ []time.Tim
 	}
 	return m.personalCalendarItems, nil
 }
+
+func (m *MockAcademicRepository) GetCancelledClasses(_ domain.CancelledClassQuery) ([]domain.CancelledClass, error) {
+	return []domain.CancelledClass{}, nil
+}
+
+func (m *MockAcademicRepository) GetMakeupClasses(_ domain.MakeupClassQuery) ([]domain.MakeupClass, error) {
+	return []domain.MakeupClass{}, nil
+}
+
+func (m *MockAcademicRepository) GetRoomChanges(_ domain.RoomChangeQuery) ([]domain.RoomChange, error) {
+	return []domain.RoomChange{}, nil
+}

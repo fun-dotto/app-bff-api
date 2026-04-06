@@ -203,6 +203,72 @@ func (r *AcademicRepository) GetSubject(id string) (*domain.Subject, error) {
 	return &s, nil
 }
 
+// GetCancelledClasses は外部APIから休講一覧を取得する
+func (r *AcademicRepository) GetCancelledClasses(query domain.CancelledClassQuery) ([]domain.CancelledClass, error) {
+	params := external.ToExternalCancelledClassQuery(query)
+
+	response, err := r.client.CancelledClassesV1ListWithResponse(context.Background(), params)
+	if err != nil {
+		return nil, fmt.Errorf("failed to call academic API: %w", err)
+	}
+
+	if response.JSON200 == nil {
+		return nil, fmt.Errorf("failed to get cancelled classes: status %d", response.StatusCode())
+	}
+
+	items := response.JSON200.CancelledClasses
+	result := make([]domain.CancelledClass, len(items))
+	for i, item := range items {
+		result[i] = external.ToDomainCancelledClass(item)
+	}
+
+	return result, nil
+}
+
+// GetMakeupClasses は外部APIから補講一覧を取得する
+func (r *AcademicRepository) GetMakeupClasses(query domain.MakeupClassQuery) ([]domain.MakeupClass, error) {
+	params := external.ToExternalMakeupClassQuery(query)
+
+	response, err := r.client.MakeupClassesV1ListWithResponse(context.Background(), params)
+	if err != nil {
+		return nil, fmt.Errorf("failed to call academic API: %w", err)
+	}
+
+	if response.JSON200 == nil {
+		return nil, fmt.Errorf("failed to get makeup classes: status %d", response.StatusCode())
+	}
+
+	items := response.JSON200.MakeupClasses
+	result := make([]domain.MakeupClass, len(items))
+	for i, item := range items {
+		result[i] = external.ToDomainMakeupClass(item)
+	}
+
+	return result, nil
+}
+
+// GetRoomChanges は外部APIから教室変更一覧を取得する
+func (r *AcademicRepository) GetRoomChanges(query domain.RoomChangeQuery) ([]domain.RoomChange, error) {
+	params := external.ToExternalRoomChangeQuery(query)
+
+	response, err := r.client.RoomChangesV1ListWithResponse(context.Background(), params)
+	if err != nil {
+		return nil, fmt.Errorf("failed to call academic API: %w", err)
+	}
+
+	if response.JSON200 == nil {
+		return nil, fmt.Errorf("failed to get room changes: status %d", response.StatusCode())
+	}
+
+	items := response.JSON200.RoomChanges
+	result := make([]domain.RoomChange, len(items))
+	for i, item := range items {
+		result[i] = external.ToDomainRoomChange(item)
+	}
+
+	return result, nil
+}
+
 func externalToCourseSemesters(semesters []domain.CourseSemester) []academic_api.DottoFoundationV1CourseSemester {
 	result := make([]academic_api.DottoFoundationV1CourseSemester, len(semesters))
 	for i, semester := range semesters {

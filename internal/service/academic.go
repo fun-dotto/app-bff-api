@@ -16,6 +16,9 @@ type AcademicRepository interface {
 	DeleteCourseRegistration(id string) error
 	GetTimetableItems(query domain.TimetableItemQuery) ([]domain.TimetableItem, error)
 	GetPersonalCalendarItems(userID string, dates []time.Time) ([]domain.PersonalCalendarItem, error)
+	GetCancelledClasses(query domain.CancelledClassQuery) ([]domain.CancelledClass, error)
+	GetMakeupClasses(query domain.MakeupClassQuery) ([]domain.MakeupClass, error)
+	GetRoomChanges(query domain.RoomChangeQuery) ([]domain.RoomChange, error)
 }
 
 type AcademicService struct {
@@ -60,5 +63,17 @@ func (s *AcademicService) GetTimetableItems(query domain.TimetableItemQuery) ([]
 
 func (s *AcademicService) GetPersonalCalendarItems(userID string, dates []time.Time) ([]domain.PersonalCalendarItem, error) {
 	return s.repository.GetPersonalCalendarItems(userID, dates)
+}
+
+func (s *AcademicService) GetCancelledClasses(query domain.CancelledClassQuery) ([]domain.CancelledClass, error) {
+	return s.repository.GetCancelledClasses(query)
+}
+
+func (s *AcademicService) GetMakeupClasses(query domain.MakeupClassQuery) ([]domain.MakeupClass, error) {
+	return s.repository.GetMakeupClasses(query)
+}
+
+func (s *AcademicService) GetRoomChanges(query domain.RoomChangeQuery) ([]domain.RoomChange, error) {
+	return s.repository.GetRoomChanges(query)
 }
 
