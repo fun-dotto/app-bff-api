@@ -19,6 +19,9 @@ type MockAcademicRepository struct {
 	getSubjectError             error
 	getRegistrationsErr         error
 	getPersonalCalendarItemsErr error
+	getCancelledClassesErr      error
+	getMakeupClassesErr         error
+	getRoomChangesErr           error
 }
 
 func NewMockAcademicRepository() *MockAcademicRepository {
@@ -89,6 +92,12 @@ func NewMockAcademicRepositoryWithError(field string, err error) *MockAcademicRe
 		m.getRegistrationsErr = err
 	case "getPersonalCalendarItems":
 		m.getPersonalCalendarItemsErr = err
+	case "getCancelledClasses":
+		m.getCancelledClassesErr = err
+	case "getMakeupClasses":
+		m.getMakeupClassesErr = err
+	case "getRoomChanges":
+		m.getRoomChangesErr = err
 	}
 	return m
 }
@@ -169,13 +178,55 @@ func (m *MockAcademicRepository) GetPersonalCalendarItems(_ string, _ []time.Tim
 }
 
 func (m *MockAcademicRepository) GetCancelledClasses(_ domain.CancelledClassQuery) ([]domain.CancelledClass, error) {
-	return []domain.CancelledClass{}, nil
+	if m.getCancelledClassesErr != nil {
+		return nil, m.getCancelledClassesErr
+	}
+	return []domain.CancelledClass{
+		{
+			ID:      "cancelled-1",
+			Comment: "教員出張のため",
+			Date:    time.Date(2026, 4, 10, 0, 0, 0, 0, time.UTC),
+			Period:  domain.PeriodPeriod1,
+			Subject: m.subjects[0],
+		},
+	}, nil
 }
 
 func (m *MockAcademicRepository) GetMakeupClasses(_ domain.MakeupClassQuery) ([]domain.MakeupClass, error) {
-	return []domain.MakeupClass{}, nil
+	if m.getMakeupClassesErr != nil {
+		return nil, m.getMakeupClassesErr
+	}
+	return []domain.MakeupClass{
+		{
+			ID:      "makeup-1",
+			Comment: "休講分の補講",
+			Date:    time.Date(2026, 4, 15, 0, 0, 0, 0, time.UTC),
+			Period:  domain.PeriodPeriod2,
+			Subject: m.subjects[0],
+		},
+	}, nil
 }
 
 func (m *MockAcademicRepository) GetRoomChanges(_ domain.RoomChangeQuery) ([]domain.RoomChange, error) {
-	return []domain.RoomChange{}, nil
+	if m.getRoomChangesErr != nil {
+		return nil, m.getRoomChangesErr
+	}
+	return []domain.RoomChange{
+		{
+			ID:      "room-change-1",
+			Date:    time.Date(2026, 4, 12, 0, 0, 0, 0, time.UTC),
+			Period:  domain.PeriodPeriod3,
+			Subject: m.subjects[0],
+			OriginalRoom: domain.Room{
+				ID:    "r1",
+				Name:  "101講義室",
+				Floor: domain.Floor1,
+			},
+			NewRoom: domain.Room{
+				ID:    "r2",
+				Name:  "201講義室",
+				Floor: domain.Floor2,
+			},
+		},
+	}, nil
 }
