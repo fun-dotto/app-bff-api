@@ -1447,7 +1447,7 @@ func NewCancelledClassesV1ListRequest(server string, params *CancelledClassesV1L
 
 		if params.From != nil {
 
-			if queryFrag, err := runtime.StyleParamWithLocation("form", false, "from", runtime.ParamLocationQuery, *params.From); err != nil {
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "from", runtime.ParamLocationQuery, *params.From); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
@@ -1463,7 +1463,7 @@ func NewCancelledClassesV1ListRequest(server string, params *CancelledClassesV1L
 
 		if params.Until != nil {
 
-			if queryFrag, err := runtime.StyleParamWithLocation("form", false, "until", runtime.ParamLocationQuery, *params.Until); err != nil {
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "until", runtime.ParamLocationQuery, *params.Until); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
@@ -1980,7 +1980,7 @@ func NewMakeupClassesV1ListRequest(server string, params *MakeupClassesV1ListPar
 
 		if params.From != nil {
 
-			if queryFrag, err := runtime.StyleParamWithLocation("form", false, "from", runtime.ParamLocationQuery, *params.From); err != nil {
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "from", runtime.ParamLocationQuery, *params.From); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
@@ -1996,7 +1996,7 @@ func NewMakeupClassesV1ListRequest(server string, params *MakeupClassesV1ListPar
 
 		if params.Until != nil {
 
-			if queryFrag, err := runtime.StyleParamWithLocation("form", false, "until", runtime.ParamLocationQuery, *params.Until); err != nil {
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "until", runtime.ParamLocationQuery, *params.Until); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
@@ -2160,7 +2160,7 @@ func NewNotifyIrregularitiesV1NotifyRequest(server string, params *NotifyIrregul
 
 		}
 
-		if queryFrag, err := runtime.StyleParamWithLocation("form", false, "date", runtime.ParamLocationQuery, params.Date); err != nil {
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "date", runtime.ParamLocationQuery, params.Date); err != nil {
 			return nil, err
 		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 			return nil, err
@@ -2280,7 +2280,7 @@ func NewReservationsV1ListRequest(server string, params *ReservationsV1ListParam
 
 		if params.From != nil {
 
-			if queryFrag, err := runtime.StyleParamWithLocation("form", false, "from", runtime.ParamLocationQuery, *params.From); err != nil {
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "from", runtime.ParamLocationQuery, *params.From); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
@@ -2296,7 +2296,7 @@ func NewReservationsV1ListRequest(server string, params *ReservationsV1ListParam
 
 		if params.Until != nil {
 
-			if queryFrag, err := runtime.StyleParamWithLocation("form", false, "until", runtime.ParamLocationQuery, *params.Until); err != nil {
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "until", runtime.ParamLocationQuery, *params.Until); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
@@ -2469,7 +2469,7 @@ func NewRoomChangesV1ListRequest(server string, params *RoomChangesV1ListParams)
 
 		if params.From != nil {
 
-			if queryFrag, err := runtime.StyleParamWithLocation("form", false, "from", runtime.ParamLocationQuery, *params.From); err != nil {
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "from", runtime.ParamLocationQuery, *params.From); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
@@ -2485,7 +2485,7 @@ func NewRoomChangesV1ListRequest(server string, params *RoomChangesV1ListParams)
 
 		if params.Until != nil {
 
-			if queryFrag, err := runtime.StyleParamWithLocation("form", false, "until", runtime.ParamLocationQuery, *params.Until); err != nil {
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "until", runtime.ParamLocationQuery, *params.Until); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err

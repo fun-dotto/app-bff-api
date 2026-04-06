@@ -374,7 +374,7 @@ func NewFCMTokenV1ListRequest(server string, params *FCMTokenV1ListParams) (*htt
 
 		if params.UpdatedAtFrom != nil {
 
-			if queryFrag, err := runtime.StyleParamWithLocation("form", false, "updatedAtFrom", runtime.ParamLocationQuery, *params.UpdatedAtFrom); err != nil {
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "updatedAtFrom", runtime.ParamLocationQuery, *params.UpdatedAtFrom); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
@@ -390,7 +390,7 @@ func NewFCMTokenV1ListRequest(server string, params *FCMTokenV1ListParams) (*htt
 
 		if params.UpdatedAtTo != nil {
 
-			if queryFrag, err := runtime.StyleParamWithLocation("form", false, "updatedAtTo", runtime.ParamLocationQuery, *params.UpdatedAtTo); err != nil {
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "updatedAtTo", runtime.ParamLocationQuery, *params.UpdatedAtTo); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
