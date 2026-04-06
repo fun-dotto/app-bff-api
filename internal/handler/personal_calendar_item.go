@@ -3,7 +3,6 @@ package handler
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"time"
 
 	api "github.com/fun-dotto/app-bff-api/generated"
@@ -20,7 +19,7 @@ func (h *Handler) PersonalCalendarItemsV1List(ctx context.Context, request api.P
 
 	userID, ok := middleware.UserIDFromContext(ctx)
 	if !ok {
-		return nil, fmt.Errorf("user ID not found in context: %w", fmt.Errorf("%d", http.StatusUnauthorized))
+		return api.PersonalCalendarItemsV1List401Response{}, nil
 	}
 
 	dates := make([]time.Time, len(request.Params.Dates))

@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"net/http"
 
 	api "github.com/fun-dotto/app-bff-api/generated"
 	"github.com/fun-dotto/app-bff-api/internal/domain"
@@ -19,7 +18,7 @@ func (h *Handler) UsersV1Detail(ctx context.Context, request api.UsersV1DetailRe
 
 	userID, ok := middleware.UserIDFromContext(ctx)
 	if !ok {
-		return nil, fmt.Errorf("user ID not found in context: %w", fmt.Errorf("%d", http.StatusUnauthorized))
+		return api.UsersV1Detail401Response{}, nil
 	}
 
 	user, err := h.userService.GetUser(userID)
@@ -43,7 +42,7 @@ func (h *Handler) UsersV1Upsert(ctx context.Context, request api.UsersV1UpsertRe
 
 	userID, ok := middleware.UserIDFromContext(ctx)
 	if !ok {
-		return nil, fmt.Errorf("user ID not found in context: %w", fmt.Errorf("%d", http.StatusUnauthorized))
+		return api.UsersV1Upsert401Response{}, nil
 	}
 
 	email, _ := middleware.UserEmailFromContext(ctx)
@@ -71,7 +70,7 @@ func (h *Handler) FCMTokenV1Upsert(ctx context.Context, request api.FCMTokenV1Up
 
 	userID, ok := middleware.UserIDFromContext(ctx)
 	if !ok {
-		return nil, fmt.Errorf("user ID not found in context: %w", fmt.Errorf("%d", http.StatusUnauthorized))
+		return api.FCMTokenV1Upsert401Response{}, nil
 	}
 
 	token, err := h.userService.UpsertFCMToken(userID, domain.FCMTokenRequest{Token: request.Body.Token})
