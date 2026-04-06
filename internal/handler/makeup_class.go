@@ -33,7 +33,7 @@ func (h *Handler) MakeupClassesV1List(ctx context.Context, request api.MakeupCla
 
 func toMakeupClassQuery(params api.MakeupClassesV1ListParams) domain.MakeupClassQuery {
 	query := domain.MakeupClassQuery{
-		SubjectIds: params.SubjectIds,
+		SubjectIDs: params.SubjectIds,
 	}
 	if params.From != nil {
 		t := params.From.Time

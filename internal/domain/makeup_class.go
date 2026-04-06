@@ -13,7 +13,7 @@ type MakeupClass struct {
 
 // MakeupClassQuery 補講検索クエリ
 type MakeupClassQuery struct {
-	SubjectIds *[]string
+	SubjectIDs *[]string
 	From       *time.Time
 	Until      *time.Time
 }

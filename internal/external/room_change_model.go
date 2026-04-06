@@ -29,7 +29,7 @@ func ToDomainRoomChange(m academic_api.RoomChange) domain.RoomChange {
 // ToExternalRoomChangeQuery はDomainのRoomChangeQueryを外部APIのパラメータに変換する
 func ToExternalRoomChangeQuery(q domain.RoomChangeQuery) *academic_api.RoomChangesV1ListParams {
 	params := &academic_api.RoomChangesV1ListParams{
-		SubjectIds: q.SubjectIds,
+		SubjectIds: q.SubjectIDs,
 	}
 	if q.From != nil {
 		d := openapi_types.Date{Time: *q.From}

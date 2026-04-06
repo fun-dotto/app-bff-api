@@ -13,7 +13,7 @@ type CancelledClass struct {
 
 // CancelledClassQuery 休講検索クエリ
 type CancelledClassQuery struct {
-	SubjectIds *[]string
+	SubjectIDs *[]string
 	From       *time.Time
 	Until      *time.Time
 }

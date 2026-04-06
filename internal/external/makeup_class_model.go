@@ -20,7 +20,7 @@ func ToDomainMakeupClass(m academic_api.MakeupClass) domain.MakeupClass {
 // ToExternalMakeupClassQuery はDomainのMakeupClassQueryを外部APIのパラメータに変換する
 func ToExternalMakeupClassQuery(q domain.MakeupClassQuery) *academic_api.MakeupClassesV1ListParams {
 	params := &academic_api.MakeupClassesV1ListParams{
-		SubjectIds: q.SubjectIds,
+		SubjectIds: q.SubjectIDs,
 	}
 	if q.From != nil {
 		d := openapi_types.Date{Time: *q.From}

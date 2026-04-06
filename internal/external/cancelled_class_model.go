@@ -20,7 +20,7 @@ func ToDomainCancelledClass(m academic_api.CancelledClass) domain.CancelledClass
 // ToExternalCancelledClassQuery はDomainのCancelledClassQueryを外部APIのパラメータに変換する
 func ToExternalCancelledClassQuery(q domain.CancelledClassQuery) *academic_api.CancelledClassesV1ListParams {
 	params := &academic_api.CancelledClassesV1ListParams{
-		SubjectIds: q.SubjectIds,
+		SubjectIds: q.SubjectIDs,
 	}
 	if q.From != nil {
 		d := openapi_types.Date{Time: *q.From}

@@ -33,7 +33,7 @@ func (h *Handler) RoomChangesV1List(ctx context.Context, request api.RoomChanges
 
 func toRoomChangeQuery(params api.RoomChangesV1ListParams) domain.RoomChangeQuery {
 	query := domain.RoomChangeQuery{
-		SubjectIds: params.SubjectIds,
+		SubjectIDs: params.SubjectIds,
 	}
 	if params.From != nil {
 		t := params.From.Time

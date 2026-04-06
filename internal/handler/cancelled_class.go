@@ -33,7 +33,7 @@ func (h *Handler) CancelledClassesV1List(ctx context.Context, request api.Cancel
 
 func toCancelledClassQuery(params api.CancelledClassesV1ListParams) domain.CancelledClassQuery {
 	query := domain.CancelledClassQuery{
-		SubjectIds: params.SubjectIds,
+		SubjectIDs: params.SubjectIds,
 	}
 	if params.From != nil {
 		t := params.From.Time

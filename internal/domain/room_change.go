@@ -14,7 +14,7 @@ type RoomChange struct {
 
 // RoomChangeQuery 教室変更検索クエリ
 type RoomChangeQuery struct {
-	SubjectIds *[]string
+	SubjectIDs *[]string
 	From       *time.Time
 	Until      *time.Time
 }
