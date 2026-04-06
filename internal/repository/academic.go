@@ -47,36 +47,6 @@ func (r *AcademicRepository) GetFaculty(id string) (*domain.Faculty, error) {
 	return &faculty, nil
 }
 
-// GetFacultiesByIDs は指定したIDの教員一覧を取得する
-func (r *AcademicRepository) GetFacultiesByIDs(ids []string) (map[string]domain.Faculty, error) {
-	if len(ids) == 0 {
-		return make(map[string]domain.Faculty), nil
-	}
-
-	response, err := r.client.FacultiesV1ListWithResponse(context.Background(), nil)
-	if err != nil {
-		return nil, fmt.Errorf("failed to call academic API: %w", err)
-	}
-
-	if response.JSON200 == nil {
-		return nil, fmt.Errorf("failed to get faculties by IDs: status %d", response.StatusCode())
-	}
-
-	idSet := make(map[string]struct{}, len(ids))
-	for _, id := range ids {
-		idSet[id] = struct{}{}
-	}
-
-	result := make(map[string]domain.Faculty, len(ids))
-	for _, f := range response.JSON200.Faculties {
-		if _, ok := idSet[f.Id]; ok {
-			result[f.Id] = external.ToDomainFaculty(f)
-		}
-	}
-
-	return result, nil
-}
-
 // GetSubjects は外部APIから科目一覧を取得する
 func (r *AcademicRepository) GetSubjects(query domain.SubjectQuery) ([]domain.Subject, error) {
 	params := external.ToExternalSubjectQuery(query)

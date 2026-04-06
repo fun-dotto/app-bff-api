@@ -46,12 +46,13 @@ func TestPersonalCalendarItemsV1List(t *testing.T) {
 			},
 		},
 		{
-			name:    "コンテキストにユーザーIDがない場合エラーを返す",
+			name:    "コンテキストにユーザーIDがない場合401を返す",
 			ctx:     context.Background(),
 			handler: NewHandler(WithAcademicService(service.NewAcademicService(repository.NewMockAcademicRepository()))),
 			validate: func(t *testing.T, resp api.PersonalCalendarItemsV1ListResponseObject, err error) {
-				require.Error(t, err)
-				assert.Contains(t, err.Error(), "user ID not found in context")
+				require.NoError(t, err)
+				_, ok := resp.(api.PersonalCalendarItemsV1List401Response)
+				require.True(t, ok, "レスポンスが401レスポンスではありません")
 			},
 		},
 		{

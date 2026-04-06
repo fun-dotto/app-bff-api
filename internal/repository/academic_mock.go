@@ -19,7 +19,6 @@ type MockAcademicRepository struct {
 	getSubjectError             error
 	getRegistrationsErr         error
 	getPersonalCalendarItemsErr error
-	getFacultiesByIDsError      error
 }
 
 func NewMockAcademicRepository() *MockAcademicRepository {
@@ -90,8 +89,6 @@ func NewMockAcademicRepositoryWithError(field string, err error) *MockAcademicRe
 		m.getRegistrationsErr = err
 	case "getPersonalCalendarItems":
 		m.getPersonalCalendarItemsErr = err
-	case "getFacultiesByIDs":
-		m.getFacultiesByIDsError = err
 	}
 	return m
 }
@@ -107,21 +104,6 @@ func (m *MockAcademicRepository) GetFaculty(id string) (*domain.Faculty, error) 
 		}
 	}
 	return nil, fmt.Errorf("faculty not found: %s", id)
-}
-
-func (m *MockAcademicRepository) GetFacultiesByIDs(ids []string) (map[string]domain.Faculty, error) {
-	if m.getFacultiesByIDsError != nil {
-		return nil, m.getFacultiesByIDsError
-	}
-	result := make(map[string]domain.Faculty)
-	for _, f := range m.faculties {
-		for _, id := range ids {
-			if f.ID == id {
-				result[id] = f
-			}
-		}
-	}
-	return result, nil
 }
 
 func (m *MockAcademicRepository) GetSubjects(_ domain.SubjectQuery) ([]domain.Subject, error) {

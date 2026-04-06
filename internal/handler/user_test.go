@@ -56,12 +56,13 @@ func TestUsersV1Detail(t *testing.T) {
 			},
 		},
 		{
-			name:    "コンテキストにユーザーIDがない場合エラーを返す",
+			name:    "コンテキストにユーザーIDがない場合401を返す",
 			ctx:     context.Background(),
 			handler: NewHandler(WithUserService(service.NewUserService(repository.NewMockUserRepository()))),
 			validate: func(t *testing.T, resp api.UsersV1DetailResponseObject, err error) {
-				require.Error(t, err)
-				assert.Contains(t, err.Error(), "user ID not found in context")
+				require.NoError(t, err)
+				_, ok := resp.(api.UsersV1Detail401Response)
+				require.True(t, ok, "レスポンスが401レスポンスではありません")
 			},
 		},
 		{
@@ -123,13 +124,14 @@ func TestUsersV1Upsert(t *testing.T) {
 			},
 		},
 		{
-			name:    "コンテキストにユーザーIDがない場合エラーを返す",
+			name:    "コンテキストにユーザーIDがない場合401を返す",
 			ctx:     context.Background(),
 			handler: NewHandler(WithUserService(service.NewUserService(repository.NewMockUserRepository()))),
 			body:    &api.UsersV1UpsertJSONRequestBody{Grade: &grade},
 			validate: func(t *testing.T, resp api.UsersV1UpsertResponseObject, err error) {
-				require.Error(t, err)
-				assert.Contains(t, err.Error(), "user ID not found in context")
+				require.NoError(t, err)
+				_, ok := resp.(api.UsersV1Upsert401Response)
+				require.True(t, ok, "レスポンスが401レスポンスではありません")
 			},
 		},
 		{
@@ -187,13 +189,14 @@ func TestFCMTokenV1Upsert(t *testing.T) {
 			},
 		},
 		{
-			name:    "コンテキストにユーザーIDがない場合エラーを返す",
+			name:    "コンテキストにユーザーIDがない場合401を返す",
 			ctx:     context.Background(),
 			handler: NewHandler(WithUserService(service.NewUserService(repository.NewMockUserRepository()))),
 			body:    &api.FCMTokenV1UpsertJSONRequestBody{Token: "fcm-token-1"},
 			validate: func(t *testing.T, resp api.FCMTokenV1UpsertResponseObject, err error) {
-				require.Error(t, err)
-				assert.Contains(t, err.Error(), "user ID not found in context")
+				require.NoError(t, err)
+				_, ok := resp.(api.FCMTokenV1Upsert401Response)
+				require.True(t, ok, "レスポンスが401レスポンスではありません")
 			},
 		},
 		{
