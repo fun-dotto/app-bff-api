@@ -51,19 +51,22 @@ func toApiTimetableItem(item domain.TimetableItem) api.TimetableItem {
 		}
 	}
 
-	rooms := make([]api.Room, len(item.Rooms))
-	for i, room := range item.Rooms {
-		rooms[i] = api.Room{
+	return api.TimetableItem{
+		Id:      item.ID,
+		Slot:    slot,
+		Rooms:   toApiRooms(item.Rooms),
+		Subject: toApiSubjectSummary(item.Subject),
+	}
+}
+
+func toApiRooms(rooms []domain.Room) []api.Room {
+	result := make([]api.Room, len(rooms))
+	for i, room := range rooms {
+		result[i] = api.Room{
 			Id:    room.ID,
 			Name:  room.Name,
 			Floor: api.DottoFoundationV1Floor(room.Floor),
 		}
 	}
-
-	return api.TimetableItem{
-		Id:      item.ID,
-		Slot:    slot,
-		Rooms:   rooms,
-		Subject: toApiSubjectSummary(item.Subject),
-	}
+	return result
 }

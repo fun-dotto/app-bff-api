@@ -3,7 +3,6 @@ package handler
 import (
 	"context"
 	"fmt"
-	"net/http"
 
 	api "github.com/fun-dotto/app-bff-api/generated"
 	"github.com/fun-dotto/app-bff-api/internal/domain"
@@ -18,7 +17,7 @@ func (h *Handler) CourseRegistrationsV1List(ctx context.Context, request api.Cou
 
 	userID, ok := middleware.UserIDFromContext(ctx)
 	if !ok {
-		return nil, fmt.Errorf("user ID not found in context: %w", fmt.Errorf("%d", http.StatusUnauthorized))
+		return api.CourseRegistrationsV1List401Response{}, nil
 	}
 
 	semesters := make([]domain.CourseSemester, len(request.Params.Semesters))
@@ -49,7 +48,7 @@ func (h *Handler) CourseRegistrationsV1Create(ctx context.Context, request api.C
 
 	userID, ok := middleware.UserIDFromContext(ctx)
 	if !ok {
-		return nil, fmt.Errorf("user ID not found in context: %w", fmt.Errorf("%d", http.StatusUnauthorized))
+		return api.CourseRegistrationsV1Create401Response{}, nil
 	}
 
 	registration, err := h.academicService.CreateCourseRegistration(userID, request.Body.SubjectId)
@@ -70,7 +69,7 @@ func (h *Handler) CourseRegistrationsV1Delete(ctx context.Context, request api.C
 
 	userID, ok := middleware.UserIDFromContext(ctx)
 	if !ok {
-		return nil, fmt.Errorf("user ID not found in context: %w", fmt.Errorf("%d", http.StatusUnauthorized))
+		return api.CourseRegistrationsV1Delete401Response{}, nil
 	}
 	_ = userID
 

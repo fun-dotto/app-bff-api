@@ -1,14 +1,18 @@
 package repository
 
 import (
+	"time"
+
 	"github.com/fun-dotto/app-bff-api/internal/domain"
 )
 
 // MockUserRepository はテスト用のモック
 type MockUserRepository struct {
-	users      map[string]domain.User
-	upsertErr  error
-	getUserErr error
+	users             map[string]domain.User
+	upsertErr         error
+	getUserErr        error
+	upsertFCMTokenErr error
+	fcmTokens         map[string]domain.FCMToken
 }
 
 func NewMockUserRepository() *MockUserRepository {
@@ -26,6 +30,7 @@ func NewMockUserRepository() *MockUserRepository {
 				Class:  &class,
 			},
 		},
+		fcmTokens: map[string]domain.FCMToken{},
 	}
 }
 
@@ -36,6 +41,8 @@ func NewMockUserRepositoryWithError(field string, err error) *MockUserRepository
 		m.getUserErr = err
 	case "upsert":
 		m.upsertErr = err
+	case "upsertFCMToken":
+		m.upsertFCMTokenErr = err
 	}
 	return m
 }
@@ -44,6 +51,7 @@ func NewMockUserRepositoryEmpty() *MockUserRepository {
 	return &MockUserRepository{
 		users:      map[string]domain.User{},
 		getUserErr: domain.ErrUserNotFound,
+		fcmTokens:  map[string]domain.FCMToken{},
 	}
 }
 
@@ -71,4 +79,23 @@ func (m *MockUserRepository) UpsertUser(id string, req domain.UserRequest) (*dom
 	}
 	m.users[id] = user
 	return &user, nil
+}
+
+func (m *MockUserRepository) UpsertFCMToken(userID string, req domain.FCMTokenRequest) (*domain.FCMToken, error) {
+	if m.upsertFCMTokenErr != nil {
+		return nil, m.upsertFCMTokenErr
+	}
+
+	now := time.Now().UTC()
+	token := domain.FCMToken{
+		Token:     req.Token,
+		CreatedAt: now,
+		UpdatedAt: now,
+	}
+	if existing, ok := m.fcmTokens[userID]; ok {
+		token.CreatedAt = existing.CreatedAt
+	}
+	m.fcmTokens[userID] = token
+
+	return &token, nil
 }

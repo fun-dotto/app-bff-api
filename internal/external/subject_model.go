@@ -7,6 +7,16 @@ import (
 
 // ToDomainSubject は外部APIのSubjectをDomainのSubjectに変換する
 func ToDomainSubject(m academic_api.Subject) domain.Subject {
+	requirements := make([]academic_api.SubjectRequirement, 0)
+	if m.Requirements != nil {
+		requirements = *m.Requirements
+	}
+
+	eligibleAttributes := make([]academic_api.SubjectTargetClass, 0)
+	if m.EligibleAttributes != nil {
+		eligibleAttributes = *m.EligibleAttributes
+	}
+
 	return domain.Subject{
 		ID:                 m.Id,
 		Name:               m.Name,
@@ -14,18 +24,14 @@ func ToDomainSubject(m academic_api.Subject) domain.Subject {
 		Credit:             m.Credit,
 		Semester:           domain.CourseSemester(m.Semester),
 		Faculties:          toDomainSubjectFaculties(m.Faculties),
-		Requirements:       toDomainSubjectRequirements(m.Requirements),
-		EligibleAttributes: toDomainSubjectTargetClasses(m.EligibleAttributes),
+		Requirements:       toDomainSubjectRequirements(requirements),
+		EligibleAttributes: toDomainSubjectTargetClasses(eligibleAttributes),
 		Syllabus:           nil,
 	}
 }
 
-func ToDomainSubjectSummary(m academic_api.SubjectSummary) domain.Subject {
-	return domain.Subject{
-		ID:        m.Id,
-		Name:      m.Name,
-		Faculties: toDomainSubjectFaculties(m.Faculties),
-	}
+func ToDomainSubjectSummary(m academic_api.Subject) domain.Subject {
+	return ToDomainSubject(m)
 }
 
 func ToDomainSyllabus(m academic_api.Syllabus) domain.Syllabus {

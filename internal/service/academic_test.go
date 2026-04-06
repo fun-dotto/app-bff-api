@@ -73,43 +73,6 @@ func TestAcademicService_GetFaculty(t *testing.T) {
 	}
 }
 
-func TestAcademicService_GetFacultiesByIDs(t *testing.T) {
-	tests := []struct {
-		name     string
-		repo     AcademicRepository
-		ids      []string
-		validate func(t *testing.T, faculties map[string]domain.Faculty, err error)
-	}{
-		{
-			name: "正常系: 指定IDの教員を取得できる",
-			repo: repository.NewMockAcademicRepository(),
-			ids:  []string{"f1"},
-			validate: func(t *testing.T, faculties map[string]domain.Faculty, err error) {
-				require.NoError(t, err)
-				assert.Len(t, faculties, 1)
-				assert.Equal(t, "田中太郎", faculties["f1"].Name)
-			},
-		},
-		{
-			name: "正常系: 存在しないIDは結果に含まれない",
-			repo: repository.NewMockAcademicRepository(),
-			ids:  []string{"nonexistent"},
-			validate: func(t *testing.T, faculties map[string]domain.Faculty, err error) {
-				require.NoError(t, err)
-				assert.Len(t, faculties, 0)
-			},
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			svc := NewAcademicService(tt.repo)
-			faculties, err := svc.GetFacultiesByIDs(tt.ids)
-			tt.validate(t, faculties, err)
-		})
-	}
-}
-
 func TestAcademicService_GetSubjects(t *testing.T) {
 	tests := []struct {
 		name     string
@@ -138,16 +101,6 @@ func TestAcademicService_GetSubjects(t *testing.T) {
 			validate: func(t *testing.T, subjects []domain.Subject, err error) {
 				require.Error(t, err)
 				assert.Nil(t, subjects)
-			},
-		},
-		{
-			name:  "異常系: GetFacultiesByIDsがエラーを返す場合エラーを返す",
-			repo:  repository.NewMockAcademicRepositoryWithError("getFacultiesByIDs", assert.AnError),
-			query: domain.SubjectQuery{},
-			validate: func(t *testing.T, subjects []domain.Subject, err error) {
-				require.Error(t, err)
-				assert.Nil(t, subjects)
-				assert.Contains(t, err.Error(), "failed to enrich with faculties")
 			},
 		},
 	}
@@ -197,16 +150,6 @@ func TestAcademicService_GetSubject(t *testing.T) {
 			validate: func(t *testing.T, subject *domain.Subject, err error) {
 				require.Error(t, err)
 				assert.Nil(t, subject)
-			},
-		},
-		{
-			name: "異常系: GetFacultiesByIDsがエラーを返す場合エラーを返す",
-			repo: repository.NewMockAcademicRepositoryWithError("getFacultiesByIDs", assert.AnError),
-			id:   "s1",
-			validate: func(t *testing.T, subject *domain.Subject, err error) {
-				require.Error(t, err)
-				assert.Nil(t, subject)
-				assert.Contains(t, err.Error(), "failed to enrich with faculties")
 			},
 		},
 	}
@@ -338,62 +281,3 @@ func TestAcademicService_DeleteCourseRegistration(t *testing.T) {
 	}
 }
 
-func TestCollectFacultyIDs(t *testing.T) {
-	tests := []struct {
-		name     string
-		subjects []domain.Subject
-		expected int
-	}{
-		{
-			name: "教員IDを収集できる",
-			subjects: []domain.Subject{
-				{
-					Faculties: []domain.SubjectFaculty{
-						{Faculty: domain.Faculty{ID: "f1"}, IsPrimary: true},
-						{Faculty: domain.Faculty{ID: "f2"}, IsPrimary: false},
-					},
-				},
-			},
-			expected: 2,
-		},
-		{
-			name: "重複する教員IDは除外される",
-			subjects: []domain.Subject{
-				{
-					Faculties: []domain.SubjectFaculty{
-						{Faculty: domain.Faculty{ID: "f1"}, IsPrimary: true},
-					},
-				},
-				{
-					Faculties: []domain.SubjectFaculty{
-						{Faculty: domain.Faculty{ID: "f1"}, IsPrimary: true},
-					},
-				},
-			},
-			expected: 1,
-		},
-		{
-			name:     "空の科目一覧の場合は空のスライスを返す",
-			subjects: []domain.Subject{},
-			expected: 0,
-		},
-		{
-			name: "空の教員IDは除外される",
-			subjects: []domain.Subject{
-				{
-					Faculties: []domain.SubjectFaculty{
-						{Faculty: domain.Faculty{ID: ""}, IsPrimary: true},
-					},
-				},
-			},
-			expected: 0,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			ids := collectFacultyIDs(tt.subjects)
-			assert.Len(t, ids, tt.expected)
-		})
-	}
-}

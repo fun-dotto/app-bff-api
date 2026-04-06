@@ -164,22 +164,13 @@ func toCulturalSubjectCategories(categories []api.DottoFoundationV1CulturalSubje
 
 // toApiSubjectSummary はDomainの科目をAPIの科目サマリーに変換する
 func toApiSubjectSummary(subject domain.Subject) api.SubjectSummary {
-	faculties := make([]api.SubjectFaculty, len(subject.Faculties))
-	for i, f := range subject.Faculties {
-		faculties[i] = api.SubjectFaculty{
-			Faculty: api.AcademicServiceFaculty{
-				Id:    f.Faculty.ID,
-				Name:  f.Faculty.Name,
-				Email: f.Faculty.Email,
-			},
-			IsPrimary: f.IsPrimary,
-		}
-	}
-
 	return api.SubjectSummary{
 		Id:        subject.ID,
 		Name:      subject.Name,
-		Faculties: faculties,
+		Year:      subject.Year,
+		Semester:  api.DottoFoundationV1CourseSemester(subject.Semester),
+		Credit:    subject.Credit,
+		Faculties: toApiFaculties(subject.Faculties),
 	}
 }
 

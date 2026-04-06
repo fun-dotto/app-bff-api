@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"net/http"
 
 	api "github.com/fun-dotto/app-bff-api/generated"
 	"github.com/fun-dotto/app-bff-api/internal/domain"
@@ -19,7 +18,7 @@ func (h *Handler) UsersV1Detail(ctx context.Context, request api.UsersV1DetailRe
 
 	userID, ok := middleware.UserIDFromContext(ctx)
 	if !ok {
-		return nil, fmt.Errorf("user ID not found in context: %w", fmt.Errorf("%d", http.StatusUnauthorized))
+		return api.UsersV1Detail401Response{}, nil
 	}
 
 	user, err := h.userService.GetUser(userID)
@@ -43,7 +42,7 @@ func (h *Handler) UsersV1Upsert(ctx context.Context, request api.UsersV1UpsertRe
 
 	userID, ok := middleware.UserIDFromContext(ctx)
 	if !ok {
-		return nil, fmt.Errorf("user ID not found in context: %w", fmt.Errorf("%d", http.StatusUnauthorized))
+		return api.UsersV1Upsert401Response{}, nil
 	}
 
 	email, _ := middleware.UserEmailFromContext(ctx)
@@ -57,6 +56,30 @@ func (h *Handler) UsersV1Upsert(ctx context.Context, request api.UsersV1UpsertRe
 
 	return api.UsersV1Upsert200JSONResponse{
 		User: toApiUserInfo(*user),
+	}, nil
+}
+
+// FCMTokenV1Upsert FCMトークンを作成または更新する
+func (h *Handler) FCMTokenV1Upsert(ctx context.Context, request api.FCMTokenV1UpsertRequestObject) (api.FCMTokenV1UpsertResponseObject, error) {
+	if h.userService == nil {
+		return nil, errUserServiceNotConfigured
+	}
+	if request.Body == nil {
+		return nil, fmt.Errorf("request body is required")
+	}
+
+	userID, ok := middleware.UserIDFromContext(ctx)
+	if !ok {
+		return api.FCMTokenV1Upsert401Response{}, nil
+	}
+
+	token, err := h.userService.UpsertFCMToken(userID, domain.FCMTokenRequest{Token: request.Body.Token})
+	if err != nil {
+		return nil, fmt.Errorf("failed to upsert fcm token: %w", err)
+	}
+
+	return api.FCMTokenV1Upsert200JSONResponse{
+		FcmToken: toApiFCMToken(*token),
 	}, nil
 }
 
@@ -92,4 +115,12 @@ func toDomainUserRequest(body api.UsersV1UpsertJSONRequestBody) domain.UserReque
 		req.Class = &cl
 	}
 	return req
+}
+
+func toApiFCMToken(token domain.FCMToken) api.FCMToken {
+	return api.FCMToken{
+		Token:     token.Token,
+		CreatedAt: token.CreatedAt,
+		UpdatedAt: token.UpdatedAt,
+	}
 }

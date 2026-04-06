@@ -19,7 +19,6 @@ type MockAcademicRepository struct {
 	getSubjectError             error
 	getRegistrationsErr         error
 	getPersonalCalendarItemsErr error
-	getFacultiesByIDsError      error
 }
 
 func NewMockAcademicRepository() *MockAcademicRepository {
@@ -57,13 +56,6 @@ func NewMockAcademicRepository() *MockAcademicRepository {
 		Floor: domain.Floor1,
 	}
 
-	timetableItem := domain.TimetableItem{
-		ID:      "t1",
-		Slot:    &slot,
-		Rooms:   []domain.Room{room},
-		Subject: subject,
-	}
-
 	return &MockAcademicRepository{
 		subjects: []domain.Subject{subject},
 		courseRegistrations: []domain.CourseRegistration{
@@ -71,9 +63,11 @@ func NewMockAcademicRepository() *MockAcademicRepository {
 		},
 		personalCalendarItems: []domain.PersonalCalendarItem{
 			{
-				Date:          time.Date(2026, 4, 1, 9, 0, 0, 0, time.UTC),
-				Slot:          slot,
-				TimetableItem: timetableItem,
+				Date:    time.Date(2026, 4, 1, 9, 0, 0, 0, time.UTC),
+				Period:  slot.Period,
+				Rooms:   []domain.Room{room},
+				Status:  domain.PersonalCalendarItemStatusNormal,
+				Subject: subject,
 			},
 		},
 		faculties: []domain.Faculty{faculty},
@@ -95,8 +89,6 @@ func NewMockAcademicRepositoryWithError(field string, err error) *MockAcademicRe
 		m.getRegistrationsErr = err
 	case "getPersonalCalendarItems":
 		m.getPersonalCalendarItemsErr = err
-	case "getFacultiesByIDs":
-		m.getFacultiesByIDsError = err
 	}
 	return m
 }
@@ -112,21 +104,6 @@ func (m *MockAcademicRepository) GetFaculty(id string) (*domain.Faculty, error) 
 		}
 	}
 	return nil, fmt.Errorf("faculty not found: %s", id)
-}
-
-func (m *MockAcademicRepository) GetFacultiesByIDs(ids []string) (map[string]domain.Faculty, error) {
-	if m.getFacultiesByIDsError != nil {
-		return nil, m.getFacultiesByIDsError
-	}
-	result := make(map[string]domain.Faculty)
-	for _, f := range m.faculties {
-		for _, id := range ids {
-			if f.ID == id {
-				result[id] = f
-			}
-		}
-	}
-	return result, nil
 }
 
 func (m *MockAcademicRepository) GetSubjects(_ domain.SubjectQuery) ([]domain.Subject, error) {
@@ -174,7 +151,14 @@ func (m *MockAcademicRepository) DeleteCourseRegistration(_ string) error {
 }
 
 func (m *MockAcademicRepository) GetTimetableItems(_ domain.TimetableItemQuery) ([]domain.TimetableItem, error) {
-	return []domain.TimetableItem{m.personalCalendarItems[0].TimetableItem}, nil
+	return []domain.TimetableItem{
+		{
+			ID:      "t1",
+			Slot:    &domain.TimetableSlot{DayOfWeek: domain.DayOfWeekMonday, Period: m.personalCalendarItems[0].Period},
+			Rooms:   m.personalCalendarItems[0].Rooms,
+			Subject: m.personalCalendarItems[0].Subject,
+		},
+	}, nil
 }
 
 func (m *MockAcademicRepository) GetPersonalCalendarItems(_ string, _ []time.Time) ([]domain.PersonalCalendarItem, error) {

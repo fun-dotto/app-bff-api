@@ -45,3 +45,18 @@ func ToExternalUserRequest(req domain.UserRequest) user_api.UserRequest {
 	}
 	return body
 }
+
+func ToDomainFCMToken(m user_api.FCMToken) domain.FCMToken {
+	return domain.FCMToken{
+		Token:     m.Token,
+		CreatedAt: m.CreatedAt,
+		UpdatedAt: m.UpdatedAt,
+	}
+}
+
+func ToExternalFCMTokenRequest(userID string, req domain.FCMTokenRequest) user_api.FCMTokenRequest {
+	return user_api.FCMTokenRequest{
+		Token:  req.Token,
+		UserId: userID,
+	}
+}

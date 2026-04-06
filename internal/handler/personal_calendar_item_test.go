@@ -7,6 +7,7 @@ import (
 	"time"
 
 	api "github.com/fun-dotto/app-bff-api/generated"
+	openapi_types "github.com/oapi-codegen/runtime/types"
 	"github.com/fun-dotto/app-bff-api/internal/repository"
 	"github.com/fun-dotto/app-bff-api/internal/service"
 	"github.com/stretchr/testify/assert"
@@ -14,7 +15,7 @@ import (
 )
 
 func TestPersonalCalendarItemsV1List(t *testing.T) {
-	dates := []time.Time{time.Date(2026, 4, 1, 0, 0, 0, 0, time.UTC)}
+	dates := []openapi_types.Date{{Time: time.Date(2026, 4, 1, 0, 0, 0, 0, time.UTC)}}
 
 	tests := []struct {
 		name     string
@@ -31,7 +32,8 @@ func TestPersonalCalendarItemsV1List(t *testing.T) {
 				result, ok := resp.(api.PersonalCalendarItemsV1List200JSONResponse)
 				require.True(t, ok)
 				assert.Len(t, result.PersonalCalendarItems, 1)
-				assert.Equal(t, "t1", result.PersonalCalendarItems[0].TimetableItem.Id)
+				assert.Equal(t, api.DottoFoundationV1Period("Period1"), result.PersonalCalendarItems[0].Period)
+				assert.Equal(t, "s1", result.PersonalCalendarItems[0].Subject.Id)
 			},
 		},
 		{
@@ -44,12 +46,13 @@ func TestPersonalCalendarItemsV1List(t *testing.T) {
 			},
 		},
 		{
-			name:    "コンテキストにユーザーIDがない場合エラーを返す",
+			name:    "コンテキストにユーザーIDがない場合401を返す",
 			ctx:     context.Background(),
 			handler: NewHandler(WithAcademicService(service.NewAcademicService(repository.NewMockAcademicRepository()))),
 			validate: func(t *testing.T, resp api.PersonalCalendarItemsV1ListResponseObject, err error) {
-				require.Error(t, err)
-				assert.Contains(t, err.Error(), "user ID not found in context")
+				require.NoError(t, err)
+				_, ok := resp.(api.PersonalCalendarItemsV1List401Response)
+				require.True(t, ok, "レスポンスが401レスポンスではありません")
 			},
 		},
 		{

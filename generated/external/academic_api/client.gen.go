@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"github.com/oapi-codegen/runtime"
+	openapi_types "github.com/oapi-codegen/runtime/types"
 )
 
 // Defines values for DottoFoundationV1Class.
@@ -77,13 +78,14 @@ const (
 
 // Defines values for DottoFoundationV1Floor.
 const (
-	Floor1 DottoFoundationV1Floor = "Floor1"
-	Floor2 DottoFoundationV1Floor = "Floor2"
-	Floor3 DottoFoundationV1Floor = "Floor3"
-	Floor4 DottoFoundationV1Floor = "Floor4"
-	Floor5 DottoFoundationV1Floor = "Floor5"
-	Floor6 DottoFoundationV1Floor = "Floor6"
-	Floor7 DottoFoundationV1Floor = "Floor7"
+	Floor1  DottoFoundationV1Floor = "Floor1"
+	Floor2  DottoFoundationV1Floor = "Floor2"
+	Floor3  DottoFoundationV1Floor = "Floor3"
+	Floor4  DottoFoundationV1Floor = "Floor4"
+	Floor5  DottoFoundationV1Floor = "Floor5"
+	Floor6  DottoFoundationV1Floor = "Floor6"
+	Floor7  DottoFoundationV1Floor = "Floor7"
+	Virtual DottoFoundationV1Floor = "Virtual"
 )
 
 // Defines values for DottoFoundationV1Grade.
@@ -109,6 +111,14 @@ const (
 	Period6 DottoFoundationV1Period = "Period6"
 )
 
+// Defines values for DottoFoundationV1PersonalCalendarItemStatus.
+const (
+	Cancelled   DottoFoundationV1PersonalCalendarItemStatus = "Cancelled"
+	Makeup      DottoFoundationV1PersonalCalendarItemStatus = "Makeup"
+	Normal      DottoFoundationV1PersonalCalendarItemStatus = "Normal"
+	RoomChanged DottoFoundationV1PersonalCalendarItemStatus = "RoomChanged"
+)
+
 // Defines values for DottoFoundationV1SubjectClassification.
 const (
 	Cultural            DottoFoundationV1SubjectClassification = "Cultural"
@@ -123,11 +133,28 @@ const (
 	Required         DottoFoundationV1SubjectRequirementType = "Required"
 )
 
+// CancelledClass 休講
+type CancelledClass struct {
+	Comment string                  `json:"comment"`
+	Date    openapi_types.Date      `json:"date"`
+	Id      string                  `json:"id"`
+	Period  DottoFoundationV1Period `json:"period"`
+	Subject Subject                 `json:"subject"`
+}
+
+// CancelledClassRequest defines model for CancelledClassRequest.
+type CancelledClassRequest struct {
+	Comment   string                  `json:"comment"`
+	Date      openapi_types.Date      `json:"date"`
+	Period    DottoFoundationV1Period `json:"period"`
+	SubjectId string                  `json:"subjectId"`
+}
+
 // CourseRegistration defines model for CourseRegistration.
 type CourseRegistration struct {
-	Id      string         `json:"id"`
-	Subject SubjectSummary `json:"subject"`
-	UserId  string         `json:"userId"`
+	Id      string  `json:"id"`
+	Subject Subject `json:"subject"`
+	UserId  string  `json:"userId"`
 }
 
 // CourseRegistrationRequest defines model for CourseRegistrationRequest.
@@ -160,6 +187,9 @@ type DottoFoundationV1Grade string
 // DottoFoundationV1Period defines model for DottoFoundationV1.Period.
 type DottoFoundationV1Period string
 
+// DottoFoundationV1PersonalCalendarItemStatus 教室変更よりも休講・補講が優先される
+type DottoFoundationV1PersonalCalendarItemStatus string
+
 // DottoFoundationV1SubjectClassification 科目カテゴリ
 type DottoFoundationV1SubjectClassification string
 
@@ -185,31 +215,97 @@ type FacultyRequest struct {
 	Name  string `json:"name"`
 }
 
+// MakeupClass 補講
+type MakeupClass struct {
+	Comment string                  `json:"comment"`
+	Date    openapi_types.Date      `json:"date"`
+	Id      string                  `json:"id"`
+	Period  DottoFoundationV1Period `json:"period"`
+	Subject Subject                 `json:"subject"`
+}
+
+// MakeupClassRequest defines model for MakeupClassRequest.
+type MakeupClassRequest struct {
+	Comment   string                  `json:"comment"`
+	Date      openapi_types.Date      `json:"date"`
+	Period    DottoFoundationV1Period `json:"period"`
+	SubjectId string                  `json:"subjectId"`
+}
+
 // PersonalCalendarItem defines model for PersonalCalendarItem.
 type PersonalCalendarItem struct {
-	Date          time.Time                      `json:"date"`
-	Slot          DottoFoundationV1TimetableSlot `json:"slot"`
-	TimetableItem TimetableItem                  `json:"timetableItem"`
+	Date   openapi_types.Date      `json:"date"`
+	Period DottoFoundationV1Period `json:"period"`
+	Rooms  []Room                  `json:"rooms"`
+
+	// Status 教室変更よりも休講・補講が優先される
+	Status  DottoFoundationV1PersonalCalendarItemStatus `json:"status"`
+	Subject Subject                                     `json:"subject"`
 }
 
 // Reservation defines model for Reservation.
 type Reservation struct {
 	EndAt   time.Time `json:"endAt"`
+	Id      string    `json:"id"`
+	RoomId  string    `json:"roomId"`
+	StartAt time.Time `json:"startAt"`
+	Title   string    `json:"title"`
+}
+
+// ReservationRequest defines model for ReservationRequest.
+type ReservationRequest struct {
+	EndAt   time.Time `json:"endAt"`
+	RoomId  string    `json:"roomId"`
 	StartAt time.Time `json:"startAt"`
 	Title   string    `json:"title"`
 }
 
 // Room defines model for Room.
 type Room struct {
+	// Faculty 教員
+	//
+	// 教員室でない場合は省略
+	Faculty *Faculty `json:"faculty,omitempty"`
+
+	// Floor フロア
+	//
+	// オンラインなどの仮想教室の場合はVirtualを使用
 	Floor DottoFoundationV1Floor `json:"floor"`
 	Id    string                 `json:"id"`
-	Name  string                 `json:"name"`
+
+	// Name 部屋名
+	Name string `json:"name"`
+
+	// Number 部屋番号
+	//
+	// 部屋番号が存在しない場合は空文字
+	Number string `json:"number"`
+}
+
+// RoomChange 教室変更
+type RoomChange struct {
+	Date         openapi_types.Date      `json:"date"`
+	Id           string                  `json:"id"`
+	NewRoom      Room                    `json:"newRoom"`
+	OriginalRoom Room                    `json:"originalRoom"`
+	Period       DottoFoundationV1Period `json:"period"`
+	Subject      Subject                 `json:"subject"`
+}
+
+// RoomChangeRequest defines model for RoomChangeRequest.
+type RoomChangeRequest struct {
+	Date           openapi_types.Date      `json:"date"`
+	NewRoomId      string                  `json:"newRoomId"`
+	OriginalRoomId string                  `json:"originalRoomId"`
+	Period         DottoFoundationV1Period `json:"period"`
+	SubjectId      string                  `json:"subjectId"`
 }
 
 // RoomRequest defines model for RoomRequest.
 type RoomRequest struct {
-	Floor DottoFoundationV1Floor `json:"floor"`
-	Name  string                 `json:"name"`
+	FacultyId *string                `json:"facultyId,omitempty"`
+	Floor     DottoFoundationV1Floor `json:"floor"`
+	Name      string                 `json:"name"`
 }
 
 // Subject defines model for Subject.
@@ -218,13 +314,17 @@ type Subject struct {
 	Credit int `json:"credit"`
 
 	// EligibleAttributes 授業名末尾の`学年-クラス`をもとに決定
-	EligibleAttributes []SubjectTargetClass `json:"eligibleAttributes"`
-	Faculties          []SubjectFaculty     `json:"faculties"`
-	Id                 string               `json:"id"`
-	Name               string               `json:"name"`
+	//
+	// 科目詳細取得でのみ必須
+	EligibleAttributes *[]SubjectTargetClass `json:"eligibleAttributes,omitempty"`
+	Faculties          []SubjectFaculty      `json:"faculties"`
+	Id                 string                `json:"id"`
+	Name               string                `json:"name"`
 
 	// Requirements 科目群・科目区分をもとに決定
-	Requirements []SubjectRequirement `json:"requirements"`
+	//
+	// 科目詳細取得でのみ必須
+	Requirements *[]SubjectRequirement `json:"requirements,omitempty"`
 
 	// Semester 開講時期
 	Semester DottoFoundationV1CourseSemester `json:"semester"`
@@ -239,11 +339,6 @@ type SubjectFaculty struct {
 	IsPrimary bool    `json:"isPrimary"`
 }
 
-// SubjectRequest defines model for SubjectRequest.
-type SubjectRequest struct {
-	SyllabusId string `json:"syllabusId"`
-}
-
 // SubjectRequirement defines model for SubjectRequirement.
 type SubjectRequirement struct {
 	// Course コース
@@ -251,13 +346,6 @@ type SubjectRequirement struct {
 
 	// RequirementType 必修・選択
 	RequirementType DottoFoundationV1SubjectRequirementType `json:"requirementType"`
-}
-
-// SubjectSummary defines model for SubjectSummary.
-type SubjectSummary struct {
-	Faculties []SubjectFaculty `json:"faculties"`
-	Id        string           `json:"id"`
-	Name      string           `json:"name"`
 }
 
 // SubjectTargetClass 対象学年・クラス
@@ -360,7 +448,7 @@ type TimetableItem struct {
 
 	// Slot 集中講義など、時間割に含まれていない場合はnull
 	Slot    *DottoFoundationV1TimetableSlot `json:"slot,omitempty"`
-	Subject SubjectSummary                  `json:"subject"`
+	Subject Subject                         `json:"subject"`
 }
 
 // TimetableItemRequest defines model for TimetableItemRequest.
@@ -368,6 +456,18 @@ type TimetableItemRequest struct {
 	RoomIds   []string                        `json:"roomIds"`
 	Slot      *DottoFoundationV1TimetableSlot `json:"slot,omitempty"`
 	SubjectId string                          `json:"subjectId"`
+}
+
+// CancelledClassesV1ListParams defines parameters for CancelledClassesV1List.
+type CancelledClassesV1ListParams struct {
+	// SubjectIds 科目IDのリスト; 指定した科目の休講のみを取得する; 指定しない場合は全科目を検索対象とする
+	SubjectIds *[]string `form:"subjectIds,omitempty" json:"subjectIds,omitempty"`
+
+	// From 検索対象開始日付
+	From *openapi_types.Date `form:"from,omitempty" json:"from,omitempty"`
+
+	// Until 検索対象終了日付
+	Until *openapi_types.Date `form:"until,omitempty" json:"until,omitempty"`
 }
 
 // CourseRegistrationsV1ListParams defines parameters for CourseRegistrationsV1List.
@@ -384,8 +484,29 @@ type CourseRegistrationsV1ListParams struct {
 
 // FacultiesV1ListParams defines parameters for FacultiesV1List.
 type FacultiesV1ListParams struct {
-	// Ids 教員IDのリスト; 指定した場合は指定した教員IDのみを取得する
-	Ids *[]string `form:"ids,omitempty" json:"ids,omitempty"`
+	// Q 検索ワード; 教員の名前で部分一致検索される
+	Q *string `form:"q,omitempty" json:"q,omitempty"`
+}
+
+// MakeupClassesV1ListParams defines parameters for MakeupClassesV1List.
+type MakeupClassesV1ListParams struct {
+	// SubjectIds 科目IDのリスト; 指定した科目の補講のみを取得する; 指定しない場合は全科目を検索対象とする
+	SubjectIds *[]string `form:"subjectIds,omitempty" json:"subjectIds,omitempty"`
+
+	// From 検索対象開始日付
+	From *openapi_types.Date `form:"from,omitempty" json:"from,omitempty"`
+
+	// Until 検索対象終了日付
+	Until *openapi_types.Date `form:"until,omitempty" json:"until,omitempty"`
+}
+
+// NotifyIrregularitiesV1NotifyParams defines parameters for NotifyIrregularitiesV1Notify.
+type NotifyIrregularitiesV1NotifyParams struct {
+	// UserIds ユーザーIDのリスト; 指定しない場合は全ユーザーに通知する
+	UserIds *[]string `form:"userIds,omitempty" json:"userIds,omitempty"`
+
+	// Date 対象の日付
+	Date openapi_types.Date `form:"date" json:"date"`
 }
 
 // PersonalCalendarItemsV1ListParams defines parameters for PersonalCalendarItemsV1List.
@@ -394,25 +515,40 @@ type PersonalCalendarItemsV1ListParams struct {
 	UserId string `form:"userId" json:"userId"`
 
 	// Dates 日付のリスト; 指定した日付の個人カレンダーアイテムのみを取得する
-	Dates []time.Time `form:"dates" json:"dates"`
-}
-
-// RoomsV1ListParams defines parameters for RoomsV1List.
-type RoomsV1ListParams struct {
-	// Ids 教室IDのリスト; 指定した場合は指定した教室IDのみを取得する
-	Ids *[]string `form:"ids,omitempty" json:"ids,omitempty"`
-
-	// Floor 階数; 指定した場合は指定した階数の教室のみを取得する
-	Floor *[]DottoFoundationV1Floor `form:"floor,omitempty" json:"floor,omitempty"`
+	Dates []openapi_types.Date `form:"dates" json:"dates"`
 }
 
 // ReservationsV1ListParams defines parameters for ReservationsV1List.
 type ReservationsV1ListParams struct {
-	// From 開始日時
+	// RoomIds 教室IDのリスト
+	RoomIds *[]string `form:"roomIds,omitempty" json:"roomIds,omitempty"`
+
+	// From 検索対象開始日時
 	From *time.Time `form:"from,omitempty" json:"from,omitempty"`
 
-	// Until 終了日時
+	// Until 検索対象終了日時
 	Until *time.Time `form:"until,omitempty" json:"until,omitempty"`
+}
+
+// RoomChangesV1ListParams defines parameters for RoomChangesV1List.
+type RoomChangesV1ListParams struct {
+	// SubjectIds 科目IDのリスト; 指定した科目の教室変更のみを取得する; 指定しない場合は全科目を検索対象とする
+	SubjectIds *[]string `form:"subjectIds,omitempty" json:"subjectIds,omitempty"`
+
+	// From 検索対象開始日付
+	From *openapi_types.Date `form:"from,omitempty" json:"from,omitempty"`
+
+	// Until 検索対象終了日付
+	Until *openapi_types.Date `form:"until,omitempty" json:"until,omitempty"`
+}
+
+// RoomsV1ListParams defines parameters for RoomsV1List.
+type RoomsV1ListParams struct {
+	// Q 検索ワード; 部屋名・部屋番号・教員名の部分一致検索される
+	Q *string `form:"q,omitempty" json:"q,omitempty"`
+
+	// Floors 階数; 指定した場合は指定した階数の部屋のみを取得する
+	Floors *[]DottoFoundationV1Floor `form:"floors,omitempty" json:"floors,omitempty"`
 }
 
 // SubjectsV1ListParams defines parameters for SubjectsV1List.
@@ -457,6 +593,9 @@ type TimetableItemsV1ListParams struct {
 	Semesters []DottoFoundationV1CourseSemester `form:"semesters" json:"semesters"`
 }
 
+// CancelledClassesV1CreateJSONRequestBody defines body for CancelledClassesV1Create for application/json ContentType.
+type CancelledClassesV1CreateJSONRequestBody = CancelledClassRequest
+
 // CourseRegistrationsV1CreateJSONRequestBody defines body for CourseRegistrationsV1Create for application/json ContentType.
 type CourseRegistrationsV1CreateJSONRequestBody = CourseRegistrationRequest
 
@@ -466,14 +605,20 @@ type FacultiesV1CreateJSONRequestBody = FacultyRequest
 // FacultiesV1UpdateJSONRequestBody defines body for FacultiesV1Update for application/json ContentType.
 type FacultiesV1UpdateJSONRequestBody = FacultyRequest
 
+// MakeupClassesV1CreateJSONRequestBody defines body for MakeupClassesV1Create for application/json ContentType.
+type MakeupClassesV1CreateJSONRequestBody = MakeupClassRequest
+
+// ReservationsV1CreateJSONRequestBody defines body for ReservationsV1Create for application/json ContentType.
+type ReservationsV1CreateJSONRequestBody = ReservationRequest
+
+// RoomChangesV1CreateJSONRequestBody defines body for RoomChangesV1Create for application/json ContentType.
+type RoomChangesV1CreateJSONRequestBody = RoomChangeRequest
+
 // RoomsV1CreateJSONRequestBody defines body for RoomsV1Create for application/json ContentType.
 type RoomsV1CreateJSONRequestBody = RoomRequest
 
 // RoomsV1UpdateJSONRequestBody defines body for RoomsV1Update for application/json ContentType.
 type RoomsV1UpdateJSONRequestBody = RoomRequest
-
-// SubjectsV1UpsertJSONRequestBody defines body for SubjectsV1Upsert for application/json ContentType.
-type SubjectsV1UpsertJSONRequestBody = SubjectRequest
 
 // TimetableItemsV1CreateJSONRequestBody defines body for TimetableItemsV1Create for application/json ContentType.
 type TimetableItemsV1CreateJSONRequestBody = TimetableItemRequest
@@ -551,6 +696,20 @@ func WithRequestEditorFn(fn RequestEditorFn) ClientOption {
 
 // The interface specification for the client above.
 type ClientInterface interface {
+	// CancelledClassesV1List request
+	CancelledClassesV1List(ctx context.Context, params *CancelledClassesV1ListParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// CancelledClassesV1CreateWithBody request with any body
+	CancelledClassesV1CreateWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	CancelledClassesV1Create(ctx context.Context, body CancelledClassesV1CreateJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// CancelledClassesV1Fetch request
+	CancelledClassesV1Fetch(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// CancelledClassesV1Delete request
+	CancelledClassesV1Delete(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// CourseRegistrationsV1List request
 	CourseRegistrationsV1List(ctx context.Context, params *CourseRegistrationsV1ListParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -581,8 +740,53 @@ type ClientInterface interface {
 
 	FacultiesV1Update(ctx context.Context, id string, body FacultiesV1UpdateJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// MakeupClassesV1List request
+	MakeupClassesV1List(ctx context.Context, params *MakeupClassesV1ListParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// MakeupClassesV1CreateWithBody request with any body
+	MakeupClassesV1CreateWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	MakeupClassesV1Create(ctx context.Context, body MakeupClassesV1CreateJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// MakeupClassesV1Fetch request
+	MakeupClassesV1Fetch(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// MakeupClassesV1Delete request
+	MakeupClassesV1Delete(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// NotifyIrregularitiesV1Notify request
+	NotifyIrregularitiesV1Notify(ctx context.Context, params *NotifyIrregularitiesV1NotifyParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// PersonalCalendarItemsV1List request
 	PersonalCalendarItemsV1List(ctx context.Context, params *PersonalCalendarItemsV1ListParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ReservationsV1List request
+	ReservationsV1List(ctx context.Context, params *ReservationsV1ListParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ReservationsV1CreateWithBody request with any body
+	ReservationsV1CreateWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	ReservationsV1Create(ctx context.Context, body ReservationsV1CreateJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ReservationsV1Delete request
+	ReservationsV1Delete(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ReservationsV1Detail request
+	ReservationsV1Detail(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// RoomChangesV1List request
+	RoomChangesV1List(ctx context.Context, params *RoomChangesV1ListParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// RoomChangesV1CreateWithBody request with any body
+	RoomChangesV1CreateWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	RoomChangesV1Create(ctx context.Context, body RoomChangesV1CreateJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// RoomChangesV1Fetch request
+	RoomChangesV1Fetch(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// RoomChangesV1Delete request
+	RoomChangesV1Delete(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// RoomsV1List request
 	RoomsV1List(ctx context.Context, params *RoomsV1ListParams, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -603,16 +807,8 @@ type ClientInterface interface {
 
 	RoomsV1Update(ctx context.Context, id string, body RoomsV1UpdateJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// ReservationsV1List request
-	ReservationsV1List(ctx context.Context, id string, params *ReservationsV1ListParams, reqEditors ...RequestEditorFn) (*http.Response, error)
-
 	// SubjectsV1List request
 	SubjectsV1List(ctx context.Context, params *SubjectsV1ListParams, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	// SubjectsV1UpsertWithBody request with any body
-	SubjectsV1UpsertWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	SubjectsV1Upsert(ctx context.Context, body SubjectsV1UpsertJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// SubjectsV1Delete request
 	SubjectsV1Delete(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -633,6 +829,66 @@ type ClientInterface interface {
 
 	// TimetableItemsV1Delete request
 	TimetableItemsV1Delete(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error)
+}
+
+func (c *Client) CancelledClassesV1List(ctx context.Context, params *CancelledClassesV1ListParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCancelledClassesV1ListRequest(c.Server, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CancelledClassesV1CreateWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCancelledClassesV1CreateRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CancelledClassesV1Create(ctx context.Context, body CancelledClassesV1CreateJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCancelledClassesV1CreateRequest(c.Server, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CancelledClassesV1Fetch(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCancelledClassesV1FetchRequest(c.Server)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CancelledClassesV1Delete(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCancelledClassesV1DeleteRequest(c.Server, id)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
 }
 
 func (c *Client) CourseRegistrationsV1List(ctx context.Context, params *CourseRegistrationsV1ListParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
@@ -767,8 +1023,200 @@ func (c *Client) FacultiesV1Update(ctx context.Context, id string, body Facultie
 	return c.Client.Do(req)
 }
 
+func (c *Client) MakeupClassesV1List(ctx context.Context, params *MakeupClassesV1ListParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewMakeupClassesV1ListRequest(c.Server, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) MakeupClassesV1CreateWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewMakeupClassesV1CreateRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) MakeupClassesV1Create(ctx context.Context, body MakeupClassesV1CreateJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewMakeupClassesV1CreateRequest(c.Server, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) MakeupClassesV1Fetch(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewMakeupClassesV1FetchRequest(c.Server)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) MakeupClassesV1Delete(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewMakeupClassesV1DeleteRequest(c.Server, id)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) NotifyIrregularitiesV1Notify(ctx context.Context, params *NotifyIrregularitiesV1NotifyParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewNotifyIrregularitiesV1NotifyRequest(c.Server, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) PersonalCalendarItemsV1List(ctx context.Context, params *PersonalCalendarItemsV1ListParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewPersonalCalendarItemsV1ListRequest(c.Server, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ReservationsV1List(ctx context.Context, params *ReservationsV1ListParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewReservationsV1ListRequest(c.Server, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ReservationsV1CreateWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewReservationsV1CreateRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ReservationsV1Create(ctx context.Context, body ReservationsV1CreateJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewReservationsV1CreateRequest(c.Server, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ReservationsV1Delete(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewReservationsV1DeleteRequest(c.Server, id)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ReservationsV1Detail(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewReservationsV1DetailRequest(c.Server, id)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) RoomChangesV1List(ctx context.Context, params *RoomChangesV1ListParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewRoomChangesV1ListRequest(c.Server, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) RoomChangesV1CreateWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewRoomChangesV1CreateRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) RoomChangesV1Create(ctx context.Context, body RoomChangesV1CreateJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewRoomChangesV1CreateRequest(c.Server, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) RoomChangesV1Fetch(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewRoomChangesV1FetchRequest(c.Server)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) RoomChangesV1Delete(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewRoomChangesV1DeleteRequest(c.Server, id)
 	if err != nil {
 		return nil, err
 	}
@@ -863,44 +1311,8 @@ func (c *Client) RoomsV1Update(ctx context.Context, id string, body RoomsV1Updat
 	return c.Client.Do(req)
 }
 
-func (c *Client) ReservationsV1List(ctx context.Context, id string, params *ReservationsV1ListParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewReservationsV1ListRequest(c.Server, id, params)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
 func (c *Client) SubjectsV1List(ctx context.Context, params *SubjectsV1ListParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewSubjectsV1ListRequest(c.Server, params)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) SubjectsV1UpsertWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewSubjectsV1UpsertRequestWithBody(c.Server, contentType, body)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) SubjectsV1Upsert(ctx context.Context, body SubjectsV1UpsertJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewSubjectsV1UpsertRequest(c.Server, body)
 	if err != nil {
 		return nil, err
 	}
@@ -993,6 +1405,188 @@ func (c *Client) TimetableItemsV1Delete(ctx context.Context, id string, reqEdito
 		return nil, err
 	}
 	return c.Client.Do(req)
+}
+
+// NewCancelledClassesV1ListRequest generates requests for CancelledClassesV1List
+func NewCancelledClassesV1ListRequest(server string, params *CancelledClassesV1ListParams) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/v1/cancelledClasses")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.SubjectIds != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", false, "subjectIds", runtime.ParamLocationQuery, *params.SubjectIds); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.From != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "from", runtime.ParamLocationQuery, *params.From); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Until != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "until", runtime.ParamLocationQuery, *params.Until); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewCancelledClassesV1CreateRequest calls the generic CancelledClassesV1Create builder with application/json body
+func NewCancelledClassesV1CreateRequest(server string, body CancelledClassesV1CreateJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewCancelledClassesV1CreateRequestWithBody(server, "application/json", bodyReader)
+}
+
+// NewCancelledClassesV1CreateRequestWithBody generates requests for CancelledClassesV1Create with any type of body
+func NewCancelledClassesV1CreateRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/v1/cancelledClasses")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewCancelledClassesV1FetchRequest generates requests for CancelledClassesV1Fetch
+func NewCancelledClassesV1FetchRequest(server string) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/v1/cancelledClasses")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("PUT", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewCancelledClassesV1DeleteRequest generates requests for CancelledClassesV1Delete
+func NewCancelledClassesV1DeleteRequest(server string, id string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "id", runtime.ParamLocationPath, id)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/v1/cancelledClasses/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("DELETE", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
 }
 
 // NewCourseRegistrationsV1ListRequest generates requests for CourseRegistrationsV1List
@@ -1164,9 +1758,9 @@ func NewFacultiesV1ListRequest(server string, params *FacultiesV1ListParams) (*h
 	if params != nil {
 		queryValues := queryURL.Query()
 
-		if params.Ids != nil {
+		if params.Q != nil {
 
-			if queryFrag, err := runtime.StyleParamWithLocation("form", false, "ids", runtime.ParamLocationQuery, *params.Ids); err != nil {
+			if queryFrag, err := runtime.StyleParamWithLocation("form", false, "q", runtime.ParamLocationQuery, *params.Q); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
@@ -1346,6 +1940,249 @@ func NewFacultiesV1UpdateRequestWithBody(server string, id string, contentType s
 	return req, nil
 }
 
+// NewMakeupClassesV1ListRequest generates requests for MakeupClassesV1List
+func NewMakeupClassesV1ListRequest(server string, params *MakeupClassesV1ListParams) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/v1/makeupClasses")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.SubjectIds != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", false, "subjectIds", runtime.ParamLocationQuery, *params.SubjectIds); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.From != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "from", runtime.ParamLocationQuery, *params.From); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Until != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "until", runtime.ParamLocationQuery, *params.Until); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewMakeupClassesV1CreateRequest calls the generic MakeupClassesV1Create builder with application/json body
+func NewMakeupClassesV1CreateRequest(server string, body MakeupClassesV1CreateJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewMakeupClassesV1CreateRequestWithBody(server, "application/json", bodyReader)
+}
+
+// NewMakeupClassesV1CreateRequestWithBody generates requests for MakeupClassesV1Create with any type of body
+func NewMakeupClassesV1CreateRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/v1/makeupClasses")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewMakeupClassesV1FetchRequest generates requests for MakeupClassesV1Fetch
+func NewMakeupClassesV1FetchRequest(server string) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/v1/makeupClasses")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("PUT", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewMakeupClassesV1DeleteRequest generates requests for MakeupClassesV1Delete
+func NewMakeupClassesV1DeleteRequest(server string, id string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "id", runtime.ParamLocationPath, id)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/v1/makeupClasses/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("DELETE", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewNotifyIrregularitiesV1NotifyRequest generates requests for NotifyIrregularitiesV1Notify
+func NewNotifyIrregularitiesV1NotifyRequest(server string, params *NotifyIrregularitiesV1NotifyParams) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/v1/notifyIrregularities")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.UserIds != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", false, "userIds", runtime.ParamLocationQuery, *params.UserIds); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "date", runtime.ParamLocationQuery, params.Date); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewPersonalCalendarItemsV1ListRequest generates requests for PersonalCalendarItemsV1List
 func NewPersonalCalendarItemsV1ListRequest(server string, params *PersonalCalendarItemsV1ListParams) (*http.Request, error) {
 	var err error
@@ -1403,6 +2240,377 @@ func NewPersonalCalendarItemsV1ListRequest(server string, params *PersonalCalend
 	return req, nil
 }
 
+// NewReservationsV1ListRequest generates requests for ReservationsV1List
+func NewReservationsV1ListRequest(server string, params *ReservationsV1ListParams) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/v1/reservations")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.RoomIds != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", false, "roomIds", runtime.ParamLocationQuery, *params.RoomIds); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.From != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "from", runtime.ParamLocationQuery, *params.From); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Until != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "until", runtime.ParamLocationQuery, *params.Until); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewReservationsV1CreateRequest calls the generic ReservationsV1Create builder with application/json body
+func NewReservationsV1CreateRequest(server string, body ReservationsV1CreateJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewReservationsV1CreateRequestWithBody(server, "application/json", bodyReader)
+}
+
+// NewReservationsV1CreateRequestWithBody generates requests for ReservationsV1Create with any type of body
+func NewReservationsV1CreateRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/v1/reservations")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewReservationsV1DeleteRequest generates requests for ReservationsV1Delete
+func NewReservationsV1DeleteRequest(server string, id string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "id", runtime.ParamLocationPath, id)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/v1/reservations/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("DELETE", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewReservationsV1DetailRequest generates requests for ReservationsV1Detail
+func NewReservationsV1DetailRequest(server string, id string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "id", runtime.ParamLocationPath, id)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/v1/reservations/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewRoomChangesV1ListRequest generates requests for RoomChangesV1List
+func NewRoomChangesV1ListRequest(server string, params *RoomChangesV1ListParams) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/v1/roomChanges")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.SubjectIds != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", false, "subjectIds", runtime.ParamLocationQuery, *params.SubjectIds); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.From != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "from", runtime.ParamLocationQuery, *params.From); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Until != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "until", runtime.ParamLocationQuery, *params.Until); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewRoomChangesV1CreateRequest calls the generic RoomChangesV1Create builder with application/json body
+func NewRoomChangesV1CreateRequest(server string, body RoomChangesV1CreateJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewRoomChangesV1CreateRequestWithBody(server, "application/json", bodyReader)
+}
+
+// NewRoomChangesV1CreateRequestWithBody generates requests for RoomChangesV1Create with any type of body
+func NewRoomChangesV1CreateRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/v1/roomChanges")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewRoomChangesV1FetchRequest generates requests for RoomChangesV1Fetch
+func NewRoomChangesV1FetchRequest(server string) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/v1/roomChanges")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("PUT", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewRoomChangesV1DeleteRequest generates requests for RoomChangesV1Delete
+func NewRoomChangesV1DeleteRequest(server string, id string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "id", runtime.ParamLocationPath, id)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/v1/roomChanges/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("DELETE", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewRoomsV1ListRequest generates requests for RoomsV1List
 func NewRoomsV1ListRequest(server string, params *RoomsV1ListParams) (*http.Request, error) {
 	var err error
@@ -1425,9 +2633,9 @@ func NewRoomsV1ListRequest(server string, params *RoomsV1ListParams) (*http.Requ
 	if params != nil {
 		queryValues := queryURL.Query()
 
-		if params.Ids != nil {
+		if params.Q != nil {
 
-			if queryFrag, err := runtime.StyleParamWithLocation("form", false, "ids", runtime.ParamLocationQuery, *params.Ids); err != nil {
+			if queryFrag, err := runtime.StyleParamWithLocation("form", false, "q", runtime.ParamLocationQuery, *params.Q); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
@@ -1441,9 +2649,9 @@ func NewRoomsV1ListRequest(server string, params *RoomsV1ListParams) (*http.Requ
 
 		}
 
-		if params.Floor != nil {
+		if params.Floors != nil {
 
-			if queryFrag, err := runtime.StyleParamWithLocation("form", false, "floor", runtime.ParamLocationQuery, *params.Floor); err != nil {
+			if queryFrag, err := runtime.StyleParamWithLocation("form", false, "floors", runtime.ParamLocationQuery, *params.Floors); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
@@ -1619,78 +2827,6 @@ func NewRoomsV1UpdateRequestWithBody(server string, id string, contentType strin
 	}
 
 	req.Header.Add("Content-Type", contentType)
-
-	return req, nil
-}
-
-// NewReservationsV1ListRequest generates requests for ReservationsV1List
-func NewReservationsV1ListRequest(server string, id string, params *ReservationsV1ListParams) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "id", runtime.ParamLocationPath, id)
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/v1/rooms/%s/reservations", pathParam0)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	if params != nil {
-		queryValues := queryURL.Query()
-
-		if params.From != nil {
-
-			if queryFrag, err := runtime.StyleParamWithLocation("form", false, "from", runtime.ParamLocationQuery, *params.From); err != nil {
-				return nil, err
-			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
-				return nil, err
-			} else {
-				for k, v := range parsed {
-					for _, v2 := range v {
-						queryValues.Add(k, v2)
-					}
-				}
-			}
-
-		}
-
-		if params.Until != nil {
-
-			if queryFrag, err := runtime.StyleParamWithLocation("form", false, "until", runtime.ParamLocationQuery, *params.Until); err != nil {
-				return nil, err
-			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
-				return nil, err
-			} else {
-				for k, v := range parsed {
-					for _, v2 := range v {
-						queryValues.Add(k, v2)
-					}
-				}
-			}
-
-		}
-
-		queryURL.RawQuery = queryValues.Encode()
-	}
-
-	req, err := http.NewRequest("GET", queryURL.String(), nil)
-	if err != nil {
-		return nil, err
-	}
 
 	return req, nil
 }
@@ -1884,46 +3020,6 @@ func NewSubjectsV1ListRequest(server string, params *SubjectsV1ListParams) (*htt
 	if err != nil {
 		return nil, err
 	}
-
-	return req, nil
-}
-
-// NewSubjectsV1UpsertRequest calls the generic SubjectsV1Upsert builder with application/json body
-func NewSubjectsV1UpsertRequest(server string, body SubjectsV1UpsertJSONRequestBody) (*http.Request, error) {
-	var bodyReader io.Reader
-	buf, err := json.Marshal(body)
-	if err != nil {
-		return nil, err
-	}
-	bodyReader = bytes.NewReader(buf)
-	return NewSubjectsV1UpsertRequestWithBody(server, "application/json", bodyReader)
-}
-
-// NewSubjectsV1UpsertRequestWithBody generates requests for SubjectsV1Upsert with any type of body
-func NewSubjectsV1UpsertRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
-	var err error
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/v1/subjects")
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("POST", queryURL.String(), body)
-	if err != nil {
-		return nil, err
-	}
-
-	req.Header.Add("Content-Type", contentType)
 
 	return req, nil
 }
@@ -2208,6 +3304,20 @@ func WithBaseURL(baseURL string) ClientOption {
 
 // ClientWithResponsesInterface is the interface specification for the client with responses above.
 type ClientWithResponsesInterface interface {
+	// CancelledClassesV1ListWithResponse request
+	CancelledClassesV1ListWithResponse(ctx context.Context, params *CancelledClassesV1ListParams, reqEditors ...RequestEditorFn) (*CancelledClassesV1ListResponse, error)
+
+	// CancelledClassesV1CreateWithBodyWithResponse request with any body
+	CancelledClassesV1CreateWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CancelledClassesV1CreateResponse, error)
+
+	CancelledClassesV1CreateWithResponse(ctx context.Context, body CancelledClassesV1CreateJSONRequestBody, reqEditors ...RequestEditorFn) (*CancelledClassesV1CreateResponse, error)
+
+	// CancelledClassesV1FetchWithResponse request
+	CancelledClassesV1FetchWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*CancelledClassesV1FetchResponse, error)
+
+	// CancelledClassesV1DeleteWithResponse request
+	CancelledClassesV1DeleteWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*CancelledClassesV1DeleteResponse, error)
+
 	// CourseRegistrationsV1ListWithResponse request
 	CourseRegistrationsV1ListWithResponse(ctx context.Context, params *CourseRegistrationsV1ListParams, reqEditors ...RequestEditorFn) (*CourseRegistrationsV1ListResponse, error)
 
@@ -2238,8 +3348,53 @@ type ClientWithResponsesInterface interface {
 
 	FacultiesV1UpdateWithResponse(ctx context.Context, id string, body FacultiesV1UpdateJSONRequestBody, reqEditors ...RequestEditorFn) (*FacultiesV1UpdateResponse, error)
 
+	// MakeupClassesV1ListWithResponse request
+	MakeupClassesV1ListWithResponse(ctx context.Context, params *MakeupClassesV1ListParams, reqEditors ...RequestEditorFn) (*MakeupClassesV1ListResponse, error)
+
+	// MakeupClassesV1CreateWithBodyWithResponse request with any body
+	MakeupClassesV1CreateWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*MakeupClassesV1CreateResponse, error)
+
+	MakeupClassesV1CreateWithResponse(ctx context.Context, body MakeupClassesV1CreateJSONRequestBody, reqEditors ...RequestEditorFn) (*MakeupClassesV1CreateResponse, error)
+
+	// MakeupClassesV1FetchWithResponse request
+	MakeupClassesV1FetchWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*MakeupClassesV1FetchResponse, error)
+
+	// MakeupClassesV1DeleteWithResponse request
+	MakeupClassesV1DeleteWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*MakeupClassesV1DeleteResponse, error)
+
+	// NotifyIrregularitiesV1NotifyWithResponse request
+	NotifyIrregularitiesV1NotifyWithResponse(ctx context.Context, params *NotifyIrregularitiesV1NotifyParams, reqEditors ...RequestEditorFn) (*NotifyIrregularitiesV1NotifyResponse, error)
+
 	// PersonalCalendarItemsV1ListWithResponse request
 	PersonalCalendarItemsV1ListWithResponse(ctx context.Context, params *PersonalCalendarItemsV1ListParams, reqEditors ...RequestEditorFn) (*PersonalCalendarItemsV1ListResponse, error)
+
+	// ReservationsV1ListWithResponse request
+	ReservationsV1ListWithResponse(ctx context.Context, params *ReservationsV1ListParams, reqEditors ...RequestEditorFn) (*ReservationsV1ListResponse, error)
+
+	// ReservationsV1CreateWithBodyWithResponse request with any body
+	ReservationsV1CreateWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ReservationsV1CreateResponse, error)
+
+	ReservationsV1CreateWithResponse(ctx context.Context, body ReservationsV1CreateJSONRequestBody, reqEditors ...RequestEditorFn) (*ReservationsV1CreateResponse, error)
+
+	// ReservationsV1DeleteWithResponse request
+	ReservationsV1DeleteWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*ReservationsV1DeleteResponse, error)
+
+	// ReservationsV1DetailWithResponse request
+	ReservationsV1DetailWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*ReservationsV1DetailResponse, error)
+
+	// RoomChangesV1ListWithResponse request
+	RoomChangesV1ListWithResponse(ctx context.Context, params *RoomChangesV1ListParams, reqEditors ...RequestEditorFn) (*RoomChangesV1ListResponse, error)
+
+	// RoomChangesV1CreateWithBodyWithResponse request with any body
+	RoomChangesV1CreateWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RoomChangesV1CreateResponse, error)
+
+	RoomChangesV1CreateWithResponse(ctx context.Context, body RoomChangesV1CreateJSONRequestBody, reqEditors ...RequestEditorFn) (*RoomChangesV1CreateResponse, error)
+
+	// RoomChangesV1FetchWithResponse request
+	RoomChangesV1FetchWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*RoomChangesV1FetchResponse, error)
+
+	// RoomChangesV1DeleteWithResponse request
+	RoomChangesV1DeleteWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*RoomChangesV1DeleteResponse, error)
 
 	// RoomsV1ListWithResponse request
 	RoomsV1ListWithResponse(ctx context.Context, params *RoomsV1ListParams, reqEditors ...RequestEditorFn) (*RoomsV1ListResponse, error)
@@ -2260,16 +3415,8 @@ type ClientWithResponsesInterface interface {
 
 	RoomsV1UpdateWithResponse(ctx context.Context, id string, body RoomsV1UpdateJSONRequestBody, reqEditors ...RequestEditorFn) (*RoomsV1UpdateResponse, error)
 
-	// ReservationsV1ListWithResponse request
-	ReservationsV1ListWithResponse(ctx context.Context, id string, params *ReservationsV1ListParams, reqEditors ...RequestEditorFn) (*ReservationsV1ListResponse, error)
-
 	// SubjectsV1ListWithResponse request
 	SubjectsV1ListWithResponse(ctx context.Context, params *SubjectsV1ListParams, reqEditors ...RequestEditorFn) (*SubjectsV1ListResponse, error)
-
-	// SubjectsV1UpsertWithBodyWithResponse request with any body
-	SubjectsV1UpsertWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SubjectsV1UpsertResponse, error)
-
-	SubjectsV1UpsertWithResponse(ctx context.Context, body SubjectsV1UpsertJSONRequestBody, reqEditors ...RequestEditorFn) (*SubjectsV1UpsertResponse, error)
 
 	// SubjectsV1DeleteWithResponse request
 	SubjectsV1DeleteWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*SubjectsV1DeleteResponse, error)
@@ -2290,6 +3437,100 @@ type ClientWithResponsesInterface interface {
 
 	// TimetableItemsV1DeleteWithResponse request
 	TimetableItemsV1DeleteWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*TimetableItemsV1DeleteResponse, error)
+}
+
+type CancelledClassesV1ListResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		CancelledClasses []CancelledClass `json:"cancelledClasses"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r CancelledClassesV1ListResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r CancelledClassesV1ListResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type CancelledClassesV1CreateResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON201      *struct {
+		// CancelledClass 休講
+		CancelledClass CancelledClass `json:"cancelledClass"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r CancelledClassesV1CreateResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r CancelledClassesV1CreateResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type CancelledClassesV1FetchResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		CancelledClasses []CancelledClass `json:"cancelledClasses"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r CancelledClassesV1FetchResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r CancelledClassesV1FetchResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type CancelledClassesV1DeleteResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r CancelledClassesV1DeleteResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r CancelledClassesV1DeleteResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
 }
 
 type CourseRegistrationsV1ListResponse struct {
@@ -2478,6 +3719,121 @@ func (r FacultiesV1UpdateResponse) StatusCode() int {
 	return 0
 }
 
+type MakeupClassesV1ListResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		MakeupClasses []MakeupClass `json:"makeupClasses"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r MakeupClassesV1ListResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r MakeupClassesV1ListResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type MakeupClassesV1CreateResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON201      *struct {
+		// MakeupClass 補講
+		MakeupClass MakeupClass `json:"makeupClass"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r MakeupClassesV1CreateResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r MakeupClassesV1CreateResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type MakeupClassesV1FetchResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		MakeupClasses []MakeupClass `json:"makeupClasses"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r MakeupClassesV1FetchResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r MakeupClassesV1FetchResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type MakeupClassesV1DeleteResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r MakeupClassesV1DeleteResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r MakeupClassesV1DeleteResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type NotifyIrregularitiesV1NotifyResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r NotifyIrregularitiesV1NotifyResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r NotifyIrregularitiesV1NotifyResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type PersonalCalendarItemsV1ListResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -2496,6 +3852,193 @@ func (r PersonalCalendarItemsV1ListResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r PersonalCalendarItemsV1ListResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ReservationsV1ListResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		Reservations []Reservation `json:"reservations"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r ReservationsV1ListResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ReservationsV1ListResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ReservationsV1CreateResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON201      *struct {
+		Reservation Reservation `json:"reservation"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r ReservationsV1CreateResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ReservationsV1CreateResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ReservationsV1DeleteResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r ReservationsV1DeleteResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ReservationsV1DeleteResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ReservationsV1DetailResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		Reservation Reservation `json:"reservation"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r ReservationsV1DetailResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ReservationsV1DetailResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type RoomChangesV1ListResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		RoomChanges []RoomChange `json:"roomChanges"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r RoomChangesV1ListResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r RoomChangesV1ListResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type RoomChangesV1CreateResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON201      *struct {
+		// RoomChange 教室変更
+		RoomChange RoomChange `json:"roomChange"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r RoomChangesV1CreateResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r RoomChangesV1CreateResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type RoomChangesV1FetchResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		RoomChanges []RoomChange `json:"roomChanges"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r RoomChangesV1FetchResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r RoomChangesV1FetchResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type RoomChangesV1DeleteResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r RoomChangesV1DeleteResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r RoomChangesV1DeleteResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -2619,35 +4162,11 @@ func (r RoomsV1UpdateResponse) StatusCode() int {
 	return 0
 }
 
-type ReservationsV1ListResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON200      *struct {
-		Reservations []Reservation `json:"reservations"`
-	}
-}
-
-// Status returns HTTPResponse.Status
-func (r ReservationsV1ListResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r ReservationsV1ListResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
 type SubjectsV1ListResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *struct {
-		Subjects []SubjectSummary `json:"subjects"`
+		Subjects []Subject `json:"subjects"`
 	}
 }
 
@@ -2661,30 +4180,6 @@ func (r SubjectsV1ListResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r SubjectsV1ListResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
-type SubjectsV1UpsertResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON200      *struct {
-		Subject Subject `json:"subject"`
-	}
-}
-
-// Status returns HTTPResponse.Status
-func (r SubjectsV1UpsertResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r SubjectsV1UpsertResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -2829,6 +4324,50 @@ func (r TimetableItemsV1DeleteResponse) StatusCode() int {
 	return 0
 }
 
+// CancelledClassesV1ListWithResponse request returning *CancelledClassesV1ListResponse
+func (c *ClientWithResponses) CancelledClassesV1ListWithResponse(ctx context.Context, params *CancelledClassesV1ListParams, reqEditors ...RequestEditorFn) (*CancelledClassesV1ListResponse, error) {
+	rsp, err := c.CancelledClassesV1List(ctx, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCancelledClassesV1ListResponse(rsp)
+}
+
+// CancelledClassesV1CreateWithBodyWithResponse request with arbitrary body returning *CancelledClassesV1CreateResponse
+func (c *ClientWithResponses) CancelledClassesV1CreateWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CancelledClassesV1CreateResponse, error) {
+	rsp, err := c.CancelledClassesV1CreateWithBody(ctx, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCancelledClassesV1CreateResponse(rsp)
+}
+
+func (c *ClientWithResponses) CancelledClassesV1CreateWithResponse(ctx context.Context, body CancelledClassesV1CreateJSONRequestBody, reqEditors ...RequestEditorFn) (*CancelledClassesV1CreateResponse, error) {
+	rsp, err := c.CancelledClassesV1Create(ctx, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCancelledClassesV1CreateResponse(rsp)
+}
+
+// CancelledClassesV1FetchWithResponse request returning *CancelledClassesV1FetchResponse
+func (c *ClientWithResponses) CancelledClassesV1FetchWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*CancelledClassesV1FetchResponse, error) {
+	rsp, err := c.CancelledClassesV1Fetch(ctx, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCancelledClassesV1FetchResponse(rsp)
+}
+
+// CancelledClassesV1DeleteWithResponse request returning *CancelledClassesV1DeleteResponse
+func (c *ClientWithResponses) CancelledClassesV1DeleteWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*CancelledClassesV1DeleteResponse, error) {
+	rsp, err := c.CancelledClassesV1Delete(ctx, id, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCancelledClassesV1DeleteResponse(rsp)
+}
+
 // CourseRegistrationsV1ListWithResponse request returning *CourseRegistrationsV1ListResponse
 func (c *ClientWithResponses) CourseRegistrationsV1ListWithResponse(ctx context.Context, params *CourseRegistrationsV1ListParams, reqEditors ...RequestEditorFn) (*CourseRegistrationsV1ListResponse, error) {
 	rsp, err := c.CourseRegistrationsV1List(ctx, params, reqEditors...)
@@ -2925,6 +4464,59 @@ func (c *ClientWithResponses) FacultiesV1UpdateWithResponse(ctx context.Context,
 	return ParseFacultiesV1UpdateResponse(rsp)
 }
 
+// MakeupClassesV1ListWithResponse request returning *MakeupClassesV1ListResponse
+func (c *ClientWithResponses) MakeupClassesV1ListWithResponse(ctx context.Context, params *MakeupClassesV1ListParams, reqEditors ...RequestEditorFn) (*MakeupClassesV1ListResponse, error) {
+	rsp, err := c.MakeupClassesV1List(ctx, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseMakeupClassesV1ListResponse(rsp)
+}
+
+// MakeupClassesV1CreateWithBodyWithResponse request with arbitrary body returning *MakeupClassesV1CreateResponse
+func (c *ClientWithResponses) MakeupClassesV1CreateWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*MakeupClassesV1CreateResponse, error) {
+	rsp, err := c.MakeupClassesV1CreateWithBody(ctx, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseMakeupClassesV1CreateResponse(rsp)
+}
+
+func (c *ClientWithResponses) MakeupClassesV1CreateWithResponse(ctx context.Context, body MakeupClassesV1CreateJSONRequestBody, reqEditors ...RequestEditorFn) (*MakeupClassesV1CreateResponse, error) {
+	rsp, err := c.MakeupClassesV1Create(ctx, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseMakeupClassesV1CreateResponse(rsp)
+}
+
+// MakeupClassesV1FetchWithResponse request returning *MakeupClassesV1FetchResponse
+func (c *ClientWithResponses) MakeupClassesV1FetchWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*MakeupClassesV1FetchResponse, error) {
+	rsp, err := c.MakeupClassesV1Fetch(ctx, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseMakeupClassesV1FetchResponse(rsp)
+}
+
+// MakeupClassesV1DeleteWithResponse request returning *MakeupClassesV1DeleteResponse
+func (c *ClientWithResponses) MakeupClassesV1DeleteWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*MakeupClassesV1DeleteResponse, error) {
+	rsp, err := c.MakeupClassesV1Delete(ctx, id, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseMakeupClassesV1DeleteResponse(rsp)
+}
+
+// NotifyIrregularitiesV1NotifyWithResponse request returning *NotifyIrregularitiesV1NotifyResponse
+func (c *ClientWithResponses) NotifyIrregularitiesV1NotifyWithResponse(ctx context.Context, params *NotifyIrregularitiesV1NotifyParams, reqEditors ...RequestEditorFn) (*NotifyIrregularitiesV1NotifyResponse, error) {
+	rsp, err := c.NotifyIrregularitiesV1Notify(ctx, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseNotifyIrregularitiesV1NotifyResponse(rsp)
+}
+
 // PersonalCalendarItemsV1ListWithResponse request returning *PersonalCalendarItemsV1ListResponse
 func (c *ClientWithResponses) PersonalCalendarItemsV1ListWithResponse(ctx context.Context, params *PersonalCalendarItemsV1ListParams, reqEditors ...RequestEditorFn) (*PersonalCalendarItemsV1ListResponse, error) {
 	rsp, err := c.PersonalCalendarItemsV1List(ctx, params, reqEditors...)
@@ -2932,6 +4524,94 @@ func (c *ClientWithResponses) PersonalCalendarItemsV1ListWithResponse(ctx contex
 		return nil, err
 	}
 	return ParsePersonalCalendarItemsV1ListResponse(rsp)
+}
+
+// ReservationsV1ListWithResponse request returning *ReservationsV1ListResponse
+func (c *ClientWithResponses) ReservationsV1ListWithResponse(ctx context.Context, params *ReservationsV1ListParams, reqEditors ...RequestEditorFn) (*ReservationsV1ListResponse, error) {
+	rsp, err := c.ReservationsV1List(ctx, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseReservationsV1ListResponse(rsp)
+}
+
+// ReservationsV1CreateWithBodyWithResponse request with arbitrary body returning *ReservationsV1CreateResponse
+func (c *ClientWithResponses) ReservationsV1CreateWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ReservationsV1CreateResponse, error) {
+	rsp, err := c.ReservationsV1CreateWithBody(ctx, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseReservationsV1CreateResponse(rsp)
+}
+
+func (c *ClientWithResponses) ReservationsV1CreateWithResponse(ctx context.Context, body ReservationsV1CreateJSONRequestBody, reqEditors ...RequestEditorFn) (*ReservationsV1CreateResponse, error) {
+	rsp, err := c.ReservationsV1Create(ctx, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseReservationsV1CreateResponse(rsp)
+}
+
+// ReservationsV1DeleteWithResponse request returning *ReservationsV1DeleteResponse
+func (c *ClientWithResponses) ReservationsV1DeleteWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*ReservationsV1DeleteResponse, error) {
+	rsp, err := c.ReservationsV1Delete(ctx, id, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseReservationsV1DeleteResponse(rsp)
+}
+
+// ReservationsV1DetailWithResponse request returning *ReservationsV1DetailResponse
+func (c *ClientWithResponses) ReservationsV1DetailWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*ReservationsV1DetailResponse, error) {
+	rsp, err := c.ReservationsV1Detail(ctx, id, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseReservationsV1DetailResponse(rsp)
+}
+
+// RoomChangesV1ListWithResponse request returning *RoomChangesV1ListResponse
+func (c *ClientWithResponses) RoomChangesV1ListWithResponse(ctx context.Context, params *RoomChangesV1ListParams, reqEditors ...RequestEditorFn) (*RoomChangesV1ListResponse, error) {
+	rsp, err := c.RoomChangesV1List(ctx, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseRoomChangesV1ListResponse(rsp)
+}
+
+// RoomChangesV1CreateWithBodyWithResponse request with arbitrary body returning *RoomChangesV1CreateResponse
+func (c *ClientWithResponses) RoomChangesV1CreateWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RoomChangesV1CreateResponse, error) {
+	rsp, err := c.RoomChangesV1CreateWithBody(ctx, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseRoomChangesV1CreateResponse(rsp)
+}
+
+func (c *ClientWithResponses) RoomChangesV1CreateWithResponse(ctx context.Context, body RoomChangesV1CreateJSONRequestBody, reqEditors ...RequestEditorFn) (*RoomChangesV1CreateResponse, error) {
+	rsp, err := c.RoomChangesV1Create(ctx, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseRoomChangesV1CreateResponse(rsp)
+}
+
+// RoomChangesV1FetchWithResponse request returning *RoomChangesV1FetchResponse
+func (c *ClientWithResponses) RoomChangesV1FetchWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*RoomChangesV1FetchResponse, error) {
+	rsp, err := c.RoomChangesV1Fetch(ctx, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseRoomChangesV1FetchResponse(rsp)
+}
+
+// RoomChangesV1DeleteWithResponse request returning *RoomChangesV1DeleteResponse
+func (c *ClientWithResponses) RoomChangesV1DeleteWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*RoomChangesV1DeleteResponse, error) {
+	rsp, err := c.RoomChangesV1Delete(ctx, id, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseRoomChangesV1DeleteResponse(rsp)
 }
 
 // RoomsV1ListWithResponse request returning *RoomsV1ListResponse
@@ -2995,15 +4675,6 @@ func (c *ClientWithResponses) RoomsV1UpdateWithResponse(ctx context.Context, id 
 	return ParseRoomsV1UpdateResponse(rsp)
 }
 
-// ReservationsV1ListWithResponse request returning *ReservationsV1ListResponse
-func (c *ClientWithResponses) ReservationsV1ListWithResponse(ctx context.Context, id string, params *ReservationsV1ListParams, reqEditors ...RequestEditorFn) (*ReservationsV1ListResponse, error) {
-	rsp, err := c.ReservationsV1List(ctx, id, params, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseReservationsV1ListResponse(rsp)
-}
-
 // SubjectsV1ListWithResponse request returning *SubjectsV1ListResponse
 func (c *ClientWithResponses) SubjectsV1ListWithResponse(ctx context.Context, params *SubjectsV1ListParams, reqEditors ...RequestEditorFn) (*SubjectsV1ListResponse, error) {
 	rsp, err := c.SubjectsV1List(ctx, params, reqEditors...)
@@ -3011,23 +4682,6 @@ func (c *ClientWithResponses) SubjectsV1ListWithResponse(ctx context.Context, pa
 		return nil, err
 	}
 	return ParseSubjectsV1ListResponse(rsp)
-}
-
-// SubjectsV1UpsertWithBodyWithResponse request with arbitrary body returning *SubjectsV1UpsertResponse
-func (c *ClientWithResponses) SubjectsV1UpsertWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SubjectsV1UpsertResponse, error) {
-	rsp, err := c.SubjectsV1UpsertWithBody(ctx, contentType, body, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseSubjectsV1UpsertResponse(rsp)
-}
-
-func (c *ClientWithResponses) SubjectsV1UpsertWithResponse(ctx context.Context, body SubjectsV1UpsertJSONRequestBody, reqEditors ...RequestEditorFn) (*SubjectsV1UpsertResponse, error) {
-	rsp, err := c.SubjectsV1Upsert(ctx, body, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseSubjectsV1UpsertResponse(rsp)
 }
 
 // SubjectsV1DeleteWithResponse request returning *SubjectsV1DeleteResponse
@@ -3090,6 +4744,107 @@ func (c *ClientWithResponses) TimetableItemsV1DeleteWithResponse(ctx context.Con
 		return nil, err
 	}
 	return ParseTimetableItemsV1DeleteResponse(rsp)
+}
+
+// ParseCancelledClassesV1ListResponse parses an HTTP response from a CancelledClassesV1ListWithResponse call
+func ParseCancelledClassesV1ListResponse(rsp *http.Response) (*CancelledClassesV1ListResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &CancelledClassesV1ListResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			CancelledClasses []CancelledClass `json:"cancelledClasses"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseCancelledClassesV1CreateResponse parses an HTTP response from a CancelledClassesV1CreateWithResponse call
+func ParseCancelledClassesV1CreateResponse(rsp *http.Response) (*CancelledClassesV1CreateResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &CancelledClassesV1CreateResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 201:
+		var dest struct {
+			// CancelledClass 休講
+			CancelledClass CancelledClass `json:"cancelledClass"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON201 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseCancelledClassesV1FetchResponse parses an HTTP response from a CancelledClassesV1FetchWithResponse call
+func ParseCancelledClassesV1FetchResponse(rsp *http.Response) (*CancelledClassesV1FetchResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &CancelledClassesV1FetchResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			CancelledClasses []CancelledClass `json:"cancelledClasses"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseCancelledClassesV1DeleteResponse parses an HTTP response from a CancelledClassesV1DeleteWithResponse call
+func ParseCancelledClassesV1DeleteResponse(rsp *http.Response) (*CancelledClassesV1DeleteResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &CancelledClassesV1DeleteResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
 }
 
 // ParseCourseRegistrationsV1ListResponse parses an HTTP response from a CourseRegistrationsV1ListWithResponse call
@@ -3292,6 +5047,123 @@ func ParseFacultiesV1UpdateResponse(rsp *http.Response) (*FacultiesV1UpdateRespo
 	return response, nil
 }
 
+// ParseMakeupClassesV1ListResponse parses an HTTP response from a MakeupClassesV1ListWithResponse call
+func ParseMakeupClassesV1ListResponse(rsp *http.Response) (*MakeupClassesV1ListResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &MakeupClassesV1ListResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			MakeupClasses []MakeupClass `json:"makeupClasses"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseMakeupClassesV1CreateResponse parses an HTTP response from a MakeupClassesV1CreateWithResponse call
+func ParseMakeupClassesV1CreateResponse(rsp *http.Response) (*MakeupClassesV1CreateResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &MakeupClassesV1CreateResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 201:
+		var dest struct {
+			// MakeupClass 補講
+			MakeupClass MakeupClass `json:"makeupClass"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON201 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseMakeupClassesV1FetchResponse parses an HTTP response from a MakeupClassesV1FetchWithResponse call
+func ParseMakeupClassesV1FetchResponse(rsp *http.Response) (*MakeupClassesV1FetchResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &MakeupClassesV1FetchResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			MakeupClasses []MakeupClass `json:"makeupClasses"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseMakeupClassesV1DeleteResponse parses an HTTP response from a MakeupClassesV1DeleteWithResponse call
+func ParseMakeupClassesV1DeleteResponse(rsp *http.Response) (*MakeupClassesV1DeleteResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &MakeupClassesV1DeleteResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseNotifyIrregularitiesV1NotifyResponse parses an HTTP response from a NotifyIrregularitiesV1NotifyWithResponse call
+func ParseNotifyIrregularitiesV1NotifyResponse(rsp *http.Response) (*NotifyIrregularitiesV1NotifyResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &NotifyIrregularitiesV1NotifyResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
 // ParsePersonalCalendarItemsV1ListResponse parses an HTTP response from a PersonalCalendarItemsV1ListWithResponse call
 func ParsePersonalCalendarItemsV1ListResponse(rsp *http.Response) (*PersonalCalendarItemsV1ListResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -3315,6 +5187,207 @@ func ParsePersonalCalendarItemsV1ListResponse(rsp *http.Response) (*PersonalCale
 		}
 		response.JSON200 = &dest
 
+	}
+
+	return response, nil
+}
+
+// ParseReservationsV1ListResponse parses an HTTP response from a ReservationsV1ListWithResponse call
+func ParseReservationsV1ListResponse(rsp *http.Response) (*ReservationsV1ListResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ReservationsV1ListResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			Reservations []Reservation `json:"reservations"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseReservationsV1CreateResponse parses an HTTP response from a ReservationsV1CreateWithResponse call
+func ParseReservationsV1CreateResponse(rsp *http.Response) (*ReservationsV1CreateResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ReservationsV1CreateResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 201:
+		var dest struct {
+			Reservation Reservation `json:"reservation"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON201 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseReservationsV1DeleteResponse parses an HTTP response from a ReservationsV1DeleteWithResponse call
+func ParseReservationsV1DeleteResponse(rsp *http.Response) (*ReservationsV1DeleteResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ReservationsV1DeleteResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseReservationsV1DetailResponse parses an HTTP response from a ReservationsV1DetailWithResponse call
+func ParseReservationsV1DetailResponse(rsp *http.Response) (*ReservationsV1DetailResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ReservationsV1DetailResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			Reservation Reservation `json:"reservation"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseRoomChangesV1ListResponse parses an HTTP response from a RoomChangesV1ListWithResponse call
+func ParseRoomChangesV1ListResponse(rsp *http.Response) (*RoomChangesV1ListResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &RoomChangesV1ListResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			RoomChanges []RoomChange `json:"roomChanges"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseRoomChangesV1CreateResponse parses an HTTP response from a RoomChangesV1CreateWithResponse call
+func ParseRoomChangesV1CreateResponse(rsp *http.Response) (*RoomChangesV1CreateResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &RoomChangesV1CreateResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 201:
+		var dest struct {
+			// RoomChange 教室変更
+			RoomChange RoomChange `json:"roomChange"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON201 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseRoomChangesV1FetchResponse parses an HTTP response from a RoomChangesV1FetchWithResponse call
+func ParseRoomChangesV1FetchResponse(rsp *http.Response) (*RoomChangesV1FetchResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &RoomChangesV1FetchResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			RoomChanges []RoomChange `json:"roomChanges"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseRoomChangesV1DeleteResponse parses an HTTP response from a RoomChangesV1DeleteWithResponse call
+func ParseRoomChangesV1DeleteResponse(rsp *http.Response) (*RoomChangesV1DeleteResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &RoomChangesV1DeleteResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
 	}
 
 	return response, nil
@@ -3448,34 +5521,6 @@ func ParseRoomsV1UpdateResponse(rsp *http.Response) (*RoomsV1UpdateResponse, err
 	return response, nil
 }
 
-// ParseReservationsV1ListResponse parses an HTTP response from a ReservationsV1ListWithResponse call
-func ParseReservationsV1ListResponse(rsp *http.Response) (*ReservationsV1ListResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &ReservationsV1ListResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest struct {
-			Reservations []Reservation `json:"reservations"`
-		}
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON200 = &dest
-
-	}
-
-	return response, nil
-}
-
 // ParseSubjectsV1ListResponse parses an HTTP response from a SubjectsV1ListWithResponse call
 func ParseSubjectsV1ListResponse(rsp *http.Response) (*SubjectsV1ListResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -3492,35 +5537,7 @@ func ParseSubjectsV1ListResponse(rsp *http.Response) (*SubjectsV1ListResponse, e
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest struct {
-			Subjects []SubjectSummary `json:"subjects"`
-		}
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON200 = &dest
-
-	}
-
-	return response, nil
-}
-
-// ParseSubjectsV1UpsertResponse parses an HTTP response from a SubjectsV1UpsertWithResponse call
-func ParseSubjectsV1UpsertResponse(rsp *http.Response) (*SubjectsV1UpsertResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &SubjectsV1UpsertResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest struct {
-			Subject Subject `json:"subject"`
+			Subjects []Subject `json:"subjects"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err

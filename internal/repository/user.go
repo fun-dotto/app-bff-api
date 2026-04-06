@@ -51,3 +51,18 @@ func (r *UserRepository) UpsertUser(id string, req domain.UserRequest) (*domain.
 	u := external.ToDomainUser(response.JSON200.User)
 	return &u, nil
 }
+
+func (r *UserRepository) UpsertFCMToken(userID string, req domain.FCMTokenRequest) (*domain.FCMToken, error) {
+	body := external.ToExternalFCMTokenRequest(userID, req)
+	response, err := r.client.FCMTokenV1UpsertWithResponse(context.Background(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	if response.JSON200 == nil {
+		return nil, fmt.Errorf("failed to upsert fcm token: status %d", response.StatusCode())
+	}
+
+	token := external.ToDomainFCMToken(response.JSON200.FcmToken)
+	return &token, nil
+}

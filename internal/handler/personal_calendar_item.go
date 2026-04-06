@@ -3,11 +3,12 @@ package handler
 import (
 	"context"
 	"fmt"
-	"net/http"
+	"time"
 
 	api "github.com/fun-dotto/app-bff-api/generated"
 	"github.com/fun-dotto/app-bff-api/internal/domain"
 	"github.com/fun-dotto/app-bff-api/internal/middleware"
+	openapi_types "github.com/oapi-codegen/runtime/types"
 )
 
 // PersonalCalendarItemsV1List 個人カレンダーアイテム一覧を取得する
@@ -18,10 +19,15 @@ func (h *Handler) PersonalCalendarItemsV1List(ctx context.Context, request api.P
 
 	userID, ok := middleware.UserIDFromContext(ctx)
 	if !ok {
-		return nil, fmt.Errorf("user ID not found in context: %w", fmt.Errorf("%d", http.StatusUnauthorized))
+		return api.PersonalCalendarItemsV1List401Response{}, nil
 	}
 
-	items, err := h.academicService.GetPersonalCalendarItems(userID, request.Params.Dates)
+	dates := make([]time.Time, len(request.Params.Dates))
+	for i, d := range request.Params.Dates {
+		dates[i] = d.Time
+	}
+
+	items, err := h.academicService.GetPersonalCalendarItems(userID, dates)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get personal calendar items: %w", err)
 	}
@@ -38,11 +44,10 @@ func (h *Handler) PersonalCalendarItemsV1List(ctx context.Context, request api.P
 
 func toAPIPersonalCalendarItem(item domain.PersonalCalendarItem) api.PersonalCalendarItem {
 	return api.PersonalCalendarItem{
-		Date: item.Date,
-		Slot: api.DottoFoundationV1TimetableSlot{
-			DayOfWeek: api.DottoFoundationV1DayOfWeek(item.Slot.DayOfWeek),
-			Period:    api.DottoFoundationV1Period(item.Slot.Period),
-		},
-		TimetableItem: toApiTimetableItem(item.TimetableItem),
+		Date:    openapi_types.Date{Time: item.Date},
+		Period:  api.DottoFoundationV1Period(item.Period),
+		Rooms:   toApiRooms(item.Rooms),
+		Status:  api.DottoFoundationV1PersonalCalendarItemStatus(item.Status),
+		Subject: toApiSubjectSummary(item.Subject),
 	}
 }
