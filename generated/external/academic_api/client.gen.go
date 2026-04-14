@@ -500,15 +500,6 @@ type MakeupClassesV1ListParams struct {
 	Until *openapi_types.Date `form:"until,omitempty" json:"until,omitempty"`
 }
 
-// NotifyIrregularitiesV1NotifyParams defines parameters for NotifyIrregularitiesV1Notify.
-type NotifyIrregularitiesV1NotifyParams struct {
-	// UserIds ユーザーIDのリスト; 指定しない場合は全ユーザーに通知する
-	UserIds *[]string `form:"userIds,omitempty" json:"userIds,omitempty"`
-
-	// Date 対象の日付
-	Date openapi_types.Date `form:"date" json:"date"`
-}
-
 // PersonalCalendarItemsV1ListParams defines parameters for PersonalCalendarItemsV1List.
 type PersonalCalendarItemsV1ListParams struct {
 	// UserId ユーザーID
@@ -753,9 +744,6 @@ type ClientInterface interface {
 
 	// MakeupClassesV1Delete request
 	MakeupClassesV1Delete(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	// NotifyIrregularitiesV1Notify request
-	NotifyIrregularitiesV1Notify(ctx context.Context, params *NotifyIrregularitiesV1NotifyParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// PersonalCalendarItemsV1List request
 	PersonalCalendarItemsV1List(ctx context.Context, params *PersonalCalendarItemsV1ListParams, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -1073,18 +1061,6 @@ func (c *Client) MakeupClassesV1Fetch(ctx context.Context, reqEditors ...Request
 
 func (c *Client) MakeupClassesV1Delete(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewMakeupClassesV1DeleteRequest(c.Server, id)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) NotifyIrregularitiesV1Notify(ctx context.Context, params *NotifyIrregularitiesV1NotifyParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewNotifyIrregularitiesV1NotifyRequest(c.Server, params)
 	if err != nil {
 		return nil, err
 	}
@@ -2115,67 +2091,6 @@ func NewMakeupClassesV1DeleteRequest(server string, id string) (*http.Request, e
 	}
 
 	req, err := http.NewRequest("DELETE", queryURL.String(), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return req, nil
-}
-
-// NewNotifyIrregularitiesV1NotifyRequest generates requests for NotifyIrregularitiesV1Notify
-func NewNotifyIrregularitiesV1NotifyRequest(server string, params *NotifyIrregularitiesV1NotifyParams) (*http.Request, error) {
-	var err error
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/v1/notifyIrregularities")
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	if params != nil {
-		queryValues := queryURL.Query()
-
-		if params.UserIds != nil {
-
-			if queryFrag, err := runtime.StyleParamWithLocation("form", false, "userIds", runtime.ParamLocationQuery, *params.UserIds); err != nil {
-				return nil, err
-			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
-				return nil, err
-			} else {
-				for k, v := range parsed {
-					for _, v2 := range v {
-						queryValues.Add(k, v2)
-					}
-				}
-			}
-
-		}
-
-		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "date", runtime.ParamLocationQuery, params.Date); err != nil {
-			return nil, err
-		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
-			return nil, err
-		} else {
-			for k, v := range parsed {
-				for _, v2 := range v {
-					queryValues.Add(k, v2)
-				}
-			}
-		}
-
-		queryURL.RawQuery = queryValues.Encode()
-	}
-
-	req, err := http.NewRequest("POST", queryURL.String(), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -3362,9 +3277,6 @@ type ClientWithResponsesInterface interface {
 	// MakeupClassesV1DeleteWithResponse request
 	MakeupClassesV1DeleteWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*MakeupClassesV1DeleteResponse, error)
 
-	// NotifyIrregularitiesV1NotifyWithResponse request
-	NotifyIrregularitiesV1NotifyWithResponse(ctx context.Context, params *NotifyIrregularitiesV1NotifyParams, reqEditors ...RequestEditorFn) (*NotifyIrregularitiesV1NotifyResponse, error)
-
 	// PersonalCalendarItemsV1ListWithResponse request
 	PersonalCalendarItemsV1ListWithResponse(ctx context.Context, params *PersonalCalendarItemsV1ListParams, reqEditors ...RequestEditorFn) (*PersonalCalendarItemsV1ListResponse, error)
 
@@ -3807,27 +3719,6 @@ func (r MakeupClassesV1DeleteResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r MakeupClassesV1DeleteResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
-type NotifyIrregularitiesV1NotifyResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-}
-
-// Status returns HTTPResponse.Status
-func (r NotifyIrregularitiesV1NotifyResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r NotifyIrregularitiesV1NotifyResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -4508,15 +4399,6 @@ func (c *ClientWithResponses) MakeupClassesV1DeleteWithResponse(ctx context.Cont
 	return ParseMakeupClassesV1DeleteResponse(rsp)
 }
 
-// NotifyIrregularitiesV1NotifyWithResponse request returning *NotifyIrregularitiesV1NotifyResponse
-func (c *ClientWithResponses) NotifyIrregularitiesV1NotifyWithResponse(ctx context.Context, params *NotifyIrregularitiesV1NotifyParams, reqEditors ...RequestEditorFn) (*NotifyIrregularitiesV1NotifyResponse, error) {
-	rsp, err := c.NotifyIrregularitiesV1Notify(ctx, params, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseNotifyIrregularitiesV1NotifyResponse(rsp)
-}
-
 // PersonalCalendarItemsV1ListWithResponse request returning *PersonalCalendarItemsV1ListResponse
 func (c *ClientWithResponses) PersonalCalendarItemsV1ListWithResponse(ctx context.Context, params *PersonalCalendarItemsV1ListParams, reqEditors ...RequestEditorFn) (*PersonalCalendarItemsV1ListResponse, error) {
 	rsp, err := c.PersonalCalendarItemsV1List(ctx, params, reqEditors...)
@@ -5141,22 +5023,6 @@ func ParseMakeupClassesV1DeleteResponse(rsp *http.Response) (*MakeupClassesV1Del
 	}
 
 	response := &MakeupClassesV1DeleteResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	return response, nil
-}
-
-// ParseNotifyIrregularitiesV1NotifyResponse parses an HTTP response from a NotifyIrregularitiesV1NotifyWithResponse call
-func ParseNotifyIrregularitiesV1NotifyResponse(rsp *http.Response) (*NotifyIrregularitiesV1NotifyResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &NotifyIrregularitiesV1NotifyResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}

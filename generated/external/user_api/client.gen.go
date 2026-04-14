@@ -85,6 +85,35 @@ type FCMTokenRequest struct {
 	UserId string `json:"userId"`
 }
 
+// Notification defines model for Notification.
+type Notification struct {
+	Id string `json:"id"`
+
+	// IsNotified 通知が送信されたかどうか
+	IsNotified bool   `json:"isNotified"`
+	Message    string `json:"message"`
+
+	// NotifyAt 通知予定日時
+	NotifyAt time.Time `json:"notifyAt"`
+
+	// TargetUserIds 対象ユーザーIDのリスト
+	TargetUserIds []string `json:"targetUserIds"`
+	Title         string   `json:"title"`
+
+	// Url 通知をタップした時に開くURL
+	// アプリを開くのみの場合はnull
+	Url *string `json:"url,omitempty"`
+}
+
+// NotificationRequest defines model for NotificationRequest.
+type NotificationRequest struct {
+	Message       string    `json:"message"`
+	NotifyAt      time.Time `json:"notifyAt"`
+	TargetUserIds []string  `json:"targetUserIds"`
+	Title         string    `json:"title"`
+	Url           *string   `json:"url,omitempty"`
+}
+
 // User defines model for User.
 type User struct {
 	// Class クラス
@@ -135,8 +164,26 @@ type FCMTokenV1ListParams struct {
 	UpdatedAtTo *time.Time `form:"updatedAtTo,omitempty" json:"updatedAtTo,omitempty"`
 }
 
+// NotificationV1ListParams defines parameters for NotificationV1List.
+type NotificationV1ListParams struct {
+	// NotifyAtFrom 通知予定日時の開始日時 (notifyAt >= notifyAtFrom)
+	NotifyAtFrom *time.Time `form:"notifyAtFrom,omitempty" json:"notifyAtFrom,omitempty"`
+
+	// NotifyAtTo 通知予定日時の終了日時 (notifyAt <= notifyAtTo)
+	NotifyAtTo *time.Time `form:"notifyAtTo,omitempty" json:"notifyAtTo,omitempty"`
+
+	// IsNotified 通知済みかどうか (true: 通知済みの通知のみ、false: 通知未済みの通知のみ、指定なし: 全ての通知)
+	IsNotified *bool `form:"isNotified,omitempty" json:"isNotified,omitempty"`
+}
+
 // FCMTokenV1UpsertJSONRequestBody defines body for FCMTokenV1Upsert for application/json ContentType.
 type FCMTokenV1UpsertJSONRequestBody = FCMTokenRequest
+
+// NotificationV1CreateJSONRequestBody defines body for NotificationV1Create for application/json ContentType.
+type NotificationV1CreateJSONRequestBody = NotificationRequest
+
+// NotificationV1UpdateJSONRequestBody defines body for NotificationV1Update for application/json ContentType.
+type NotificationV1UpdateJSONRequestBody = NotificationRequest
 
 // UsersV1UpsertJSONRequestBody defines body for UsersV1Upsert for application/json ContentType.
 type UsersV1UpsertJSONRequestBody = UserRequest
@@ -222,6 +269,22 @@ type ClientInterface interface {
 
 	FCMTokenV1Upsert(ctx context.Context, body FCMTokenV1UpsertJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// NotificationV1List request
+	NotificationV1List(ctx context.Context, params *NotificationV1ListParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// NotificationV1CreateWithBody request with any body
+	NotificationV1CreateWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	NotificationV1Create(ctx context.Context, body NotificationV1CreateJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// NotificationV1Delete request
+	NotificationV1Delete(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// NotificationV1UpdateWithBody request with any body
+	NotificationV1UpdateWithBody(ctx context.Context, id string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	NotificationV1Update(ctx context.Context, id string, body NotificationV1UpdateJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// UsersV1List request
 	UsersV1List(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -260,6 +323,78 @@ func (c *Client) FCMTokenV1UpsertWithBody(ctx context.Context, contentType strin
 
 func (c *Client) FCMTokenV1Upsert(ctx context.Context, body FCMTokenV1UpsertJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewFCMTokenV1UpsertRequest(c.Server, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) NotificationV1List(ctx context.Context, params *NotificationV1ListParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewNotificationV1ListRequest(c.Server, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) NotificationV1CreateWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewNotificationV1CreateRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) NotificationV1Create(ctx context.Context, body NotificationV1CreateJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewNotificationV1CreateRequest(c.Server, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) NotificationV1Delete(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewNotificationV1DeleteRequest(c.Server, id)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) NotificationV1UpdateWithBody(ctx context.Context, id string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewNotificationV1UpdateRequestWithBody(c.Server, id, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) NotificationV1Update(ctx context.Context, id string, body NotificationV1UpdateJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewNotificationV1UpdateRequest(c.Server, id, body)
 	if err != nil {
 		return nil, err
 	}
@@ -455,6 +590,208 @@ func NewFCMTokenV1UpsertRequestWithBody(server string, contentType string, body 
 	return req, nil
 }
 
+// NewNotificationV1ListRequest generates requests for NotificationV1List
+func NewNotificationV1ListRequest(server string, params *NotificationV1ListParams) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/v1/notifications")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.NotifyAtFrom != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "notifyAtFrom", runtime.ParamLocationQuery, *params.NotifyAtFrom); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.NotifyAtTo != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "notifyAtTo", runtime.ParamLocationQuery, *params.NotifyAtTo); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.IsNotified != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", false, "isNotified", runtime.ParamLocationQuery, *params.IsNotified); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewNotificationV1CreateRequest calls the generic NotificationV1Create builder with application/json body
+func NewNotificationV1CreateRequest(server string, body NotificationV1CreateJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewNotificationV1CreateRequestWithBody(server, "application/json", bodyReader)
+}
+
+// NewNotificationV1CreateRequestWithBody generates requests for NotificationV1Create with any type of body
+func NewNotificationV1CreateRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/v1/notifications")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewNotificationV1DeleteRequest generates requests for NotificationV1Delete
+func NewNotificationV1DeleteRequest(server string, id string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "id", runtime.ParamLocationPath, id)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/v1/notifications/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("DELETE", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewNotificationV1UpdateRequest calls the generic NotificationV1Update builder with application/json body
+func NewNotificationV1UpdateRequest(server string, id string, body NotificationV1UpdateJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewNotificationV1UpdateRequestWithBody(server, id, "application/json", bodyReader)
+}
+
+// NewNotificationV1UpdateRequestWithBody generates requests for NotificationV1Update with any type of body
+func NewNotificationV1UpdateRequestWithBody(server string, id string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "id", runtime.ParamLocationPath, id)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/v1/notifications/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("PUT", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 // NewUsersV1ListRequest generates requests for UsersV1List
 func NewUsersV1ListRequest(server string) (*http.Request, error) {
 	var err error
@@ -614,6 +951,22 @@ type ClientWithResponsesInterface interface {
 
 	FCMTokenV1UpsertWithResponse(ctx context.Context, body FCMTokenV1UpsertJSONRequestBody, reqEditors ...RequestEditorFn) (*FCMTokenV1UpsertResponse, error)
 
+	// NotificationV1ListWithResponse request
+	NotificationV1ListWithResponse(ctx context.Context, params *NotificationV1ListParams, reqEditors ...RequestEditorFn) (*NotificationV1ListResponse, error)
+
+	// NotificationV1CreateWithBodyWithResponse request with any body
+	NotificationV1CreateWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*NotificationV1CreateResponse, error)
+
+	NotificationV1CreateWithResponse(ctx context.Context, body NotificationV1CreateJSONRequestBody, reqEditors ...RequestEditorFn) (*NotificationV1CreateResponse, error)
+
+	// NotificationV1DeleteWithResponse request
+	NotificationV1DeleteWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*NotificationV1DeleteResponse, error)
+
+	// NotificationV1UpdateWithBodyWithResponse request with any body
+	NotificationV1UpdateWithBodyWithResponse(ctx context.Context, id string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*NotificationV1UpdateResponse, error)
+
+	NotificationV1UpdateWithResponse(ctx context.Context, id string, body NotificationV1UpdateJSONRequestBody, reqEditors ...RequestEditorFn) (*NotificationV1UpdateResponse, error)
+
 	// UsersV1ListWithResponse request
 	UsersV1ListWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*UsersV1ListResponse, error)
 
@@ -668,6 +1021,99 @@ func (r FCMTokenV1UpsertResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r FCMTokenV1UpsertResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type NotificationV1ListResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		Notifications []Notification `json:"notifications"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r NotificationV1ListResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r NotificationV1ListResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type NotificationV1CreateResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON201      *struct {
+		Notification Notification `json:"notification"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r NotificationV1CreateResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r NotificationV1CreateResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type NotificationV1DeleteResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r NotificationV1DeleteResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r NotificationV1DeleteResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type NotificationV1UpdateResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		Notification Notification `json:"notification"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r NotificationV1UpdateResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r NotificationV1UpdateResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -772,6 +1218,58 @@ func (c *ClientWithResponses) FCMTokenV1UpsertWithResponse(ctx context.Context, 
 	return ParseFCMTokenV1UpsertResponse(rsp)
 }
 
+// NotificationV1ListWithResponse request returning *NotificationV1ListResponse
+func (c *ClientWithResponses) NotificationV1ListWithResponse(ctx context.Context, params *NotificationV1ListParams, reqEditors ...RequestEditorFn) (*NotificationV1ListResponse, error) {
+	rsp, err := c.NotificationV1List(ctx, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseNotificationV1ListResponse(rsp)
+}
+
+// NotificationV1CreateWithBodyWithResponse request with arbitrary body returning *NotificationV1CreateResponse
+func (c *ClientWithResponses) NotificationV1CreateWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*NotificationV1CreateResponse, error) {
+	rsp, err := c.NotificationV1CreateWithBody(ctx, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseNotificationV1CreateResponse(rsp)
+}
+
+func (c *ClientWithResponses) NotificationV1CreateWithResponse(ctx context.Context, body NotificationV1CreateJSONRequestBody, reqEditors ...RequestEditorFn) (*NotificationV1CreateResponse, error) {
+	rsp, err := c.NotificationV1Create(ctx, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseNotificationV1CreateResponse(rsp)
+}
+
+// NotificationV1DeleteWithResponse request returning *NotificationV1DeleteResponse
+func (c *ClientWithResponses) NotificationV1DeleteWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*NotificationV1DeleteResponse, error) {
+	rsp, err := c.NotificationV1Delete(ctx, id, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseNotificationV1DeleteResponse(rsp)
+}
+
+// NotificationV1UpdateWithBodyWithResponse request with arbitrary body returning *NotificationV1UpdateResponse
+func (c *ClientWithResponses) NotificationV1UpdateWithBodyWithResponse(ctx context.Context, id string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*NotificationV1UpdateResponse, error) {
+	rsp, err := c.NotificationV1UpdateWithBody(ctx, id, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseNotificationV1UpdateResponse(rsp)
+}
+
+func (c *ClientWithResponses) NotificationV1UpdateWithResponse(ctx context.Context, id string, body NotificationV1UpdateJSONRequestBody, reqEditors ...RequestEditorFn) (*NotificationV1UpdateResponse, error) {
+	rsp, err := c.NotificationV1Update(ctx, id, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseNotificationV1UpdateResponse(rsp)
+}
+
 // UsersV1ListWithResponse request returning *UsersV1ListResponse
 func (c *ClientWithResponses) UsersV1ListWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*UsersV1ListResponse, error) {
 	rsp, err := c.UsersV1List(ctx, reqEditors...)
@@ -852,6 +1350,106 @@ func ParseFCMTokenV1UpsertResponse(rsp *http.Response) (*FCMTokenV1UpsertRespons
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest struct {
 			FcmToken FCMToken `json:"fcmToken"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseNotificationV1ListResponse parses an HTTP response from a NotificationV1ListWithResponse call
+func ParseNotificationV1ListResponse(rsp *http.Response) (*NotificationV1ListResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &NotificationV1ListResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			Notifications []Notification `json:"notifications"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseNotificationV1CreateResponse parses an HTTP response from a NotificationV1CreateWithResponse call
+func ParseNotificationV1CreateResponse(rsp *http.Response) (*NotificationV1CreateResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &NotificationV1CreateResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 201:
+		var dest struct {
+			Notification Notification `json:"notification"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON201 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseNotificationV1DeleteResponse parses an HTTP response from a NotificationV1DeleteWithResponse call
+func ParseNotificationV1DeleteResponse(rsp *http.Response) (*NotificationV1DeleteResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &NotificationV1DeleteResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseNotificationV1UpdateResponse parses an HTTP response from a NotificationV1UpdateWithResponse call
+func ParseNotificationV1UpdateResponse(rsp *http.Response) (*NotificationV1UpdateResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &NotificationV1UpdateResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			Notification Notification `json:"notification"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
