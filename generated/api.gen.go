@@ -603,6 +603,8 @@ func (siw *ServerInterfaceWrapper) CancelledClassesV1List(c *gin.Context) {
 
 	var err error
 
+	c.Set(BearerAuthScopes, []string{})
+
 	c.Set(FirebaseAppCheckAuthScopes, []string{})
 
 	// Parameter object where we will unmarshal all parameters from the context
@@ -754,6 +756,8 @@ func (siw *ServerInterfaceWrapper) MakeupClassesV1List(c *gin.Context) {
 
 	var err error
 
+	c.Set(BearerAuthScopes, []string{})
+
 	c.Set(FirebaseAppCheckAuthScopes, []string{})
 
 	// Parameter object where we will unmarshal all parameters from the context
@@ -834,6 +838,8 @@ func (siw *ServerInterfaceWrapper) PersonalCalendarItemsV1List(c *gin.Context) {
 func (siw *ServerInterfaceWrapper) RoomChangesV1List(c *gin.Context) {
 
 	var err error
+
+	c.Set(BearerAuthScopes, []string{})
 
 	c.Set(FirebaseAppCheckAuthScopes, []string{})
 
