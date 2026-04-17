@@ -21,6 +21,15 @@ const (
 	FirebaseAppCheckAuthScopes = "FirebaseAppCheckAuth.Scopes"
 )
 
+// Defines values for Category.
+const (
+	BowlAndCurry Category = "BowlAndCurry"
+	Dessert      Category = "Dessert"
+	Noodle       Category = "Noodle"
+	SetAndSingle Category = "SetAndSingle"
+	Side         Category = "Side"
+)
+
 // Defines values for DottoFoundationV1Class.
 const (
 	A DottoFoundationV1Class = "A"
@@ -134,6 +143,13 @@ const (
 	Optional         DottoFoundationV1SubjectRequirementType = "Optional"
 	OptionalRequired DottoFoundationV1SubjectRequirementType = "OptionalRequired"
 	Required         DottoFoundationV1SubjectRequirementType = "Required"
+)
+
+// Defines values for Size.
+const (
+	Large  Size = "Large"
+	Medium Size = "Medium"
+	Small  Size = "Small"
 )
 
 // AcademicServiceFaculty defines model for AcademicService.Faculty.
@@ -263,6 +279,9 @@ type CancelledClass struct {
 	Subject SubjectSummary          `json:"subject"`
 }
 
+// Category defines model for Category.
+type Category string
+
 // CourseRegistration defines model for CourseRegistration.
 type CourseRegistration struct {
 	Id      string         `json:"id"`
@@ -330,6 +349,13 @@ type FCMTokenRequest struct {
 	Token string `json:"token"`
 }
 
+// Faculty defines model for Faculty.
+type Faculty struct {
+	Email string `json:"email"`
+	Id    string `json:"id"`
+	Name  string `json:"name"`
+}
+
 // MakeupClass 補講
 type MakeupClass struct {
 	Comment string                  `json:"comment"`
@@ -337,6 +363,16 @@ type MakeupClass struct {
 	Id      string                  `json:"id"`
 	Period  DottoFoundationV1Period `json:"period"`
 	Subject SubjectSummary          `json:"subject"`
+}
+
+// MenuItem defines model for MenuItem.
+type MenuItem struct {
+	Category Category           `json:"category"`
+	Date     openapi_types.Date `json:"date"`
+	Id       string             `json:"id"`
+	ImageUrl string             `json:"imageUrl"`
+	Name     string             `json:"name"`
+	Prices   []Price            `json:"prices"`
 }
 
 // PersonalCalendarItem defines model for PersonalCalendarItem.
@@ -350,11 +386,27 @@ type PersonalCalendarItem struct {
 	Subject SubjectSummary                              `json:"subject"`
 }
 
+// Price defines model for Price.
+type Price struct {
+	Price int32 `json:"price"`
+	Size  Size  `json:"size"`
+}
+
 // Room defines model for Room.
 type Room struct {
+	// Faculty 教員
+	//
+	// 空室の教員室や教員室でない場合は省略
+	Faculty *Faculty `json:"faculty,omitempty"`
+
+	// Floor フロア
+	//
+	// オンラインなどの仮想教室の場合はVirtualを使用
 	Floor DottoFoundationV1Floor `json:"floor"`
 	Id    string                 `json:"id"`
-	Name  string                 `json:"name"`
+
+	// Name 部屋名
+	Name string `json:"name"`
 }
 
 // RoomChange 教室変更
@@ -366,6 +418,9 @@ type RoomChange struct {
 	Period       DottoFoundationV1Period `json:"period"`
 	Subject      SubjectSummary          `json:"subject"`
 }
+
+// Size defines model for Size.
+type Size string
 
 // SubjectDetail defines model for SubjectDetail.
 type SubjectDetail struct {
@@ -465,6 +520,12 @@ type MakeupClassesV1ListParams struct {
 	Until *openapi_types.Date `form:"until,omitempty" json:"until,omitempty"`
 }
 
+// MenuItemsV1ListParams defines parameters for MenuItemsV1List.
+type MenuItemsV1ListParams struct {
+	// Date メニューを取得する日付
+	Date openapi_types.Date `form:"date" json:"date"`
+}
+
 // PersonalCalendarItemsV1ListParams defines parameters for PersonalCalendarItemsV1List.
 type PersonalCalendarItemsV1ListParams struct {
 	// Dates 日付のリスト; 指定した日付の個人カレンダーアイテムのみを取得する
@@ -551,6 +612,9 @@ type ServerInterface interface {
 
 	// (GET /v1/makeupClasses)
 	MakeupClassesV1List(c *gin.Context, params MakeupClassesV1ListParams)
+
+	// (GET /v1/menuItems)
+	MenuItemsV1List(c *gin.Context, params MenuItemsV1ListParams)
 
 	// (GET /v1/personalCalendarItems)
 	PersonalCalendarItemsV1List(c *gin.Context, params PersonalCalendarItemsV1ListParams)
@@ -795,6 +859,41 @@ func (siw *ServerInterfaceWrapper) MakeupClassesV1List(c *gin.Context) {
 	}
 
 	siw.Handler.MakeupClassesV1List(c, params)
+}
+
+// MenuItemsV1List operation middleware
+func (siw *ServerInterfaceWrapper) MenuItemsV1List(c *gin.Context) {
+
+	var err error
+
+	c.Set(FirebaseAppCheckAuthScopes, []string{})
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params MenuItemsV1ListParams
+
+	// ------------- Required query parameter "date" -------------
+
+	if paramValue := c.Query("date"); paramValue != "" {
+
+	} else {
+		siw.ErrorHandler(c, fmt.Errorf("Query argument date is required, but not found"), http.StatusBadRequest)
+		return
+	}
+
+	err = runtime.BindQueryParameter("form", false, true, "date", c.Request.URL.Query(), &params.Date)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter date: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.MenuItemsV1List(c, params)
 }
 
 // PersonalCalendarItemsV1List operation middleware
@@ -1101,6 +1200,7 @@ func RegisterHandlersWithOptions(router gin.IRouter, si ServerInterface, options
 	router.DELETE(options.BaseURL+"/v1/courseRegistrations/:id", wrapper.CourseRegistrationsV1Delete)
 	router.POST(options.BaseURL+"/v1/fcmTokens", wrapper.FCMTokenV1Upsert)
 	router.GET(options.BaseURL+"/v1/makeupClasses", wrapper.MakeupClassesV1List)
+	router.GET(options.BaseURL+"/v1/menuItems", wrapper.MenuItemsV1List)
 	router.GET(options.BaseURL+"/v1/personalCalendarItems", wrapper.PersonalCalendarItemsV1List)
 	router.GET(options.BaseURL+"/v1/roomChanges", wrapper.RoomChangesV1List)
 	router.GET(options.BaseURL+"/v1/subjects", wrapper.SubjectsV1List)
@@ -1299,6 +1399,33 @@ type MakeupClassesV1List401Response struct {
 }
 
 func (response MakeupClassesV1List401Response) VisitMakeupClassesV1ListResponse(w http.ResponseWriter) error {
+	w.WriteHeader(401)
+	return nil
+}
+
+type MenuItemsV1ListRequestObject struct {
+	Params MenuItemsV1ListParams
+}
+
+type MenuItemsV1ListResponseObject interface {
+	VisitMenuItemsV1ListResponse(w http.ResponseWriter) error
+}
+
+type MenuItemsV1List200JSONResponse struct {
+	MenuItems []MenuItem `json:"menuItems"`
+}
+
+func (response MenuItemsV1List200JSONResponse) VisitMenuItemsV1ListResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type MenuItemsV1List401Response struct {
+}
+
+func (response MenuItemsV1List401Response) VisitMenuItemsV1ListResponse(w http.ResponseWriter) error {
 	w.WriteHeader(401)
 	return nil
 }
@@ -1531,6 +1658,9 @@ type StrictServerInterface interface {
 	// (GET /v1/makeupClasses)
 	MakeupClassesV1List(ctx context.Context, request MakeupClassesV1ListRequestObject) (MakeupClassesV1ListResponseObject, error)
 
+	// (GET /v1/menuItems)
+	MenuItemsV1List(ctx context.Context, request MenuItemsV1ListRequestObject) (MenuItemsV1ListResponseObject, error)
+
 	// (GET /v1/personalCalendarItems)
 	PersonalCalendarItemsV1List(ctx context.Context, request PersonalCalendarItemsV1ListRequestObject) (PersonalCalendarItemsV1ListResponseObject, error)
 
@@ -1757,6 +1887,33 @@ func (sh *strictHandler) MakeupClassesV1List(ctx *gin.Context, params MakeupClas
 		ctx.Status(http.StatusInternalServerError)
 	} else if validResponse, ok := response.(MakeupClassesV1ListResponseObject); ok {
 		if err := validResponse.VisitMakeupClassesV1ListResponse(ctx.Writer); err != nil {
+			ctx.Error(err)
+		}
+	} else if response != nil {
+		ctx.Error(fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// MenuItemsV1List operation middleware
+func (sh *strictHandler) MenuItemsV1List(ctx *gin.Context, params MenuItemsV1ListParams) {
+	var request MenuItemsV1ListRequestObject
+
+	request.Params = params
+
+	handler := func(ctx *gin.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.MenuItemsV1List(ctx, request.(MenuItemsV1ListRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "MenuItemsV1List")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		ctx.Error(err)
+		ctx.Status(http.StatusInternalServerError)
+	} else if validResponse, ok := response.(MenuItemsV1ListResponseObject); ok {
+		if err := validResponse.VisitMenuItemsV1ListResponse(ctx.Writer); err != nil {
 			ctx.Error(err)
 		}
 	} else if response != nil {
