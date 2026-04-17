@@ -5,10 +5,63 @@ package funch_api
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
+	"io"
 	"net/http"
 	"net/url"
 	"strings"
+
+	"github.com/oapi-codegen/runtime"
+	openapi_types "github.com/oapi-codegen/runtime/types"
 )
+
+// Defines values for Category.
+const (
+	BowlAndCurry Category = "BowlAndCurry"
+	Dessert      Category = "Dessert"
+	Noodle       Category = "Noodle"
+	SetAndSingle Category = "SetAndSingle"
+	Side         Category = "Side"
+)
+
+// Defines values for Size.
+const (
+	Large  Size = "Large"
+	Medium Size = "Medium"
+	Small  Size = "Small"
+)
+
+// Category defines model for Category.
+type Category string
+
+// MenuItem defines model for MenuItem.
+type MenuItem struct {
+	Category Category           `json:"category"`
+	Date     openapi_types.Date `json:"date"`
+	Id       string             `json:"id"`
+	ImageUrl string             `json:"imageUrl"`
+	Name     string             `json:"name"`
+	Prices   []Price            `json:"prices"`
+}
+
+// Price defines model for Price.
+type Price struct {
+	// Price 価格
+	Price int32 `json:"price"`
+
+	// Size サイズ
+	Size Size `json:"size"`
+}
+
+// Size defines model for Size.
+type Size string
+
+// MenuItemsV1ListParams defines parameters for MenuItemsV1List.
+type MenuItemsV1ListParams struct {
+	// Date メニューを取得する日付
+	Date openapi_types.Date `form:"date" json:"date"`
+}
 
 // RequestEditorFn  is the function signature for the RequestEditor callback function
 type RequestEditorFn func(ctx context.Context, req *http.Request) error
@@ -83,6 +136,65 @@ func WithRequestEditorFn(fn RequestEditorFn) ClientOption {
 
 // The interface specification for the client above.
 type ClientInterface interface {
+	// MenuItemsV1List request
+	MenuItemsV1List(ctx context.Context, params *MenuItemsV1ListParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+}
+
+func (c *Client) MenuItemsV1List(ctx context.Context, params *MenuItemsV1ListParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewMenuItemsV1ListRequest(c.Server, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+// NewMenuItemsV1ListRequest generates requests for MenuItemsV1List
+func NewMenuItemsV1ListRequest(server string, params *MenuItemsV1ListParams) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/v1/menuItems")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", false, "date", runtime.ParamLocationQuery, params.Date); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
 }
 
 func (c *Client) applyEditors(ctx context.Context, req *http.Request, additionalEditors []RequestEditorFn) error {
@@ -128,4 +240,67 @@ func WithBaseURL(baseURL string) ClientOption {
 
 // ClientWithResponsesInterface is the interface specification for the client with responses above.
 type ClientWithResponsesInterface interface {
+	// MenuItemsV1ListWithResponse request
+	MenuItemsV1ListWithResponse(ctx context.Context, params *MenuItemsV1ListParams, reqEditors ...RequestEditorFn) (*MenuItemsV1ListResponse, error)
+}
+
+type MenuItemsV1ListResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		MenuItems []MenuItem `json:"menuItems"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r MenuItemsV1ListResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r MenuItemsV1ListResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// MenuItemsV1ListWithResponse request returning *MenuItemsV1ListResponse
+func (c *ClientWithResponses) MenuItemsV1ListWithResponse(ctx context.Context, params *MenuItemsV1ListParams, reqEditors ...RequestEditorFn) (*MenuItemsV1ListResponse, error) {
+	rsp, err := c.MenuItemsV1List(ctx, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseMenuItemsV1ListResponse(rsp)
+}
+
+// ParseMenuItemsV1ListResponse parses an HTTP response from a MenuItemsV1ListWithResponse call
+func ParseMenuItemsV1ListResponse(rsp *http.Response) (*MenuItemsV1ListResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &MenuItemsV1ListResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			MenuItems []MenuItem `json:"menuItems"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
 }

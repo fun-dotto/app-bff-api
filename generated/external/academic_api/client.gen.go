@@ -215,6 +215,21 @@ type FacultyRequest struct {
 	Name  string `json:"name"`
 }
 
+// FacultyRoom defines model for FacultyRoom.
+type FacultyRoom struct {
+	Faculty Faculty `json:"faculty"`
+	Id      string  `json:"id"`
+	Room    Room    `json:"room"`
+	Year    int     `json:"year"`
+}
+
+// FacultyRoomRequest defines model for FacultyRoomRequest.
+type FacultyRoomRequest struct {
+	FacultyId string `json:"facultyId"`
+	RoomId    string `json:"roomId"`
+	Year      int    `json:"year"`
+}
+
 // MakeupClass 補講
 type MakeupClass struct {
 	Comment string                  `json:"comment"`
@@ -264,7 +279,8 @@ type ReservationRequest struct {
 type Room struct {
 	// Faculty 教員
 	//
-	// 教員室でない場合は省略
+	// 空室の教員室や教員室でない場合は省略
+	// 基準は現在の年度
 	Faculty *Faculty `json:"faculty,omitempty"`
 
 	// Floor フロア
@@ -275,11 +291,6 @@ type Room struct {
 
 	// Name 部屋名
 	Name string `json:"name"`
-
-	// Number 部屋番号
-	//
-	// 部屋番号が存在しない場合は空文字
-	Number string `json:"number"`
 }
 
 // RoomChange 教室変更
@@ -303,9 +314,8 @@ type RoomChangeRequest struct {
 
 // RoomRequest defines model for RoomRequest.
 type RoomRequest struct {
-	FacultyId *string                `json:"facultyId,omitempty"`
-	Floor     DottoFoundationV1Floor `json:"floor"`
-	Name      string                 `json:"name"`
+	Floor DottoFoundationV1Floor `json:"floor"`
+	Name  string                 `json:"name"`
 }
 
 // Subject defines model for Subject.
@@ -488,6 +498,12 @@ type FacultiesV1ListParams struct {
 	Q *string `form:"q,omitempty" json:"q,omitempty"`
 }
 
+// FacultyRoomsV1ListParams defines parameters for FacultyRoomsV1List.
+type FacultyRoomsV1ListParams struct {
+	// Year 年度; 指定しない場合は今年度が選択される
+	Year *int `form:"year,omitempty" json:"year,omitempty"`
+}
+
 // MakeupClassesV1ListParams defines parameters for MakeupClassesV1List.
 type MakeupClassesV1ListParams struct {
 	// SubjectIds 科目IDのリスト; 指定した科目の補講のみを取得する; 指定しない場合は全科目を検索対象とする
@@ -595,6 +611,9 @@ type FacultiesV1CreateJSONRequestBody = FacultyRequest
 
 // FacultiesV1UpdateJSONRequestBody defines body for FacultiesV1Update for application/json ContentType.
 type FacultiesV1UpdateJSONRequestBody = FacultyRequest
+
+// FacultyRoomsV1CreateJSONRequestBody defines body for FacultyRoomsV1Create for application/json ContentType.
+type FacultyRoomsV1CreateJSONRequestBody = FacultyRoomRequest
 
 // MakeupClassesV1CreateJSONRequestBody defines body for MakeupClassesV1Create for application/json ContentType.
 type MakeupClassesV1CreateJSONRequestBody = MakeupClassRequest
@@ -730,6 +749,17 @@ type ClientInterface interface {
 	FacultiesV1UpdateWithBody(ctx context.Context, id string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	FacultiesV1Update(ctx context.Context, id string, body FacultiesV1UpdateJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// FacultyRoomsV1List request
+	FacultyRoomsV1List(ctx context.Context, params *FacultyRoomsV1ListParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// FacultyRoomsV1CreateWithBody request with any body
+	FacultyRoomsV1CreateWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	FacultyRoomsV1Create(ctx context.Context, body FacultyRoomsV1CreateJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// FacultyRoomsV1Delete request
+	FacultyRoomsV1Delete(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// MakeupClassesV1List request
 	MakeupClassesV1List(ctx context.Context, params *MakeupClassesV1ListParams, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -1001,6 +1031,54 @@ func (c *Client) FacultiesV1UpdateWithBody(ctx context.Context, id string, conte
 
 func (c *Client) FacultiesV1Update(ctx context.Context, id string, body FacultiesV1UpdateJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewFacultiesV1UpdateRequest(c.Server, id, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) FacultyRoomsV1List(ctx context.Context, params *FacultyRoomsV1ListParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewFacultyRoomsV1ListRequest(c.Server, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) FacultyRoomsV1CreateWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewFacultyRoomsV1CreateRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) FacultyRoomsV1Create(ctx context.Context, body FacultyRoomsV1CreateJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewFacultyRoomsV1CreateRequest(c.Server, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) FacultyRoomsV1Delete(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewFacultyRoomsV1DeleteRequest(c.Server, id)
 	if err != nil {
 		return nil, err
 	}
@@ -1912,6 +1990,129 @@ func NewFacultiesV1UpdateRequestWithBody(server string, id string, contentType s
 	}
 
 	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewFacultyRoomsV1ListRequest generates requests for FacultyRoomsV1List
+func NewFacultyRoomsV1ListRequest(server string, params *FacultyRoomsV1ListParams) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/v1/facultyRooms")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.Year != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", false, "year", runtime.ParamLocationQuery, *params.Year); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewFacultyRoomsV1CreateRequest calls the generic FacultyRoomsV1Create builder with application/json body
+func NewFacultyRoomsV1CreateRequest(server string, body FacultyRoomsV1CreateJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewFacultyRoomsV1CreateRequestWithBody(server, "application/json", bodyReader)
+}
+
+// NewFacultyRoomsV1CreateRequestWithBody generates requests for FacultyRoomsV1Create with any type of body
+func NewFacultyRoomsV1CreateRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/v1/facultyRooms")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewFacultyRoomsV1DeleteRequest generates requests for FacultyRoomsV1Delete
+func NewFacultyRoomsV1DeleteRequest(server string, id string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "id", runtime.ParamLocationPath, id)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/v1/facultyRooms/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("DELETE", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
 
 	return req, nil
 }
@@ -3263,6 +3464,17 @@ type ClientWithResponsesInterface interface {
 
 	FacultiesV1UpdateWithResponse(ctx context.Context, id string, body FacultiesV1UpdateJSONRequestBody, reqEditors ...RequestEditorFn) (*FacultiesV1UpdateResponse, error)
 
+	// FacultyRoomsV1ListWithResponse request
+	FacultyRoomsV1ListWithResponse(ctx context.Context, params *FacultyRoomsV1ListParams, reqEditors ...RequestEditorFn) (*FacultyRoomsV1ListResponse, error)
+
+	// FacultyRoomsV1CreateWithBodyWithResponse request with any body
+	FacultyRoomsV1CreateWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*FacultyRoomsV1CreateResponse, error)
+
+	FacultyRoomsV1CreateWithResponse(ctx context.Context, body FacultyRoomsV1CreateJSONRequestBody, reqEditors ...RequestEditorFn) (*FacultyRoomsV1CreateResponse, error)
+
+	// FacultyRoomsV1DeleteWithResponse request
+	FacultyRoomsV1DeleteWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*FacultyRoomsV1DeleteResponse, error)
+
 	// MakeupClassesV1ListWithResponse request
 	MakeupClassesV1ListWithResponse(ctx context.Context, params *MakeupClassesV1ListParams, reqEditors ...RequestEditorFn) (*MakeupClassesV1ListResponse, error)
 
@@ -3625,6 +3837,75 @@ func (r FacultiesV1UpdateResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r FacultiesV1UpdateResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type FacultyRoomsV1ListResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		FacultyRooms []FacultyRoom `json:"facultyRooms"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r FacultyRoomsV1ListResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r FacultyRoomsV1ListResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type FacultyRoomsV1CreateResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON201      *struct {
+		FacultyRoom FacultyRoom `json:"facultyRoom"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r FacultyRoomsV1CreateResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r FacultyRoomsV1CreateResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type FacultyRoomsV1DeleteResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r FacultyRoomsV1DeleteResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r FacultyRoomsV1DeleteResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -4355,6 +4636,41 @@ func (c *ClientWithResponses) FacultiesV1UpdateWithResponse(ctx context.Context,
 	return ParseFacultiesV1UpdateResponse(rsp)
 }
 
+// FacultyRoomsV1ListWithResponse request returning *FacultyRoomsV1ListResponse
+func (c *ClientWithResponses) FacultyRoomsV1ListWithResponse(ctx context.Context, params *FacultyRoomsV1ListParams, reqEditors ...RequestEditorFn) (*FacultyRoomsV1ListResponse, error) {
+	rsp, err := c.FacultyRoomsV1List(ctx, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseFacultyRoomsV1ListResponse(rsp)
+}
+
+// FacultyRoomsV1CreateWithBodyWithResponse request with arbitrary body returning *FacultyRoomsV1CreateResponse
+func (c *ClientWithResponses) FacultyRoomsV1CreateWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*FacultyRoomsV1CreateResponse, error) {
+	rsp, err := c.FacultyRoomsV1CreateWithBody(ctx, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseFacultyRoomsV1CreateResponse(rsp)
+}
+
+func (c *ClientWithResponses) FacultyRoomsV1CreateWithResponse(ctx context.Context, body FacultyRoomsV1CreateJSONRequestBody, reqEditors ...RequestEditorFn) (*FacultyRoomsV1CreateResponse, error) {
+	rsp, err := c.FacultyRoomsV1Create(ctx, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseFacultyRoomsV1CreateResponse(rsp)
+}
+
+// FacultyRoomsV1DeleteWithResponse request returning *FacultyRoomsV1DeleteResponse
+func (c *ClientWithResponses) FacultyRoomsV1DeleteWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*FacultyRoomsV1DeleteResponse, error) {
+	rsp, err := c.FacultyRoomsV1Delete(ctx, id, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseFacultyRoomsV1DeleteResponse(rsp)
+}
+
 // MakeupClassesV1ListWithResponse request returning *MakeupClassesV1ListResponse
 func (c *ClientWithResponses) MakeupClassesV1ListWithResponse(ctx context.Context, params *MakeupClassesV1ListParams, reqEditors ...RequestEditorFn) (*MakeupClassesV1ListResponse, error) {
 	rsp, err := c.MakeupClassesV1List(ctx, params, reqEditors...)
@@ -4924,6 +5240,78 @@ func ParseFacultiesV1UpdateResponse(rsp *http.Response) (*FacultiesV1UpdateRespo
 		}
 		response.JSON200 = &dest
 
+	}
+
+	return response, nil
+}
+
+// ParseFacultyRoomsV1ListResponse parses an HTTP response from a FacultyRoomsV1ListWithResponse call
+func ParseFacultyRoomsV1ListResponse(rsp *http.Response) (*FacultyRoomsV1ListResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &FacultyRoomsV1ListResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			FacultyRooms []FacultyRoom `json:"facultyRooms"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseFacultyRoomsV1CreateResponse parses an HTTP response from a FacultyRoomsV1CreateWithResponse call
+func ParseFacultyRoomsV1CreateResponse(rsp *http.Response) (*FacultyRoomsV1CreateResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &FacultyRoomsV1CreateResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 201:
+		var dest struct {
+			FacultyRoom FacultyRoom `json:"facultyRoom"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON201 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseFacultyRoomsV1DeleteResponse parses an HTTP response from a FacultyRoomsV1DeleteWithResponse call
+func ParseFacultyRoomsV1DeleteResponse(rsp *http.Response) (*FacultyRoomsV1DeleteResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &FacultyRoomsV1DeleteResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
 	}
 
 	return response, nil
