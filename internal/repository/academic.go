@@ -269,6 +269,28 @@ func (r *AcademicRepository) GetRoomChanges(query domain.RoomChangeQuery) ([]dom
 	return result, nil
 }
 
+// GetReservations は外部APIから予約一覧を取得する
+func (r *AcademicRepository) GetReservations(query domain.ReservationQuery) ([]domain.Reservation, error) {
+	params := external.ToExternalReservationQuery(query)
+
+	response, err := r.client.ReservationsV1ListWithResponse(context.Background(), params)
+	if err != nil {
+		return nil, fmt.Errorf("failed to call academic API: %w", err)
+	}
+
+	if response.JSON200 == nil {
+		return nil, fmt.Errorf("failed to get reservations: status %d", response.StatusCode())
+	}
+
+	items := response.JSON200.Reservations
+	result := make([]domain.Reservation, len(items))
+	for i, item := range items {
+		result[i] = external.ToDomainReservation(item)
+	}
+
+	return result, nil
+}
+
 func externalToCourseSemesters(semesters []domain.CourseSemester) []academic_api.DottoFoundationV1CourseSemester {
 	result := make([]academic_api.DottoFoundationV1CourseSemester, len(semesters))
 	for i, semester := range semesters {

@@ -55,10 +55,14 @@ func main() {
 	userRepository := repository.NewUserRepository(clients.User)
 	userService := service.NewUserService(userRepository)
 
+	funchRepository := repository.NewFunchRepository(clients.Funch)
+	funchService := service.NewFunchService(funchRepository)
+
 	h := handler.NewHandler(
 		handler.WithAnnouncementService(announcementService),
 		handler.WithAcademicService(academicService),
 		handler.WithUserService(userService),
+		handler.WithFunchService(funchService),
 	)
 
 	strictHandler := api.NewStrictHandler(h, nil)
