@@ -392,6 +392,15 @@ type Price struct {
 	Size  Size  `json:"size"`
 }
 
+// Reservation defines model for Reservation.
+type Reservation struct {
+	EndAt   time.Time `json:"endAt"`
+	Id      string    `json:"id"`
+	Room    Room      `json:"room"`
+	StartAt time.Time `json:"startAt"`
+	Title   string    `json:"title"`
+}
+
 // Room defines model for Room.
 type Room struct {
 	// Faculty 教員
@@ -532,6 +541,18 @@ type PersonalCalendarItemsV1ListParams struct {
 	Dates []openapi_types.Date `form:"dates" json:"dates"`
 }
 
+// ReservationsV1ListParams defines parameters for ReservationsV1List.
+type ReservationsV1ListParams struct {
+	// RoomIds 教室IDのリスト
+	RoomIds *[]string `form:"roomIds,omitempty" json:"roomIds,omitempty"`
+
+	// From 検索対象開始日時
+	From *time.Time `form:"from,omitempty" json:"from,omitempty"`
+
+	// Until 検索対象終了日時
+	Until *time.Time `form:"until,omitempty" json:"until,omitempty"`
+}
+
 // RoomChangesV1ListParams defines parameters for RoomChangesV1List.
 type RoomChangesV1ListParams struct {
 	// SubjectIds 科目IDのリスト; 指定した科目の教室変更のみを取得する; 指定しない場合は全科目を検索対象とする
@@ -618,6 +639,9 @@ type ServerInterface interface {
 
 	// (GET /v1/personalCalendarItems)
 	PersonalCalendarItemsV1List(c *gin.Context, params PersonalCalendarItemsV1ListParams)
+
+	// (GET /v1/reservations)
+	ReservationsV1List(c *gin.Context, params ReservationsV1ListParams)
 
 	// (GET /v1/roomChanges)
 	RoomChangesV1List(c *gin.Context, params RoomChangesV1ListParams)
@@ -933,6 +957,52 @@ func (siw *ServerInterfaceWrapper) PersonalCalendarItemsV1List(c *gin.Context) {
 	siw.Handler.PersonalCalendarItemsV1List(c, params)
 }
 
+// ReservationsV1List operation middleware
+func (siw *ServerInterfaceWrapper) ReservationsV1List(c *gin.Context) {
+
+	var err error
+
+	c.Set(BearerAuthScopes, []string{})
+
+	c.Set(FirebaseAppCheckAuthScopes, []string{})
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ReservationsV1ListParams
+
+	// ------------- Optional query parameter "roomIds" -------------
+
+	err = runtime.BindQueryParameter("form", false, false, "roomIds", c.Request.URL.Query(), &params.RoomIds)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter roomIds: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Optional query parameter "from" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "from", c.Request.URL.Query(), &params.From)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter from: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Optional query parameter "until" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "until", c.Request.URL.Query(), &params.Until)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter until: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.ReservationsV1List(c, params)
+}
+
 // RoomChangesV1List operation middleware
 func (siw *ServerInterfaceWrapper) RoomChangesV1List(c *gin.Context) {
 
@@ -1202,6 +1272,7 @@ func RegisterHandlersWithOptions(router gin.IRouter, si ServerInterface, options
 	router.GET(options.BaseURL+"/v1/makeupClasses", wrapper.MakeupClassesV1List)
 	router.GET(options.BaseURL+"/v1/menuItems", wrapper.MenuItemsV1List)
 	router.GET(options.BaseURL+"/v1/personalCalendarItems", wrapper.PersonalCalendarItemsV1List)
+	router.GET(options.BaseURL+"/v1/reservations", wrapper.ReservationsV1List)
 	router.GET(options.BaseURL+"/v1/roomChanges", wrapper.RoomChangesV1List)
 	router.GET(options.BaseURL+"/v1/subjects", wrapper.SubjectsV1List)
 	router.GET(options.BaseURL+"/v1/subjects/:id", wrapper.SubjectsV1Detail)
@@ -1457,6 +1528,33 @@ func (response PersonalCalendarItemsV1List401Response) VisitPersonalCalendarItem
 	return nil
 }
 
+type ReservationsV1ListRequestObject struct {
+	Params ReservationsV1ListParams
+}
+
+type ReservationsV1ListResponseObject interface {
+	VisitReservationsV1ListResponse(w http.ResponseWriter) error
+}
+
+type ReservationsV1List200JSONResponse struct {
+	Reservations []Reservation `json:"reservations"`
+}
+
+func (response ReservationsV1List200JSONResponse) VisitReservationsV1ListResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type ReservationsV1List401Response struct {
+}
+
+func (response ReservationsV1List401Response) VisitReservationsV1ListResponse(w http.ResponseWriter) error {
+	w.WriteHeader(401)
+	return nil
+}
+
 type RoomChangesV1ListRequestObject struct {
 	Params RoomChangesV1ListParams
 }
@@ -1663,6 +1761,9 @@ type StrictServerInterface interface {
 
 	// (GET /v1/personalCalendarItems)
 	PersonalCalendarItemsV1List(ctx context.Context, request PersonalCalendarItemsV1ListRequestObject) (PersonalCalendarItemsV1ListResponseObject, error)
+
+	// (GET /v1/reservations)
+	ReservationsV1List(ctx context.Context, request ReservationsV1ListRequestObject) (ReservationsV1ListResponseObject, error)
 
 	// (GET /v1/roomChanges)
 	RoomChangesV1List(ctx context.Context, request RoomChangesV1ListRequestObject) (RoomChangesV1ListResponseObject, error)
@@ -1941,6 +2042,33 @@ func (sh *strictHandler) PersonalCalendarItemsV1List(ctx *gin.Context, params Pe
 		ctx.Status(http.StatusInternalServerError)
 	} else if validResponse, ok := response.(PersonalCalendarItemsV1ListResponseObject); ok {
 		if err := validResponse.VisitPersonalCalendarItemsV1ListResponse(ctx.Writer); err != nil {
+			ctx.Error(err)
+		}
+	} else if response != nil {
+		ctx.Error(fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// ReservationsV1List operation middleware
+func (sh *strictHandler) ReservationsV1List(ctx *gin.Context, params ReservationsV1ListParams) {
+	var request ReservationsV1ListRequestObject
+
+	request.Params = params
+
+	handler := func(ctx *gin.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.ReservationsV1List(ctx, request.(ReservationsV1ListRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ReservationsV1List")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		ctx.Error(err)
+		ctx.Status(http.StatusInternalServerError)
+	} else if validResponse, ok := response.(ReservationsV1ListResponseObject); ok {
+		if err := validResponse.VisitReservationsV1ListResponse(ctx.Writer); err != nil {
 			ctx.Error(err)
 		}
 	} else if response != nil {
