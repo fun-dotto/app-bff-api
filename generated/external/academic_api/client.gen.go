@@ -262,7 +262,7 @@ type PersonalCalendarItem struct {
 type Reservation struct {
 	EndAt   time.Time `json:"endAt"`
 	Id      string    `json:"id"`
-	RoomId  string    `json:"roomId"`
+	Room    Room      `json:"room"`
 	StartAt time.Time `json:"startAt"`
 	Title   string    `json:"title"`
 }
@@ -714,9 +714,6 @@ type ClientInterface interface {
 
 	CancelledClassesV1Create(ctx context.Context, body CancelledClassesV1CreateJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// CancelledClassesV1Fetch request
-	CancelledClassesV1Fetch(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
-
 	// CancelledClassesV1Delete request
 	CancelledClassesV1Delete(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -769,9 +766,6 @@ type ClientInterface interface {
 
 	MakeupClassesV1Create(ctx context.Context, body MakeupClassesV1CreateJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// MakeupClassesV1Fetch request
-	MakeupClassesV1Fetch(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
-
 	// MakeupClassesV1Delete request
 	MakeupClassesV1Delete(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -789,9 +783,6 @@ type ClientInterface interface {
 	// ReservationsV1Delete request
 	ReservationsV1Delete(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// ReservationsV1Detail request
-	ReservationsV1Detail(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error)
-
 	// RoomChangesV1List request
 	RoomChangesV1List(ctx context.Context, params *RoomChangesV1ListParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -799,9 +790,6 @@ type ClientInterface interface {
 	RoomChangesV1CreateWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	RoomChangesV1Create(ctx context.Context, body RoomChangesV1CreateJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	// RoomChangesV1Fetch request
-	RoomChangesV1Fetch(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// RoomChangesV1Delete request
 	RoomChangesV1Delete(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -875,18 +863,6 @@ func (c *Client) CancelledClassesV1CreateWithBody(ctx context.Context, contentTy
 
 func (c *Client) CancelledClassesV1Create(ctx context.Context, body CancelledClassesV1CreateJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewCancelledClassesV1CreateRequest(c.Server, body)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) CancelledClassesV1Fetch(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewCancelledClassesV1FetchRequest(c.Server)
 	if err != nil {
 		return nil, err
 	}
@@ -1125,18 +1101,6 @@ func (c *Client) MakeupClassesV1Create(ctx context.Context, body MakeupClassesV1
 	return c.Client.Do(req)
 }
 
-func (c *Client) MakeupClassesV1Fetch(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewMakeupClassesV1FetchRequest(c.Server)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
 func (c *Client) MakeupClassesV1Delete(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewMakeupClassesV1DeleteRequest(c.Server, id)
 	if err != nil {
@@ -1209,18 +1173,6 @@ func (c *Client) ReservationsV1Delete(ctx context.Context, id string, reqEditors
 	return c.Client.Do(req)
 }
 
-func (c *Client) ReservationsV1Detail(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewReservationsV1DetailRequest(c.Server, id)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
 func (c *Client) RoomChangesV1List(ctx context.Context, params *RoomChangesV1ListParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewRoomChangesV1ListRequest(c.Server, params)
 	if err != nil {
@@ -1247,18 +1199,6 @@ func (c *Client) RoomChangesV1CreateWithBody(ctx context.Context, contentType st
 
 func (c *Client) RoomChangesV1Create(ctx context.Context, body RoomChangesV1CreateJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewRoomChangesV1CreateRequest(c.Server, body)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) RoomChangesV1Fetch(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewRoomChangesV1FetchRequest(c.Server)
 	if err != nil {
 		return nil, err
 	}
@@ -1578,33 +1518,6 @@ func NewCancelledClassesV1CreateRequestWithBody(server string, contentType strin
 	}
 
 	req.Header.Add("Content-Type", contentType)
-
-	return req, nil
-}
-
-// NewCancelledClassesV1FetchRequest generates requests for CancelledClassesV1Fetch
-func NewCancelledClassesV1FetchRequest(server string) (*http.Request, error) {
-	var err error
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/v1/cancelledClasses")
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("PUT", queryURL.String(), nil)
-	if err != nil {
-		return nil, err
-	}
 
 	return req, nil
 }
@@ -2238,33 +2151,6 @@ func NewMakeupClassesV1CreateRequestWithBody(server string, contentType string, 
 	return req, nil
 }
 
-// NewMakeupClassesV1FetchRequest generates requests for MakeupClassesV1Fetch
-func NewMakeupClassesV1FetchRequest(server string) (*http.Request, error) {
-	var err error
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/v1/makeupClasses")
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("PUT", queryURL.String(), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return req, nil
-}
-
 // NewMakeupClassesV1DeleteRequest generates requests for MakeupClassesV1Delete
 func NewMakeupClassesV1DeleteRequest(server string, id string) (*http.Request, error) {
 	var err error
@@ -2511,40 +2397,6 @@ func NewReservationsV1DeleteRequest(server string, id string) (*http.Request, er
 	return req, nil
 }
 
-// NewReservationsV1DetailRequest generates requests for ReservationsV1Detail
-func NewReservationsV1DetailRequest(server string, id string) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "id", runtime.ParamLocationPath, id)
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/v1/reservations/%s", pathParam0)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("GET", queryURL.String(), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return req, nil
-}
-
 // NewRoomChangesV1ListRequest generates requests for RoomChangesV1List
 func NewRoomChangesV1ListRequest(server string, params *RoomChangesV1ListParams) (*http.Request, error) {
 	var err error
@@ -2662,33 +2514,6 @@ func NewRoomChangesV1CreateRequestWithBody(server string, contentType string, bo
 	}
 
 	req.Header.Add("Content-Type", contentType)
-
-	return req, nil
-}
-
-// NewRoomChangesV1FetchRequest generates requests for RoomChangesV1Fetch
-func NewRoomChangesV1FetchRequest(server string) (*http.Request, error) {
-	var err error
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/v1/roomChanges")
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("PUT", queryURL.String(), nil)
-	if err != nil {
-		return nil, err
-	}
 
 	return req, nil
 }
@@ -3428,9 +3253,6 @@ type ClientWithResponsesInterface interface {
 
 	CancelledClassesV1CreateWithResponse(ctx context.Context, body CancelledClassesV1CreateJSONRequestBody, reqEditors ...RequestEditorFn) (*CancelledClassesV1CreateResponse, error)
 
-	// CancelledClassesV1FetchWithResponse request
-	CancelledClassesV1FetchWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*CancelledClassesV1FetchResponse, error)
-
 	// CancelledClassesV1DeleteWithResponse request
 	CancelledClassesV1DeleteWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*CancelledClassesV1DeleteResponse, error)
 
@@ -3483,9 +3305,6 @@ type ClientWithResponsesInterface interface {
 
 	MakeupClassesV1CreateWithResponse(ctx context.Context, body MakeupClassesV1CreateJSONRequestBody, reqEditors ...RequestEditorFn) (*MakeupClassesV1CreateResponse, error)
 
-	// MakeupClassesV1FetchWithResponse request
-	MakeupClassesV1FetchWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*MakeupClassesV1FetchResponse, error)
-
 	// MakeupClassesV1DeleteWithResponse request
 	MakeupClassesV1DeleteWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*MakeupClassesV1DeleteResponse, error)
 
@@ -3503,9 +3322,6 @@ type ClientWithResponsesInterface interface {
 	// ReservationsV1DeleteWithResponse request
 	ReservationsV1DeleteWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*ReservationsV1DeleteResponse, error)
 
-	// ReservationsV1DetailWithResponse request
-	ReservationsV1DetailWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*ReservationsV1DetailResponse, error)
-
 	// RoomChangesV1ListWithResponse request
 	RoomChangesV1ListWithResponse(ctx context.Context, params *RoomChangesV1ListParams, reqEditors ...RequestEditorFn) (*RoomChangesV1ListResponse, error)
 
@@ -3513,9 +3329,6 @@ type ClientWithResponsesInterface interface {
 	RoomChangesV1CreateWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RoomChangesV1CreateResponse, error)
 
 	RoomChangesV1CreateWithResponse(ctx context.Context, body RoomChangesV1CreateJSONRequestBody, reqEditors ...RequestEditorFn) (*RoomChangesV1CreateResponse, error)
-
-	// RoomChangesV1FetchWithResponse request
-	RoomChangesV1FetchWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*RoomChangesV1FetchResponse, error)
 
 	// RoomChangesV1DeleteWithResponse request
 	RoomChangesV1DeleteWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*RoomChangesV1DeleteResponse, error)
@@ -3606,30 +3419,6 @@ func (r CancelledClassesV1CreateResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r CancelledClassesV1CreateResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
-type CancelledClassesV1FetchResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON200      *struct {
-		CancelledClasses []CancelledClass `json:"cancelledClasses"`
-	}
-}
-
-// Status returns HTTPResponse.Status
-func (r CancelledClassesV1FetchResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r CancelledClassesV1FetchResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -3961,30 +3750,6 @@ func (r MakeupClassesV1CreateResponse) StatusCode() int {
 	return 0
 }
 
-type MakeupClassesV1FetchResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON200      *struct {
-		MakeupClasses []MakeupClass `json:"makeupClasses"`
-	}
-}
-
-// Status returns HTTPResponse.Status
-func (r MakeupClassesV1FetchResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r MakeupClassesV1FetchResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
 type MakeupClassesV1DeleteResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -4099,30 +3864,6 @@ func (r ReservationsV1DeleteResponse) StatusCode() int {
 	return 0
 }
 
-type ReservationsV1DetailResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON200      *struct {
-		Reservation Reservation `json:"reservation"`
-	}
-}
-
-// Status returns HTTPResponse.Status
-func (r ReservationsV1DetailResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r ReservationsV1DetailResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
 type RoomChangesV1ListResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -4166,30 +3907,6 @@ func (r RoomChangesV1CreateResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r RoomChangesV1CreateResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
-type RoomChangesV1FetchResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON200      *struct {
-		RoomChanges []RoomChange `json:"roomChanges"`
-	}
-}
-
-// Status returns HTTPResponse.Status
-func (r RoomChangesV1FetchResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r RoomChangesV1FetchResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -4522,15 +4239,6 @@ func (c *ClientWithResponses) CancelledClassesV1CreateWithResponse(ctx context.C
 	return ParseCancelledClassesV1CreateResponse(rsp)
 }
 
-// CancelledClassesV1FetchWithResponse request returning *CancelledClassesV1FetchResponse
-func (c *ClientWithResponses) CancelledClassesV1FetchWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*CancelledClassesV1FetchResponse, error) {
-	rsp, err := c.CancelledClassesV1Fetch(ctx, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseCancelledClassesV1FetchResponse(rsp)
-}
-
 // CancelledClassesV1DeleteWithResponse request returning *CancelledClassesV1DeleteResponse
 func (c *ClientWithResponses) CancelledClassesV1DeleteWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*CancelledClassesV1DeleteResponse, error) {
 	rsp, err := c.CancelledClassesV1Delete(ctx, id, reqEditors...)
@@ -4697,15 +4405,6 @@ func (c *ClientWithResponses) MakeupClassesV1CreateWithResponse(ctx context.Cont
 	return ParseMakeupClassesV1CreateResponse(rsp)
 }
 
-// MakeupClassesV1FetchWithResponse request returning *MakeupClassesV1FetchResponse
-func (c *ClientWithResponses) MakeupClassesV1FetchWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*MakeupClassesV1FetchResponse, error) {
-	rsp, err := c.MakeupClassesV1Fetch(ctx, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseMakeupClassesV1FetchResponse(rsp)
-}
-
 // MakeupClassesV1DeleteWithResponse request returning *MakeupClassesV1DeleteResponse
 func (c *ClientWithResponses) MakeupClassesV1DeleteWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*MakeupClassesV1DeleteResponse, error) {
 	rsp, err := c.MakeupClassesV1Delete(ctx, id, reqEditors...)
@@ -4759,15 +4458,6 @@ func (c *ClientWithResponses) ReservationsV1DeleteWithResponse(ctx context.Conte
 	return ParseReservationsV1DeleteResponse(rsp)
 }
 
-// ReservationsV1DetailWithResponse request returning *ReservationsV1DetailResponse
-func (c *ClientWithResponses) ReservationsV1DetailWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*ReservationsV1DetailResponse, error) {
-	rsp, err := c.ReservationsV1Detail(ctx, id, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseReservationsV1DetailResponse(rsp)
-}
-
 // RoomChangesV1ListWithResponse request returning *RoomChangesV1ListResponse
 func (c *ClientWithResponses) RoomChangesV1ListWithResponse(ctx context.Context, params *RoomChangesV1ListParams, reqEditors ...RequestEditorFn) (*RoomChangesV1ListResponse, error) {
 	rsp, err := c.RoomChangesV1List(ctx, params, reqEditors...)
@@ -4792,15 +4482,6 @@ func (c *ClientWithResponses) RoomChangesV1CreateWithResponse(ctx context.Contex
 		return nil, err
 	}
 	return ParseRoomChangesV1CreateResponse(rsp)
-}
-
-// RoomChangesV1FetchWithResponse request returning *RoomChangesV1FetchResponse
-func (c *ClientWithResponses) RoomChangesV1FetchWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*RoomChangesV1FetchResponse, error) {
-	rsp, err := c.RoomChangesV1Fetch(ctx, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseRoomChangesV1FetchResponse(rsp)
 }
 
 // RoomChangesV1DeleteWithResponse request returning *RoomChangesV1DeleteResponse
@@ -4995,34 +4676,6 @@ func ParseCancelledClassesV1CreateResponse(rsp *http.Response) (*CancelledClasse
 			return nil, err
 		}
 		response.JSON201 = &dest
-
-	}
-
-	return response, nil
-}
-
-// ParseCancelledClassesV1FetchResponse parses an HTTP response from a CancelledClassesV1FetchWithResponse call
-func ParseCancelledClassesV1FetchResponse(rsp *http.Response) (*CancelledClassesV1FetchResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &CancelledClassesV1FetchResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest struct {
-			CancelledClasses []CancelledClass `json:"cancelledClasses"`
-		}
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON200 = &dest
 
 	}
 
@@ -5374,34 +5027,6 @@ func ParseMakeupClassesV1CreateResponse(rsp *http.Response) (*MakeupClassesV1Cre
 	return response, nil
 }
 
-// ParseMakeupClassesV1FetchResponse parses an HTTP response from a MakeupClassesV1FetchWithResponse call
-func ParseMakeupClassesV1FetchResponse(rsp *http.Response) (*MakeupClassesV1FetchResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &MakeupClassesV1FetchResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest struct {
-			MakeupClasses []MakeupClass `json:"makeupClasses"`
-		}
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON200 = &dest
-
-	}
-
-	return response, nil
-}
-
 // ParseMakeupClassesV1DeleteResponse parses an HTTP response from a MakeupClassesV1DeleteWithResponse call
 func ParseMakeupClassesV1DeleteResponse(rsp *http.Response) (*MakeupClassesV1DeleteResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -5518,34 +5143,6 @@ func ParseReservationsV1DeleteResponse(rsp *http.Response) (*ReservationsV1Delet
 	return response, nil
 }
 
-// ParseReservationsV1DetailResponse parses an HTTP response from a ReservationsV1DetailWithResponse call
-func ParseReservationsV1DetailResponse(rsp *http.Response) (*ReservationsV1DetailResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &ReservationsV1DetailResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest struct {
-			Reservation Reservation `json:"reservation"`
-		}
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON200 = &dest
-
-	}
-
-	return response, nil
-}
-
 // ParseRoomChangesV1ListResponse parses an HTTP response from a RoomChangesV1ListWithResponse call
 func ParseRoomChangesV1ListResponse(rsp *http.Response) (*RoomChangesV1ListResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -5597,34 +5194,6 @@ func ParseRoomChangesV1CreateResponse(rsp *http.Response) (*RoomChangesV1CreateR
 			return nil, err
 		}
 		response.JSON201 = &dest
-
-	}
-
-	return response, nil
-}
-
-// ParseRoomChangesV1FetchResponse parses an HTTP response from a RoomChangesV1FetchWithResponse call
-func ParseRoomChangesV1FetchResponse(rsp *http.Response) (*RoomChangesV1FetchResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &RoomChangesV1FetchResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest struct {
-			RoomChanges []RoomChange `json:"roomChanges"`
-		}
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON200 = &dest
 
 	}
 

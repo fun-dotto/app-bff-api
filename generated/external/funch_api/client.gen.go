@@ -174,7 +174,7 @@ func NewMenuItemsV1ListRequest(server string, params *MenuItemsV1ListParams) (*h
 	if params != nil {
 		queryValues := queryURL.Query()
 
-		if queryFrag, err := runtime.StyleParamWithLocation("form", false, "date", runtime.ParamLocationQuery, params.Date); err != nil {
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "date", runtime.ParamLocationQuery, params.Date); err != nil {
 			return nil, err
 		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 			return nil, err

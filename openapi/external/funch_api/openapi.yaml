@@ -17,7 +17,6 @@ paths:
           schema:
             type: string
             format: date
-          explode: false
       responses:
         '200':
           description: メニューのリスト
