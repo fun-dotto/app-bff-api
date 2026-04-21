@@ -19,6 +19,7 @@ type AcademicRepository interface {
 	GetCancelledClasses(query domain.CancelledClassQuery) ([]domain.CancelledClass, error)
 	GetMakeupClasses(query domain.MakeupClassQuery) ([]domain.MakeupClass, error)
 	GetRoomChanges(query domain.RoomChangeQuery) ([]domain.RoomChange, error)
+	GetReservations(query domain.ReservationQuery) ([]domain.Reservation, error)
 }
 
 type AcademicService struct {
@@ -75,5 +76,9 @@ func (s *AcademicService) GetMakeupClasses(query domain.MakeupClassQuery) ([]dom
 
 func (s *AcademicService) GetRoomChanges(query domain.RoomChangeQuery) ([]domain.RoomChange, error) {
 	return s.repository.GetRoomChanges(query)
+}
+
+func (s *AcademicService) GetReservations(query domain.ReservationQuery) ([]domain.Reservation, error) {
+	return s.repository.GetReservations(query)
 }
 

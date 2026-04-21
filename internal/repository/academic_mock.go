@@ -22,6 +22,7 @@ type MockAcademicRepository struct {
 	getCancelledClassesErr      error
 	getMakeupClassesErr         error
 	getRoomChangesErr           error
+	getReservationsErr          error
 }
 
 func NewMockAcademicRepository() *MockAcademicRepository {
@@ -98,6 +99,8 @@ func NewMockAcademicRepositoryWithError(field string, err error) *MockAcademicRe
 		m.getMakeupClassesErr = err
 	case "getRoomChanges":
 		m.getRoomChangesErr = err
+	case "getReservations":
+		m.getReservationsErr = err
 	}
 	return m
 }
@@ -203,6 +206,25 @@ func (m *MockAcademicRepository) GetMakeupClasses(_ domain.MakeupClassQuery) ([]
 			Date:    time.Date(2026, 4, 15, 0, 0, 0, 0, time.UTC),
 			Period:  domain.PeriodPeriod2,
 			Subject: m.subjects[0],
+		},
+	}, nil
+}
+
+func (m *MockAcademicRepository) GetReservations(_ domain.ReservationQuery) ([]domain.Reservation, error) {
+	if m.getReservationsErr != nil {
+		return nil, m.getReservationsErr
+	}
+	return []domain.Reservation{
+		{
+			ID: "reservation-1",
+			Room: domain.Room{
+				ID:    "r1",
+				Name:  "101講義室",
+				Floor: domain.Floor1,
+			},
+			StartAt: time.Date(2026, 4, 20, 10, 0, 0, 0, time.UTC),
+			EndAt:   time.Date(2026, 4, 20, 11, 30, 0, 0, time.UTC),
+			Title:   "ゼミ",
 		},
 	}, nil
 }
