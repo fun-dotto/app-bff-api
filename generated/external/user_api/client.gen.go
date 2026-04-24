@@ -105,12 +105,12 @@ type Notification struct {
 	// AndroidTtlSeconds Android の通知TTL（秒）
 	//
 	// FCM がメッセージを保持する最大時間。期限切れで破棄される
-	AndroidTtlSeconds *int32 `json:"androidTtlSeconds,omitempty"`
+	AndroidTtlSeconds *int `json:"androidTtlSeconds,omitempty"`
 
 	// ApnsBadge APNs のバッジ数
 	//
 	// アプリアイコンに表示される数値。0 でバッジを消去
-	ApnsBadge *int32 `json:"apnsBadge,omitempty"`
+	ApnsBadge *int `json:"apnsBadge,omitempty"`
 
 	// ApnsContentAvailable APNs の content-available フラグ
 	//
@@ -169,10 +169,10 @@ type NotificationRequest struct {
 	AndroidPriority *string `json:"androidPriority,omitempty"`
 
 	// AndroidTtlSeconds Android の通知TTL（秒）
-	AndroidTtlSeconds *int32 `json:"androidTtlSeconds,omitempty"`
+	AndroidTtlSeconds *int `json:"androidTtlSeconds,omitempty"`
 
 	// ApnsBadge APNs のバッジ数
-	ApnsBadge *int32 `json:"apnsBadge,omitempty"`
+	ApnsBadge *int `json:"apnsBadge,omitempty"`
 
 	// ApnsContentAvailable APNs の content-available フラグ（true でサイレントプッシュ）
 	ApnsContentAvailable *bool `json:"apnsContentAvailable,omitempty"`
