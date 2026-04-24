@@ -429,7 +429,6 @@ components:
             通知の開封率計測などに利用
         apnsBadge:
           type: integer
-          format: int32
           description: |-
             APNs のバッジ数
 
@@ -463,7 +462,6 @@ components:
             "normal" または "high"。"high" は即時配信される
         androidTtlSeconds:
           type: integer
-          format: int32
           description: |-
             Android の通知TTL（秒）
 
@@ -515,7 +513,6 @@ components:
           description: Firebase Analytics に記録する分析ラベル
         apnsBadge:
           type: integer
-          format: int32
           description: APNs のバッジ数
         apnsSound:
           type: string
@@ -537,7 +534,6 @@ components:
           description: Android の通知優先度（"normal" または "high"）
         androidTtlSeconds:
           type: integer
-          format: int32
           description: Android の通知TTL（秒）
         webpushLink:
           type: string
